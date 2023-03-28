@@ -1,7 +1,7 @@
 - 👋 Hi, I’m @Robyy1
 - 👀 I’m interested in solving and creating my first game
 - 🌱 I’m currently learning Python, C++ and java
-- 💞️ I’m looking to collaborate on Cipppp
+- 💞️ I’m looking to collaborate ...
 - 📫 How to reach me ...
 
 <!---
