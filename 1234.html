@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Pasta Loading Animation</title>
+    <title>Premium Sushi Loading Animation</title>
     <style>
         :root {
             --bg-color: #f8ecd4;
-            --pot-color: #cfd1c6;
-            --pot-rim: #c8cac0;
-            --pasta-light: #F4D06F;
-            --pasta-dark: #D4B98A;
-            --tongs-color: #d2ad72;
-            --steam-color: #FFFFFF;
-            --shadow-color: rgba(180, 160, 140, 0.2);
+            --nori-color: #1A1A1A;
+            --rice-color: #FFFFFF;
+            --tuna-color: #FF6B6B;
+            --wood-color: #D2B48C;
+            --plate-main: #FFFFFF;
+            --plate-shadow: #E5E2DA;
+            --plate-inner: #F2F0EB;
+            --shadow-color: rgba(0, 0, 0, 0.08);
         }
 
         body {
@@ -25,7 +26,6 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             overflow: hidden;
-            font-family: sans-serif;
         }
 
         .loader-container {
@@ -41,130 +41,147 @@
         }
 
         .tall-stack {
-            animation: slide-stage-out 7s infinite ease;
+            animation: slide-plate-out 7s infinite ease;
         }
 
-        .pot-group {
-            animation: slide-stage-in 7s infinite ease;
+        .plate-group {
+            animation: slide-plate-in 7s infinite ease;
         }
 
-        .bubble {
-            fill: rgba(255, 255, 255, 0.4);
+        .plate-visuals {
+            transform: translateY(-10px);
+        }
+
+        .falling-maki {
+            animation: maki-drop 7s infinite ease-in;
+            animation-fill-mode: backwards;
+        }
+
+        .maki-1 { animation-delay: 0.6s; }
+        .maki-2 { animation-delay: 0.8s; }
+        .maki-3 { animation-delay: 1.0s; }
+        .maki-4 { animation-delay: 1.2s; }
+        .maki-5 { animation-delay: 1.4s; }
+        .maki-5-pickup { 
+            animation: maki-drop-and-lift 7s infinite ease-in;
+            animation-delay: 1.4s; 
+            animation-fill-mode: backwards;
+        }
+
+        .chopsticks {
+            animation: chopstick-slide 7s infinite ease-out;
+            animation-delay: 1.35s;
+            animation-fill-mode: backwards;
             opacity: 0;
-        }
-        .bubble-1 { animation: bubbleRise 7s ease-out infinite; animation-delay: 1.2s; }
-        .bubble-2 { animation: bubbleRise 7s ease-out infinite; animation-delay: 1.5s; }
-        .bubble-3 { animation: bubbleRise 7s ease-out infinite; animation-delay: 1.8s; }
-
-        .tongs-group {
-            transform-origin: 100px 80px;
-            animation: tongsMove 7s infinite ease-out;
+            transform-origin: 150px 80px;
         }
 
-        .pasta-lift-group {
-            animation: pastaLift 7s infinite ease-out;
+        .stick-top {
+            animation: chopstick-pinch-top 7s infinite ease-out;
         }
 
-        .steam {
-            fill: none;
-            stroke: var(--steam-color);
-            stroke-width: 3;
-            stroke-linecap: round;
-            opacity: 0;
-            filter: blur(4px);
+        .stick-bottom {
+            animation: chopstick-pinch-bottom 7s infinite ease;
         }
-        .steam-1 { animation: steamRise 7s ease-out infinite; animation-delay: 3.5s; }
-        .steam-2 { animation: steamRise 7s ease-out infinite; animation-delay: 3.8s; }
 
-        @keyframes slide-stage-in {
-            0% { transform: translateX(250px); }
+        @keyframes maki-drop {
+            0% { transform: translateY(-200px) scaleY(0.7); opacity: 0; }
+            5% { opacity: 1; }
+            11% { transform: translateY(-30px) scaleY(1.2); }
+            13% { transform: translateY(-5px) scaleY(0.9); }
+            15%, 67% { transform: translateY(0) scaleY(1); opacity: 1; }
+            68%, 100% { opacity: 0; transform: translateY(-200px); }
+        }
+
+        @keyframes maki-drop-and-lift {
+            0% { transform: translateY(-200px) scaleY(0.7); opacity: 0; }
+            5% { opacity: 1; }
+            11% { transform: translateY(-30px) scaleY(1.11); }
+            13% { transform: translateY(-2.5px) scaleY(0.95); }
+            15%, 42% { transform: translateY(0) scaleY(1); opacity: 1; }
+            50%, 65% { transform: translateY(-25px) rotate(-5deg); opacity: 1; }
+            68%, 100% { opacity: 0; transform: translateY(-200px); }
+        }
+
+        @keyframes slide-plate-in {
+            0% { transform: translateX(200px); }
             15%, 100% { transform: translateX(0); }
         }
 
-        @keyframes slide-stage-out {
+        @keyframes slide-plate-out {
             0%, 65% { transform: translateX(0); }
             80%, 100% { transform: translateX(-350px); }
         }
 
-        @keyframes bubbleRise {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            5% { opacity: 1; }
-            20%, 100% { transform: translateY(-20px) scale(1.1); opacity: 0; }
-        }
-
-        @keyframes tongsMove {
+        @keyframes chopstick-slide {
             0%, 25% { transform: translateX(150px) rotate(10deg); opacity: 0; }
             35% { transform: translateX(0) rotate(0deg); opacity: 1; }
             45% { transform: translateY(0); opacity: 1; }
-            50%, 65% { transform: translateY(-45px) rotate(-5deg); opacity: 1; }
+            50%, 65% { transform: translateY(-15px) rotate(-5deg); opacity: 1; }
             75%, 100% { transform: translateX(-250px); opacity: 0; }
         }
 
-        @keyframes pastaLift {
-            0%, 42% { transform: translateY(60px); opacity: 0; }
-            43% { opacity: 1; }
-            50%, 65% { transform: translateY(0px); opacity: 1; }
-            66%, 100% { transform: translateY(0px); opacity: 0; }
+        @keyframes chopstick-pinch-top {
+            0%, 72% { transform: translateY(0) rotate(0deg); }
+            84%, 85% { transform: translateY(10px) rotate(-4deg); }
+            90% { transform: translateY(0) rotate(0deg); }
         }
 
-        @keyframes steamRise {
-            0% { opacity: 0; transform: translateY(20px) scaleX(0.5); stroke-dasharray: 0 20; }
-            20% { opacity: 0.6; }
-            60%, 100% { opacity: 0; transform: translateY(-40px) scaleX(1.5); stroke-dasharray: 20 20; }
+        @keyframes chopstick-pinch-bottom {
+            0%, 42% { transform: translateY(0) rotate(0deg); }
+            48%, 65% { transform: translateY(-11px) rotate(4deg); }
+            70% { transform: translateY(0) rotate(0deg); }
         }
     </style>
 </head>
 <body>
 
     <div class="loader-container">
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <pattern id="pastaTexture" x="0" y="0" width="15" height="15" patternUnits="userSpaceOnUse">
-                    <path d="M0 7.5 Q 3.75 0, 7.5 7.5 T 15 7.5" fill="none" stroke="var(--pasta-dark)" stroke-width="2" />
-                </pattern>
-                
-                <clipPath id="potClip">
-                     <ellipse cx="100" cy="135" rx="45" ry="10" />
-                </clipPath>
-
-                <clipPath id="liftClip">
-                    <rect x="0" y="0" width="200" height="145" />
-                </clipPath>
-            </defs>
-
+        <svg viewBox="0 0 200 200">
             <g class="tall-stack">
-                <g class="pot-group">
-                    <ellipse class="pot-shadow" cx="100" cy="180" rx="45" ry="6" fill="var(--shadow-color)" />
+                <g class="plate-group">
+                    <g class="plate-visuals">
+                        <rect x="25" y="152" width="150" height="10" rx="5" fill="var(--shadow-color)" />
+                        <path d="M25 150 Q25 140 35 140 H165 Q175 140 175 150 V152 Q175 160 165 160 H35 Q25 160 25 152 Z" fill="var(--plate-shadow)" />
+                        <path d="M25 148 Q25 138 35 138 H165 Q175 138 175 148 V150 Q175 158 165 158 H35 Q25 158 25 150 Z" fill="var(--plate-main)" />
+                        <rect x="35" y="142" width="130" height="8" rx="4" fill="var(--plate-inner)" />
+                        <rect x="30" y="140" width="40" height="2" rx="1" fill="white" opacity="0.6" />
+                    </g>
                     
-                    <path d="M55,135 L55,160 Q55,180 100,180 Q145,180 145,160 L145,135 Z" fill="#b1b3a8" /> 
+                    <g class="falling-maki maki-1">
+                        <rect x="49" y="114" width="32" height="26" rx="8" fill="var(--nori-color)" />
+                        <rect x="53" y="116" width="24" height="4" rx="2" fill="var(--rice-color)" opacity="0.9" />
+                        <rect x="61" y="116" width="8" height="3" rx="1.5" fill="var(--tuna-color)" />
+                    </g>
                     
-                    <g clip-path="url(#potClip)">
-                        <ellipse cx="100" cy="138" rx="45" ry="10" fill="var(--pasta-light)" />
-                        <rect x="55" y="125" width="90" height="20" fill="url(#pastaTexture)" />
+                    <g class="falling-maki maki-2">
+                        <rect x="84" y="114" width="32" height="26" rx="8" fill="var(--nori-color)" />
+                        <rect x="88" y="116" width="24" height="4" rx="2" fill="var(--rice-color)" opacity="0.9" />
+                        <rect x="96" y="116" width="8" height="3" rx="1.5" fill="var(--tuna-color)" />
+                    </g>
+                    
+                    <g class="falling-maki maki-3">
+                        <rect x="119" y="114" width="32" height="26" rx="8" fill="var(--nori-color)" />
+                        <rect x="123" y="116" width="24" height="4" rx="2" fill="var(--rice-color)" opacity="0.9" />
+                        <rect x="131" y="116" width="8" height="3" rx="1.5" fill="var(--tuna-color)" />
                     </g>
 
-                    <circle class="bubble bubble-1" cx="90" cy="140" r="2" />
-                    <circle class="bubble bubble-2" cx="110" cy="142" r="1.5" />
-                    <circle class="bubble bubble-3" cx="100" cy="138" r="2.5" />
-
-                    <g clip-path="url(#liftClip)">
-                        <g class="pasta-lift-group">
-                            <path d="M85,140 Q100,70 115,140" fill="none" stroke="var(--pasta-light)" stroke-width="6" stroke-linecap="round" />
-                            <path d="M90,140 Q100,85 110,140" fill="none" stroke="var(--pasta-dark)" stroke-width="2" stroke-linecap="round" />
-                        </g>
+                    <g class="falling-maki maki-4">
+                        <rect x="66.5" y="88" width="32" height="26" rx="8" fill="var(--nori-color)" />
+                        <rect x="70.5" y="90" width="24" height="4" rx="2" fill="var(--rice-color)" opacity="0.9" />
+                        <rect x="78.5" y="90" width="8" height="3" rx="1.5" fill="var(--tuna-color)" />
                     </g>
 
-                    <path d="M55,135 Q55,145 100,145 Q145,145 145,135 L145,160 Q145,180 100,180 Q55,180 55,160 Z" fill="var(--pot-color)" />
-                    
-                    <g class="steam-group">
-                        <path class="steam steam-1" d="M85,120 Q75,100 85,80" />
-                        <path class="steam steam-2" d="M115,120 Q125,100 115,80" />
+                    <g class="maki-5-pickup maki-5">
+                        <rect x="101.5" y="88" width="32" height="26" rx="8" fill="var(--nori-color)" />
+                        <rect x="105.5" y="90" width="24" height="4" rx="2" fill="var(--rice-color)" opacity="0.9" />
+                        <rect x="113.5" y="90" width="8" height="3" rx="1.5" fill="var(--tuna-color)" />
                     </g>
                 </g>
 
-                <g class="tongs-group">
-                    <rect x="96" y="60" width="5" height="75" fill="var(--tongs-color)" rx="2" transform="rotate(-8 100 80)" />
-                    <rect x="98" y="60" width="5" height="75" fill="#c49a56" rx="2" transform="rotate(8 100 80)" />
+                <g class="chopsticks">
+                    <line class="stick-top" x1="105" y1="87" x2="205" y2="80" stroke="var(--wood-color)" stroke-width="4" stroke-linecap="round" />
+                    <line class="stick-bottom" x1="105" y1="117" x2="205" y2="92" stroke="var(--wood-color)" stroke-width="4" stroke-linecap="round" />
                 </g>
             </g>
         </svg>
