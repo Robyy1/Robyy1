@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Survivor</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const KEYS = {};
+window.addEventListener('keydown', e => KEYS[e.code] = true);
+window.addEventListener('keyup', e => KEYS[e.code] = false);
+
+const R2D = 180 / Math.PI;
+const D2R = Math.PI / 180;
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1) + min); }
+function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
+class Vector {
+    constructor(x, y) { this.x = x; this.y = y; }
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+    mult(n) { this.x *= n; this.y *= n; return this; }
+    mag() { return Math.hypot(this.x, this.y); }
+    normalize() {
+        let m = this.mag();
+        if (m > 0) this.mult(1 / m);
+        return this;
+    }
+    copy() { return new Vector(this.x, this.y); }
+}
+
+const COLORS = {
+    player: '#00ff66',
+    enemy: '#ff3333',
+    enemyFast: '#ff9933',
+    enemyTank: '#990033',
+    gem: '#33ccff',
+    bg: '#1a1a1a',
+    text: '#ffffff',
+    ui: '#222222',
+    uiBorder: '#444444',
+    projectile: '#ffff00',
+    frost: '#00ffff',
+    void: '#aa00aa',
+    fire: '#ff5500'
+};
+
+const STATS = {
+    hp: 100,
+    maxHp: 100,
+    regen: 0,
+    speed: 4,
+    size: 20,
+    pickupRange: 100,
+    projCount: 1,
+    projSpeed: 8,
+    projDamage: 10,
+    projPierce: 0,
+    projLife: 60,
+    attackSpeed: 30,
+    critChance: 0.05,
+    critMult: 2.0,
+    cooldownMult: 1.0,
+    defense: 0
+};
+
+const FLAGS = {
+    chainLightning: false,
+    orbitalShields: false,
+    frostNova: false,
+    voidPull: false,
+    dashShadow: false,
+    mirage: false,
+    lavaSteps: false,
+    boomerang: false,
+    elastic: false,
+    bloodTithe: false,
+    droneSwarm: false,
+    tesla: false,
+    holyAura: false,
+    explodingCorpses: false,
+    magnetPulse: false,
+    giantism: false,
+    timeWarp: false,
+    splitter: false,
+    bunkerMode: false,
+    meteorStrike: false
+};
+
+const STATE = {
+    menu: 0,
+    playing: 1,
+    levelup: 2,
+    gameover: 3
+};
+
+let gameState = STATE.playing;
+let frame = 0;
+let time = 0;
+let score = 0;
+let kills = 0;
+let level = 1;
+let xp = 0;
+let xpNext = 20;
+let difficulty = 1;
+let screenShake = 0;
+
+let player;
+let entities = [];
+let particles = [];
+let projectiles = [];
+let gems = [];
+let floatingTexts = [];
+let turrets = [];
+let zones = [];
+let upgradesAvailable = [];
+
+class Camera {
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+    }
+    follow(target) {
+        let targetX = target.x - width / 2;
+        let targetY = target.y - height / 2;
+        this.x += (targetX - this.x) * 0.1;
+        this.y += (targetY - this.y) * 0.1;
+    }
+}
+const camera = new Camera();
+
+class Particle {
+    constructor(x, y, color, size, speed, life) {
+        this.pos = new Vector(x, y);
+        let angle = rand(0, Math.PI * 2);
+        this.vel = new Vector(Math.cos(angle), Math.sin(angle)).mult(speed);
+        this.color = color;
+        this.size = size;
+        this.life = life;
+        this.maxLife = life;
+        this.drag = 0.95;
+    }
+    update() {
+        this.pos.add(this.vel);
+        this.vel.mult(this.drag);
+        this.life--;
+    }
+    draw() {
+        ctx.globalAlpha = this.life / this.maxLife;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.pos.x, this.pos.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+}
+
+class FloatingText {
+    constructor(x, y, text, color, size = 16) {
+        this.pos = new Vector(x, y);
+        this.text = text;
+        this.color = color;
+        this.life = 60;
+        this.vel = new Vector(0, -1);
+        this.size = size;
+    }
+    update() {
+        this.pos.add(this.vel);
+        this.life--;
+    }
+    draw() {
+        ctx.globalAlpha = clamp(this.life / 20, 0, 1);
+        ctx.fillStyle = this.color;
+        ctx.font = `bold ${this.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText(this.text, this.pos.x, this.pos.y);
+        ctx.globalAlpha = 1;
+    }
+}
+
+class Gem {
+    constructor(x, y, value) {
+        this.pos = new Vector(x, y);
+        this.value = value;
+        this.size = 6 + (value * 2);
+        this.magnetized = false;
+        this.bob = rand(0, 100);
+    }
+    update() {
+        let d = dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y);
+        
+        if (FLAGS.magnetPulse && frame % 1800 === 0) {
+            this.magnetized = true;
+        }
+
+        let range = player.pickupRange;
+        if (d < range || this.magnetized) {
+            let speed = this.magnetized ? 15 : 6;
+            let dir = new Vector(player.pos.x - this.pos.x, player.pos.y - this.pos.y).normalize().mult(speed);
+            this.pos.add(dir);
+            if (d < player.size + this.size) {
+                this.collect();
+            }
+        }
+    }
+    collect() {
+        xp += this.value;
+        gems.splice(gems.indexOf(this), 1);
+        checkLevelUp();
+    }
+    draw() {
+        let b = Math.sin((frame + this.bob) * 0.1) * 3;
+        ctx.fillStyle = COLORS.gem;
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y + b);
+        ctx.rotate((frame + this.bob) * 0.05);
+        ctx.beginPath();
+        ctx.moveTo(0, -this.size);
+        ctx.lineTo(this.size, 0);
+        ctx.lineTo(0, this.size);
+        ctx.lineTo(-this.size, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Zone {
+    constructor(x, y, type) {
+        this.pos = new Vector(x, y);
+        this.type = type;
+        this.timer = 0;
+        
+        if (type === 'void') {
+            this.life = 180;
+            this.radius = 150;
+        } else if (type === 'lava') {
+            this.life = 240;
+            this.radius = 40;
+        } else if (type === 'frost') {
+            this.life = 30;
+            this.radius = 200;
+        } else if (type === 'shadow') {
+            this.life = 120;
+            this.radius = 30;
+        } else if (type === 'meteor') {
+            this.life = 60;
+            this.radius = 80;
+            this.impact = false;
+        }
+    }
+    
+    update() {
+        this.timer++;
+        this.life--;
+        
+        if (this.type === 'void') {
+            entities.forEach(e => {
+                let d = dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y);
+                if (d < this.radius) {
+                    let dir = new Vector(this.pos.x - e.pos.x, this.pos.y - e.pos.y).normalize().mult(1.5);
+                    e.pos.add(dir);
+                    e.takeDamage(0.1, false);
+                }
+            });
+        }
+        else if (this.type === 'lava') {
+            if (this.timer % 20 === 0) {
+                entities.forEach(e => {
+                    if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < this.radius) {
+                        e.takeDamage(STATS.projDamage * 0.5);
+                    }
+                });
+            }
+        }
+        else if (this.type === 'frost') {
+            if (this.timer === 1) {
+                entities.forEach(e => {
+                    if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < this.radius) {
+                        e.freeze(120);
+                        e.takeDamage(STATS.projDamage);
+                    }
+                });
+            }
+        }
+        else if (this.type === 'shadow') {
+             if (this.timer % 15 === 0) {
+                entities.forEach(e => {
+                    if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < this.radius) {
+                        e.takeDamage(STATS.projDamage * 0.3);
+                    }
+                });
+            }
+        }
+        else if (this.type === 'meteor') {
+            if (this.life <= 0 && !this.impact) {
+                this.impact = true;
+                this.life = 10; 
+                screenShake = 10;
+                entities.forEach(e => {
+                    if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < this.radius) {
+                        e.takeDamage(STATS.projDamage * 5);
+                    }
+                });
+                for(let i=0; i<20; i++) particles.push(new Particle(this.pos.x, this.pos.y, COLORS.fire, rand(2,6), rand(2,8), 30));
+            }
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        
+        if (this.type === 'void') {
+            ctx.fillStyle = `rgba(100, 0, 100, 0.3)`;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.rotate(frame * -0.1);
+            ctx.strokeStyle = COLORS.void;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-20, 0); ctx.lineTo(20, 0);
+            ctx.moveTo(0, -20); ctx.lineTo(0, 20);
+            ctx.stroke();
+        } 
+        else if (this.type === 'lava') {
+            ctx.fillStyle = `rgba(255, 85, 0, ${this.life/240})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        else if (this.type === 'frost') {
+            ctx.strokeStyle = COLORS.frost;
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = this.life / 30;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius * (1 - this.life/30), 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        else if (this.type === 'shadow') {
+            ctx.fillStyle = `rgba(50, 50, 50, ${this.life/120})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        else if (this.type === 'meteor' && !this.impact) {
+            ctx.fillStyle = 'rgba(255,0,0,0.2)';
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            let h = 500 * (this.life / 60);
+            ctx.fillStyle = COLORS.fire;
+            ctx.beginPath();
+            ctx.arc(0, -h, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+}
+
+class Projectile {
+    constructor(x, y, target, damage, type = 'normal') {
+        this.pos = new Vector(x, y);
+        this.startPos = new Vector(x, y);
+        this.damage = damage;
+        this.type = type;
+        
+        let angle;
+        if (target) {
+            angle = Math.atan2(target.y - y, target.x - x);
+        } else {
+            angle = rand(0, Math.PI * 2);
+        }
+        
+        if (type === 'splitter_shard') {
+            angle += rand(-0.5, 0.5);
+        }
+
+        this.vel = new Vector(Math.cos(angle), Math.sin(angle)).mult(STATS.projSpeed);
+        this.life = STATS.projLife;
+        this.pierce = STATS.projPierce;
+        this.hitList = [];
+        this.returning = false;
+        
+        if (FLAGS.boomerang) {
+            this.life *= 1.5;
+            this.vel.mult(1.2);
+        }
+    }
+
+    update() {
+        if (FLAGS.boomerang) {
+            if (this.life < STATS.projLife * 0.75 && !this.returning) {
+                this.vel.mult(0.92); 
+                if (this.vel.mag() < 1) {
+                    this.returning = true;
+                }
+            } else if (this.returning) {
+                let dir = new Vector(player.pos.x - this.pos.x, player.pos.y - this.pos.y).normalize();
+                this.vel.add(dir.mult(1.5));
+                if (this.vel.mag() > STATS.projSpeed) this.vel.normalize().mult(STATS.projSpeed);
+                
+                if (dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y) < player.size) {
+                    this.life = 0;
+                }
+            }
+        }
+        
+        if (FLAGS.elastic && !this.returning) {
+            let margin = 50;
+            let cx = camera.x;
+            let cy = camera.y;
+            if (this.pos.x < cx || this.pos.x > cx + width) this.vel.x *= -1;
+            if (this.pos.y < cy || this.pos.y > cy + height) this.vel.y *= -1;
+        }
+
+        this.pos.add(this.vel);
+        this.life--;
+        
+        if (this.life <= 0) return;
+
+        for (let e of entities) {
+            if (this.hitList.includes(e.id) && !FLAGS.boomerang) continue;
+            
+            if (FLAGS.boomerang && this.hitList.includes(e.id)) {
+                let hitTime = this.hitList.indexOf(e.id); 
+            }
+
+            if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < e.size + 10) {
+                this.hit(e);
+                if (this.pierce > 0) {
+                    this.pierce--;
+                } else {
+                    this.life = 0;
+                    break;
+                }
+            }
+        }
+    }
+
+    hit(e) {
+        if (!this.hitList.includes(e.id)) this.hitList.push(e.id);
+        
+        let dmg = this.damage;
+        let isCrit = Math.random() < STATS.critChance;
+        if (isCrit) dmg *= STATS.critMult;
+
+        e.takeDamage(dmg, isCrit);
+
+        if (FLAGS.splitter && this.type !== 'splitter_shard') {
+            projectiles.push(new Projectile(this.pos.x, this.pos.y, null, this.damage * 0.5, 'splitter_shard'));
+            projectiles.push(new Projectile(this.pos.x, this.pos.y, null, this.damage * 0.5, 'splitter_shard'));
+        }
+
+        if (FLAGS.chainLightning && Math.random() < 0.3) {
+            let targets = entities.filter(ent => ent !== e && dist(this.pos.x, this.pos.y, ent.pos.x, ent.pos.y) < 200).slice(0, 3);
+            targets.forEach(t => {
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.pos.x, this.pos.y);
+                ctx.lineTo(t.pos.x, t.pos.y);
+                ctx.stroke();
+                t.takeDamage(this.damage * 0.5);
+            });
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        ctx.rotate(Math.atan2(this.vel.y, this.vel.x));
+        
+        ctx.fillStyle = COLORS.projectile;
+        if (this.type === 'splitter_shard') ctx.fillStyle = '#ff00ff';
+        
+        if (FLAGS.boomerang) {
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI*2); 
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8 + Math.sin(frame*0.5)*2, 0, Math.PI*2); 
+            ctx.stroke();
+        } else {
+            ctx.fillRect(-6, -3, 12, 6);
+        }
+        
+        ctx.restore();
+    }
+}
+
+class Player {
+    constructor() {
+        this.pos = new Vector(0, 0);
+        this.vel = new Vector(0, 0);
+        this.lastShot = 0;
+        this.dashCooldown = 0;
+        this.isDashing = false;
+        this.dashVec = new Vector(0,0);
+        this.shieldAngle = 0;
+        this.bunkerTimer = 0;
+        this.droneAngle = 0;
+        this.teslaTimer = 0;
+        this.magnetTimer = 0;
+        this.holyTimer = 0;
+    }
+
+    update() {
+        let moveSpeed = STATS.speed;
+        if (FLAGS.giantism) moveSpeed *= 0.6;
+        if (FLAGS.timeWarp && STATS.hp < STATS.maxHp * 0.2) {
+             
+        }
+
+        let input = new Vector(0, 0);
+        if (KEYS['KeyW'] || KEYS['ArrowUp']) input.y -= 1;
+        if (KEYS['KeyS'] || KEYS['ArrowDown']) input.y += 1;
+        if (KEYS['KeyA'] || KEYS['ArrowLeft']) input.x -= 1;
+        if (KEYS['KeyD'] || KEYS['ArrowRight']) input.x += 1;
+
+        if (input.mag() > 0 && !this.isDashing) {
+            input.normalize();
+            this.vel.add(input.mult(0.5));
+            this.bunkerTimer = 0;
+        } else {
+            if (input.mag() === 0) this.bunkerTimer++;
+        }
+
+        if (FLAGS.bunkerMode && this.bunkerTimer > 180) {
+            STATS.defense = 0.8; 
+            if (this.bunkerTimer % 10 === 0) {
+                 particles.push(new Particle(this.pos.x + rand(-20,20), this.pos.y + rand(-20,20), '#aaa', 4, 1, 20));
+            }
+        } else {
+            STATS.defense = 0;
+        }
+
+        if (KEYS['Space'] && this.dashCooldown <= 0) {
+            this.isDashing = true;
+            this.dashCooldown = 60; 
+            this.dashVec = input.mag() > 0 ? input.copy().normalize().mult(15) : new Vector(1,0).mult(15);
+            if (FLAGS.dashShadow) {
+                zones.push(new Zone(this.pos.x, this.pos.y, 'shadow'));
+            }
+        }
+
+        if (this.isDashing) {
+            this.pos.add(this.dashVec);
+            this.dashVec.mult(0.85);
+            if (this.dashVec.mag() < 2) this.isDashing = false;
+        } else {
+            this.pos.add(this.vel);
+            this.vel.mult(0.85); 
+            if (this.vel.mag() > moveSpeed) this.vel.normalize().mult(moveSpeed);
+        }
+
+        this.dashCooldown--;
+
+        if (FLAGS.lavaSteps && frame % 15 === 0 && this.vel.mag() > 0.5) {
+            zones.push(new Zone(this.pos.x, this.pos.y, 'lava'));
+        }
+
+        if (FLAGS.holyAura) {
+            this.holyTimer++;
+            if (this.holyTimer >= 30) {
+                this.holyTimer = 0;
+                entities.forEach(e => {
+                    if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < 120) {
+                        e.takeDamage(5);
+                    }
+                });
+            }
+        }
+
+        if (FLAGS.tesla) {
+            this.teslaTimer++;
+            if (this.teslaTimer >= 600) { 
+                this.teslaTimer = 0;
+                turrets.push({pos: this.pos.copy(), life: 900, type: 'tesla', fireTimer: 0});
+            }
+        }
+        
+        if (FLAGS.magnetPulse) {
+            this.magnetTimer++;
+        }
+        
+        if (FLAGS.meteorStrike && frame % 300 === 0) {
+            for(let i=0; i<3; i++) {
+                let angle = rand(0, Math.PI*2);
+                let dist = rand(100, 400);
+                zones.push(new Zone(this.pos.x + Math.cos(angle)*dist, this.pos.y + Math.sin(angle)*dist, 'meteor'));
+            }
+        }
+
+        let enemies = entities;
+        let closest = null;
+        let minDist = Infinity;
+        for (let e of enemies) {
+            let d = dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y);
+            if (d < minDist) {
+                minDist = d;
+                closest = e;
+            }
+        }
+
+        let fireRate = Math.max(5, STATS.attackSpeed * STATS.cooldownMult);
+        if (frame - this.lastShot > fireRate && closest && minDist < 600) {
+            this.shoot(closest);
+            this.lastShot = frame;
+        }
+        
+        if (FLAGS.frostNova && frame % 300 === 0) {
+             zones.push(new Zone(this.pos.x, this.pos.y, 'frost'));
+        }
+        
+        if (STATS.regen > 0 && frame % 120 === 0) {
+            if (STATS.hp < STATS.maxHp) STATS.hp += STATS.regen;
+        }
+
+        this.checkCollisions();
+    }
+
+    shoot(target) {
+        for (let i = 0; i < STATS.projCount; i++) {
+            setTimeout(() => {
+                let p = new Projectile(this.pos.x, this.pos.y, target.pos, STATS.projDamage);
+                if (FLAGS.giantism) { p.size = 10; p.damage *= 1.5; }
+                projectiles.push(p);
+            }, i * 50);
+        }
+    }
+
+    checkCollisions() {
+        if (this.isDashing) return;
+        for (let e of entities) {
+            if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < (this.size + e.size) * 0.8) {
+                let dmg = e.damage * (1 - STATS.defense);
+                STATS.hp -= dmg;
+                screenShake = 5;
+                
+                let dir = new Vector(this.pos.x - e.pos.x, this.pos.y - e.pos.y).normalize();
+                this.vel.add(dir.mult(5));
+                
+                if (STATS.hp <= 0) {
+                    gameState = STATE.gameover;
+                }
+            }
+        }
+    }
+
+    draw() {
+        let size = STATS.size;
+        if (FLAGS.giantism) size *= 3;
+
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        
+        if (FLAGS.bunkerMode && this.bunkerTimer > 180) {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0,0, size + 10, 0, Math.PI*2);
+            ctx.stroke();
+        }
+
+        if (FLAGS.holyAura) {
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.1)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 120, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = COLORS.player;
+        ctx.fillRect(-size/2, -size/2, size, size);
+        
+        if (FLAGS.orbitalShields) {
+            this.shieldAngle += 0.05;
+            for(let i=0; i<3; i++) {
+                let ang = this.shieldAngle + (i * (Math.PI*2/3));
+                let sx = Math.cos(ang) * 60;
+                let sy = Math.sin(ang) * 60;
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(sx-5, sy-5, 10, 10);
+                
+                let gx = this.pos.x + sx;
+                let gy = this.pos.y + sy;
+                entities.forEach(e => {
+                    if (dist(gx, gy, e.pos.x, e.pos.y) < 20) {
+                        e.takeDamage(10);
+                        let push = new Vector(e.pos.x - gx, e.pos.y - gy).normalize().mult(5);
+                        e.pos.add(push);
+                    }
+                });
+            }
+        }
+
+        if (FLAGS.droneSwarm) {
+            this.droneAngle -= 0.03;
+            for(let i=0; i<2; i++) {
+                let ang = this.droneAngle + (i * Math.PI);
+                let dx = Math.cos(ang) * 80;
+                let dy = Math.sin(ang) * 80;
+                ctx.fillStyle = '#888';
+                ctx.beginPath();
+                ctx.arc(dx, dy, 5, 0, Math.PI*2);
+                ctx.fill();
+                
+                if (frame % 60 === 0) {
+                     let close = null;
+                     let md = 300;
+                     entities.forEach(e => {
+                         let d = dist(this.pos.x + dx, this.pos.y + dy, e.pos.x, e.pos.y);
+                         if (d < md) { md = d; close = e; }
+                     });
+                     if (close) {
+                         projectiles.push(new Projectile(this.pos.x + dx, this.pos.y + dy, close.pos, STATS.projDamage * 0.3));
+                     }
+                }
+            }
+        }
+        
+        ctx.restore();
+    }
+}
+
+class Enemy {
+    constructor(type) {
+        let angle = rand(0, Math.PI * 2);
+        let d = rand(width/2 + 100, width);
+        this.pos = new Vector(player.pos.x + Math.cos(angle) * d, player.pos.y + Math.sin(angle) * d);
+        this.id = Math.random();
+        
+        this.type = type;
+        this.frozen = 0;
+        this.flash = 0;
+        
+        if (type === 'basic') {
+            this.hp = 20 * difficulty;
+            this.maxHp = this.hp;
+            this.speed = 2 + (difficulty * 0.1);
+            this.size = 15;
+            this.color = COLORS.enemy;
+            this.damage = 10;
+            this.xp = 1;
+        } else if (type === 'fast') {
+            this.hp = 10 * difficulty;
+            this.maxHp = this.hp;
+            this.speed = 3.5 + (difficulty * 0.1);
+            this.size = 10;
+            this.color = COLORS.enemyFast;
+            this.damage = 5;
+            this.xp = 2;
+        } else if (type === 'tank') {
+            this.hp = 60 * difficulty;
+            this.maxHp = this.hp;
+            this.speed = 1.5;
+            this.size = 25;
+            this.color = COLORS.enemyTank;
+            this.damage = 20;
+            this.xp = 5;
+        }
+    }
+
+    update() {
+        if (this.frozen > 0) {
+            this.frozen--;
+            return;
+        }
+        if (this.flash > 0) this.flash--;
+
+        let dir = new Vector(player.pos.x - this.pos.x, player.pos.y - this.pos.y);
+        
+        if (FLAGS.mirage) {
+             let decoy = turrets.find(t => t.type === 'mirage');
+             if (decoy) {
+                 if (dist(this.pos.x, this.pos.y, decoy.pos.x, decoy.pos.y) < dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y)) {
+                     dir = new Vector(decoy.pos.x - this.pos.x, decoy.pos.y - this.pos.y);
+                 }
+             }
+        }
+        
+        dir.normalize();
+
+        let separation = new Vector(0,0);
+        let count = 0;
+        for (let other of entities) {
+            if (other === this) continue;
+            let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+            if (d < this.size + other.size + 10) {
+                let push = new Vector(this.pos.x - other.pos.x, this.pos.y - other.pos.y);
+                push.normalize().mult(1 / d);
+                separation.add(push);
+                count++;
+            }
+        }
+        
+        if (count > 0) separation.mult(15);
+        dir.add(separation).normalize();
+
+        let s = this.speed;
+        if (FLAGS.timeWarp && STATS.hp < STATS.maxHp * 0.2) s *= 0.5;
+        
+        this.pos.add(dir.mult(s));
+    }
+
+    takeDamage(amt, crit = false) {
+        this.hp -= amt;
+        this.flash = 5;
+        floatingTexts.push(new FloatingText(this.pos.x, this.pos.y - 20, Math.floor(amt), crit ? '#ffff00' : '#fff', crit ? 24 : 16));
+        
+        if (this.hp <= 0) {
+            this.die();
+        }
+    }
+    
+    freeze(frames) {
+        this.frozen = frames;
+    }
+
+    die() {
+        entities.splice(entities.indexOf(this), 1);
+        kills++;
+        gems.push(new Gem(this.pos.x, this.pos.y, this.xp));
+        
+        if (FLAGS.bloodTithe && Math.random() < 0.01) {
+            if (STATS.hp < STATS.maxHp) STATS.hp += 1;
+            floatingTexts.push(new FloatingText(player.pos.x, player.pos.y, "HEAL", "#0f0", 20));
+        }
+
+        if (FLAGS.explodingCorpses && Math.random() < 0.2) {
+             particles.push(new Particle(this.pos.x, this.pos.y, '#ff0', 20, 0, 10));
+             entities.forEach(e => {
+                 if (dist(this.pos.x, this.pos.y, e.pos.x, e.pos.y) < 100) {
+                     e.takeDamage(15);
+                 }
+             });
+        }
+
+        for (let i = 0; i < 5; i++) {
+            particles.push(new Particle(this.pos.x, this.pos.y, this.color, rand(2, 6), rand(2, 6), 30));
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = this.flash > 0 ? '#ffffff' : this.color;
+        if (this.frozen > 0) ctx.fillStyle = '#88ffff';
+        
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        ctx.beginPath();
+        if (this.type === 'basic') {
+            ctx.moveTo(0, -this.size);
+            ctx.lineTo(this.size, this.size);
+            ctx.lineTo(-this.size, this.size);
+        } else if (this.type === 'fast') {
+            ctx.moveTo(0, -this.size);
+            ctx.lineTo(this.size/2, 0);
+            ctx.lineTo(0, this.size);
+            ctx.lineTo(-this.size/2, 0);
+        } else {
+            ctx.rect(-this.size, -this.size, this.size*2, this.size*2);
+        }
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+const UPGRADES_LIST = [
+    { name: "Chain Lightning", desc: "Projectiles arc to nearby enemies", type: "flag", key: "chainLightning" },
+    { name: "Orbital Shields", desc: "Rotational defense barrier", type: "flag", key: "orbitalShields" },
+    { name: "Frost Nova", desc: "Periodically freezes enemies", type: "flag", key: "frostNova" },
+    { name: "Void Pull", desc: "Black hole sub-weapon", type: "flag", key: "voidPull" },
+    { name: "Dash Shadow", desc: "Dash leaves damaging trail", type: "flag", key: "dashShadow" },
+    { name: "Mirage", desc: "Decoy that draws aggro", type: "flag", key: "mirage" },
+    { name: "Lava Steps", desc: "Leave fire trails", type: "flag", key: "lavaSteps" },
+    { name: "Boomerang", desc: "Projectiles return", type: "flag", key: "boomerang" },
+    { name: "Elastic", desc: "Bounce off screen edges", type: "flag", key: "elastic" },
+    { name: "Blood Tithe", desc: "1% chance to heal on kill", type: "flag", key: "bloodTithe" },
+    { name: "Drone Swarm", desc: "Autonomous drones", type: "flag", key: "droneSwarm" },
+    { name: "Tesla Coils", desc: "Drop turrets periodically", type: "flag", key: "tesla" },
+    { name: "Holy Aura", desc: "Damage aura", type: "flag", key: "holyAura" },
+    { name: "Exploding Corpses", desc: "Enemies go boom", type: "flag", key: "explodingCorpses" },
+    { name: "Magnet Pulse", desc: "Periodically pull all gems", type: "flag", key: "magnetPulse" },
+    { name: "Giantism", desc: "3x Size, +Dmg, -Speed", type: "flag", key: "giantism" },
+    { name: "Time Warp", desc: "Slow mo at low health", type: "flag", key: "timeWarp" },
+    { name: "Splitter", desc: "Bullets split on impact", type: "flag", key: "splitter" },
+    { name: "Bunker Mode", desc: "Stand still to defend", type: "flag", key: "bunkerMode" },
+    { name: "Meteor Strike", desc: "Random fire rains down", type: "flag", key: "meteorStrike" },
+    { name: "Multishot", desc: "+1 Projectile", type: "stat", key: "projCount", val: 1 },
+    { name: "Sharpen", desc: "+1 Pierce", type: "stat", key: "projPierce", val: 1 },
+    { name: "Rapid Fire", desc: "+15% Attack Speed", type: "stat", key: "attackSpeed", val: -5 },
+    { name: "Haste", desc: "+10% Move Speed", type: "stat", key: "speed", val: 0.5 },
+    { name: "Magnetism", desc: "+25% Pickup Range", type: "stat", key: "pickupRange", val: 25 },
+    { name: "Precision", desc: "+5% Crit Chance", type: "stat", key: "critChance", val: 0.05 },
+    { name: "Regeneration", desc: "+0.1 HP/sec", type: "stat", key: "regen", val: 0.05 },
+    { name: "Cooldown", desc: "-10% Cooldowns", type: "stat", key: "cooldownMult", val: -0.1 }
+];
+
+function checkLevelUp() {
+    if (xp >= xpNext) {
+        xp -= xpNext;
+        level++;
+        xpNext = Math.floor(xpNext * 1.2);
+        gameState = STATE.levelup;
+        generateUpgrades();
+    }
+}
+
+function generateUpgrades() {
+    upgradesAvailable = [];
+    let pool = [...UPGRADES_LIST];
+    
+    for (let i = 0; i < 3; i++) {
+        let idx = randInt(0, pool.length - 1);
+        let upg = pool[idx];
+        
+        if (upg.type === "flag" && FLAGS[upg.key]) {
+            i--;
+            continue; 
+        }
+        
+        upgradesAvailable.push(upg);
+    }
+}
+
+function applyUpgrade(idx) {
+    let u = upgradesAvailable[idx];
+    if (u.type === "flag") {
+        FLAGS[u.key] = true;
+        
+        if (u.key === 'voidPull') {
+             zones.push(new Zone(player.pos.x + 100, player.pos.y, 'void'));
+             setInterval(() => {
+                 let v = zones.find(z => z.type === 'void');
+                 if(!v) zones.push(new Zone(player.pos.x + rand(-200,200), player.pos.y + rand(-200,200), 'void'));
+             }, 5000);
+        }
+        if (u.key === 'mirage') {
+            turrets.push({pos: new Vector(0,0), type: 'mirage', life: 999999});
+        }
+    } else {
+        STATS[u.key] += u.val;
+        if(u.key === 'attackSpeed' && STATS.attackSpeed < 5) STATS.attackSpeed = 5;
+    }
+    
+    gameState = STATE.playing;
+}
+
+function spawnEnemies() {
+    let cap = 50 + (level * 5);
+    if (entities.length < cap) {
+        let chance = Math.random();
+        if (chance < 0.7) entities.push(new Enemy('basic'));
+        else if (chance < 0.9) entities.push(new Enemy('fast'));
+        else entities.push(new Enemy('tank'));
+    }
+}
+
+function initGame() {
+    player = new Player();
+    entities = [];
+    projectiles = [];
+    particles = [];
+    gems = [];
+    zones = [];
+    turrets = [];
+    floatingTexts = [];
+    score = 0;
+    kills = 0;
+    level = 1;
+    xp = 0;
+    xpNext = 20;
+    difficulty = 1;
+    time = 0;
+    
+    Object.keys(FLAGS).forEach(k => FLAGS[k] = false);
+    STATS.hp = STATS.maxHp;
+    
+    gameState = STATE.playing;
+}
+
+function loop() {
+    requestAnimationFrame(loop);
+    
+    if (gameState === STATE.playing) {
+        time++;
+        if (time % 3600 === 0) { 
+            difficulty += 0.5;
+            floatingTexts.push(new FloatingText(player.pos.x, player.pos.y - 50, "ENEMY WAVE STRONGER", "#f00", 30));
+        }
+
+        if (time % 60 === 0) spawnEnemies();
+
+        player.update();
+        camera.follow(player.pos);
+        
+        if (screenShake > 0) screenShake *= 0.9;
+
+        entities.forEach(e => e.update());
+        projectiles.forEach((p, i) => {
+            p.update();
+            if (p.life <= 0) projectiles.splice(i, 1);
+        });
+        
+        particles.forEach((p, i) => {
+            p.update();
+            if (p.life <= 0) particles.splice(i, 1);
+        });
+        
+        gems.forEach(g => g.update());
+        
+        zones.forEach((z, i) => {
+            z.update();
+            if (z.life <= 0) zones.splice(i, 1);
+        });
+        
+        turrets.forEach((t, i) => {
+            if (t.type === 'mirage') {
+                t.pos = new Vector(player.pos.x - 100, player.pos.y);
+            } else if (t.type === 'tesla') {
+                t.life--;
+                t.fireTimer++;
+                if (t.fireTimer > 30) {
+                    t.fireTimer = 0;
+                    let targets = entities.filter(e => dist(t.pos.x, t.pos.y, e.pos.x, e.pos.y) < 250);
+                    if (targets.length > 0) {
+                        let target = targets[randInt(0, targets.length-1)];
+                        ctx.strokeStyle = '#ffff00';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(t.pos.x, t.pos.y);
+                        ctx.lineTo(target.pos.x, target.pos.y);
+                        ctx.stroke(); 
+                        target.takeDamage(15);
+                    }
+                }
+                if (t.life <= 0) turrets.splice(i, 1);
+            }
+        });
+
+        floatingTexts.forEach((t, i) => {
+            t.update();
+            if (t.life <= 0) floatingTexts.splice(i, 1);
+        });
+    }
+
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.save();
+    let sx = (Math.random() - 0.5) * screenShake;
+    let sy = (Math.random() - 0.5) * screenShake;
+    ctx.translate(width / 2 - camera.x + sx, height / 2 - camera.y + sy);
+    
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 2;
+    let gridSize = 100;
+    let startX = Math.floor(camera.x / gridSize) * gridSize - width;
+    let startY = Math.floor(camera.y / gridSize) * gridSize - height;
+    for (let x = startX; x < startX + width * 2; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, startY); ctx.lineTo(x, startY + height * 2); ctx.stroke();
+    }
+    for (let y = startY; y < startY + height * 2; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(startX + width * 2, y); ctx.stroke();
+    }
+
+    zones.forEach(z => z.draw());
+    gems.forEach(g => g.draw());
+    turrets.forEach(t => {
+        if (t.type === 'tesla') {
+            ctx.fillStyle = '#aa0';
+            ctx.fillRect(t.pos.x - 10, t.pos.y - 20, 20, 40);
+            ctx.beginPath(); ctx.arc(t.pos.x, t.pos.y - 20, 10, 0, Math.PI*2); ctx.fill();
+        } else if (t.type === 'mirage') {
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = '#0f6';
+            ctx.fillRect(t.pos.x - 10, t.pos.y - 10, 20, 20);
+            ctx.globalAlpha = 1.0;
+        }
+    });
+
+    entities.forEach(e => e.draw());
+    player.draw();
+    projectiles.forEach(p => p.draw());
+    particles.forEach(p => p.draw());
+    floatingTexts.forEach(t => t.draw());
+    
+    ctx.restore();
+
+    drawHUD();
+    
+    if (gameState === STATE.levelup) drawLevelUp();
+    if (gameState === STATE.gameover) drawGameOver();
+}
+
+function drawHUD() {
+    ctx.fillStyle = COLORS.ui;
+    ctx.fillRect(10, 10, 300, 100);
+    ctx.strokeStyle = COLORS.uiBorder;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(10, 10, 300, 100);
+
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`LVL: ${level}`, 20, 35);
+    ctx.fillText(`KILLS: ${kills}`, 120, 35);
+    ctx.fillText(`TIME: ${Math.floor(time/60)}s`, 220, 35);
+
+    ctx.fillStyle = '#333';
+    ctx.fillRect(20, 50, 280, 20);
+    ctx.fillStyle = '#0f0';
+    let hpPct = Math.max(0, STATS.hp / STATS.maxHp);
+    ctx.fillRect(20, 50, 280 * hpPct, 20);
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${Math.floor(STATS.hp)}/${Math.floor(STATS.maxHp)}`, 160, 65);
+
+    ctx.fillStyle = '#333';
+    ctx.fillRect(20, 80, 280, 10);
+    ctx.fillStyle = '#0ff';
+    let xpPct = xp / xpNext;
+    ctx.fillRect(20, 80, 280 * xpPct, 10);
+}
+
+function drawLevelUp() {
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '40px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText("LEVEL UP!", width/2, height/4);
+    
+    let startY = height/2 - 100;
+    upgradesAvailable.forEach((u, i) => {
+        let y = startY + (i * 100);
+        
+        ctx.fillStyle = '#333';
+        if (mouseY > y && mouseY < y + 80 && mouseX > width/2 - 200 && mouseX < width/2 + 200) {
+            ctx.fillStyle = '#555';
+            if (mouseClicked) {
+                applyUpgrade(i);
+                mouseClicked = false;
+            }
+        }
+        
+        ctx.fillRect(width/2 - 200, y, 400, 80);
+        ctx.strokeStyle = '#fff';
+        ctx.strokeRect(width/2 - 200, y, 400, 80);
+        
+        ctx.fillStyle = '#ff0';
+        ctx.font = '20px monospace';
+        ctx.fillText(u.name, width/2, y + 30);
+        ctx.fillStyle = '#ccc';
+        ctx.font = '14px monospace';
+        ctx.fillText(u.desc, width/2, y + 55);
+    });
+}
+
+function drawGameOver() {
+    ctx.fillStyle = 'rgba(50,0,0,0.8)';
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.fillStyle = '#f00';
+    ctx.font = '60px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText("GAME OVER", width/2, height/2 - 50);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px monospace';
+    ctx.fillText(`Surived: ${Math.floor(time/60)}s`, width/2, height/2 + 20);
+    ctx.fillText(`Kills: ${kills}`, width/2, height/2 + 50);
+    ctx.fillText("Click to Restart", width/2, height/2 + 100);
+    
+    if (mouseClicked) {
+        initGame();
+        mouseClicked = false;
+    }
+}
+
+let mouseX = 0;
+let mouseY = 0;
+let mouseClicked = false;
+
+window.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+window.addEventListener('mousedown', () => mouseClicked = true);
+window.addEventListener('mouseup', () => mouseClicked = false);
+
+initGame();
+loop();
+
+</script>
+</body>
+</html>
