@@ -1,0 +1,571 @@
+/* ========== RESET & BASE ========== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a1a;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+canvas {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ========== OVERLAY SYSTEM ========== */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 5, 20, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.overlay.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ========== SHOP ========== */
+.shop-container {
+  background: linear-gradient(135deg, rgba(20, 10, 45, 0.97), rgba(10, 20, 50, 0.97));
+  border: 1px solid rgba(100, 150, 255, 0.25);
+  border-radius: 18px;
+  padding: 28px 36px;
+  max-width: 920px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow:
+    0 0 80px rgba(100, 150, 255, 0.1),
+    inset 0 0 60px rgba(100, 150, 255, 0.03);
+  position: relative;
+}
+
+.shop-container::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(100, 150, 255, 0.4), transparent);
+  border-radius: 50%;
+}
+
+.shop-title {
+  text-align: center;
+  font-size: 28px;
+  color: #fca;
+  margin-bottom: 4px;
+  text-shadow: 0 0 30px rgba(255, 200, 100, 0.3), 0 0 60px rgba(255, 200, 100, 0.1);
+  letter-spacing: 3px;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 30px rgba(255, 200, 100, 0.3), 0 0 60px rgba(255, 200, 100, 0.1); }
+  50% { text-shadow: 0 0 40px rgba(255, 200, 100, 0.5), 0 0 80px rgba(255, 200, 100, 0.2); }
+}
+
+.shop-coins {
+  text-align: center;
+  font-size: 17px;
+  color: #adf;
+  margin-bottom: 20px;
+  text-shadow: 0 0 15px rgba(150, 200, 255, 0.2);
+}
+
+.shop-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 15px;
+  color: #a5f;
+  margin-bottom: 10px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(150, 100, 255, 0.2);
+}
+
+.shop-items {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ========== SHOP ITEM CARDS ========== */
+.shop-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(100, 150, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px 12px 10px;
+  width: 132px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.shop-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.shop-card:hover::after {
+  left: 100%;
+}
+
+.shop-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(100, 150, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 30px rgba(100, 150, 255, 0.15);
+}
+
+.shop-card:active {
+  transform: translateY(-1px);
+  transition-duration: 0.05s;
+}
+
+.shop-card.owned {
+  border-color: rgba(100, 255, 150, 0.25);
+  background: rgba(100, 255, 150, 0.04);
+}
+
+.shop-card.owned:hover {
+  border-color: rgba(100, 255, 150, 0.4);
+  box-shadow: 0 4px 20px rgba(100, 255, 150, 0.1);
+}
+
+.shop-card.selected {
+  border-color: #fca;
+  box-shadow: 0 0 20px rgba(255, 200, 100, 0.2), inset 0 0 15px rgba(255, 200, 100, 0.04);
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 200, 100, 0.2), inset 0 0 15px rgba(255, 200, 100, 0.04); }
+  50% { box-shadow: 0 0 30px rgba(255, 200, 100, 0.3), inset 0 0 20px rgba(255, 200, 100, 0.06); }
+}
+
+.shop-card.locked {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.shop-card.locked:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(100, 150, 255, 0.12);
+}
+
+.shop-card-icon {
+  font-size: 30px;
+  margin-bottom: 6px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: transform 0.3s ease;
+}
+
+.shop-card:hover .shop-card-icon {
+  transform: scale(1.15);
+}
+
+.shop-card-name {
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 3px;
+  letter-spacing: 0.5px;
+}
+
+.shop-card-cost {
+  font-size: 11px;
+  color: #adf;
+}
+
+.shop-card-desc {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
+.shop-card-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #fca;
+  color: #000;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 7px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  letter-spacing: 0.5px;
+}
+
+.badge-equipped {
+  background: linear-gradient(135deg, #4f4, #2d2);
+  color: #000;
+}
+
+.badge-owned {
+  background: linear-gradient(135deg, #48f, #26d);
+  color: #fff;
+}
+
+.badge-bought {
+  background: linear-gradient(135deg, #f84, #e62);
+  color: #fff;
+}
+
+/* ========== SHOP FOOTER ========== */
+.shop-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(100, 150, 255, 0.12);
+}
+
+#currentShipDisplay {
+  font-size: 13px;
+  color: #aaa;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  font-family: 'Courier New', monospace;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(100, 150, 255, 0.25);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  transition-duration: 0.05s;
+}
+
+.btn-close {
+  background: rgba(100, 150, 255, 0.08);
+  color: #adf;
+  border-color: rgba(100, 150, 255, 0.2);
+}
+
+.btn-close:hover {
+  background: rgba(100, 150, 255, 0.18);
+  box-shadow: 0 4px 20px rgba(100, 150, 255, 0.15);
+}
+
+.btn-restart {
+  background: linear-gradient(135deg, rgba(255, 200, 100, 0.12), rgba(255, 200, 100, 0.06));
+  color: #fca;
+  border-color: rgba(255, 200, 100, 0.25);
+  font-size: 17px;
+  padding: 14px 32px;
+  letter-spacing: 1px;
+}
+
+.btn-restart:hover {
+  background: linear-gradient(135deg, rgba(255, 200, 100, 0.22), rgba(255, 200, 100, 0.12));
+  box-shadow: 0 6px 30px rgba(255, 200, 100, 0.2), inset 0 0 20px rgba(255, 200, 100, 0.04);
+}
+
+.btn-resume {
+  background: rgba(100, 200, 255, 0.08);
+  color: #adf;
+  border-color: rgba(100, 200, 255, 0.2);
+}
+
+.btn-resume:hover {
+  background: rgba(100, 200, 255, 0.18);
+  box-shadow: 0 4px 20px rgba(100, 200, 255, 0.15);
+}
+
+.btn-quit {
+  background: rgba(255, 80, 80, 0.08);
+  color: #f88;
+  border-color: rgba(255, 80, 80, 0.2);
+}
+
+.btn-quit:hover {
+  background: rgba(255, 80, 80, 0.18);
+  box-shadow: 0 4px 20px rgba(255, 80, 80, 0.15);
+}
+
+/* ========== GAME OVER ========== */
+.gameover-container {
+  text-align: center;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.gameover-title {
+  font-size: 48px;
+  color: #f84;
+  margin-bottom: 24px;
+  text-shadow:
+    0 0 40px rgba(255, 80, 50, 0.4),
+    0 0 80px rgba(255, 80, 50, 0.15);
+  letter-spacing: 6px;
+  animation: gameOverPulse 2s ease-in-out infinite;
+}
+
+@keyframes gameOverPulse {
+  0%, 100% { text-shadow: 0 0 40px rgba(255, 80, 50, 0.4), 0 0 80px rgba(255, 80, 50, 0.15); }
+  50% { text-shadow: 0 0 60px rgba(255, 80, 50, 0.6), 0 0 100px rgba(255, 80, 50, 0.25); }
+}
+
+.gameover-stats {
+  font-size: 19px;
+  margin-bottom: 28px;
+  line-height: 2;
+  color: #ddd;
+}
+
+.gameover-stats div {
+  transition: opacity 0.4s ease;
+  animation: statFadeIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.gameover-stats div:nth-child(1) { animation-delay: 0.1s; }
+.gameover-stats div:nth-child(2) { animation-delay: 0.2s; }
+.gameover-stats div:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes statFadeIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.gameover-stats span {
+  color: #fca;
+  font-weight: bold;
+}
+
+/* ========== PAUSE ========== */
+.pause-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pause-container h1 {
+  font-size: 40px;
+  color: #adf;
+  letter-spacing: 10px;
+  margin-bottom: 12px;
+  text-shadow: 0 0 40px rgba(150, 200, 255, 0.3);
+  animation: pauseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pauseGlow {
+  0%, 100% { text-shadow: 0 0 40px rgba(150, 200, 255, 0.3); }
+  50% { text-shadow: 0 0 60px rgba(150, 200, 255, 0.5); }
+}
+
+/* ========== HUD EXTRA ========== */
+#hudExtra {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 50;
+  font-size: 12px;
+  text-align: right;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#weaponDisplay {
+  color: #a5f;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 50, 255, 0.2);
+  backdrop-filter: blur(4px);
+  text-shadow: 0 0 8px rgba(150, 100, 255, 0.2);
+}
+
+#consumableDisplay {
+  color: #fa5;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 150, 50, 0.2);
+  max-height: 100px;
+  overflow-y: auto;
+  backdrop-filter: blur(4px);
+  text-shadow: 0 0 8px rgba(255, 150, 50, 0.2);
+}
+
+/* ========== SCROLLBAR ========== */
+.shop-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.shop-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+
+.shop-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(100, 150, 255, 0.25), rgba(100, 150, 255, 0.15));
+  border-radius: 3px;
+}
+
+.shop-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(100, 150, 255, 0.4), rgba(100, 150, 255, 0.3));
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 700px) {
+  .shop-container {
+    padding: 18px;
+    max-width: 100vw;
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .shop-card {
+    width: 104px;
+    padding: 12px 8px 8px;
+  }
+
+  .shop-card-icon {
+    font-size: 24px;
+  }
+
+  .shop-title {
+    font-size: 22px;
+  }
+
+  .gameover-title {
+    font-size: 36px;
+  }
+
+  .btn-restart {
+    font-size: 15px;
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 450px) {
+  .shop-card {
+    width: 82px;
+    padding: 10px 5px 6px;
+  }
+
+  .shop-card-name {
+    font-size: 9px;
+  }
+
+  .shop-card-cost {
+    font-size: 9px;
+  }
+
+  .shop-title {
+    font-size: 18px;
+  }
+
+  .gameover-title {
+    font-size: 30px;
+  }
+
+  .shop-container {
+    padding: 12px;
+  }
+}
+
+@media (max-height: 600px) {
+  .shop-container {
+    max-height: 98vh;
+    padding: 14px 18px;
+  }
+
+  .shop-section {
+    margin-bottom: 10px;
+  }
+
+  .shop-card {
+    padding: 8px 6px 6px;
+    width: 90px;
+  }
+
+  .shop-card-icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+}

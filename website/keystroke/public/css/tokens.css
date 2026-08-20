@@ -1,0 +1,89 @@
+/* Keystroke — Design Tokens */
+/* Light theme (default) */
+:root {
+  --bg: #EEF1F4;
+  --surface: #FFFFFF;
+  --surface-raised: #F7F9FA;
+  --text: #10161C;
+  --text-muted: #5B6672;
+  --border: #D8DEE4;
+  --accent: #B8860B;
+  --success: #1FA97C;
+  --error: #D9463D;
+
+  --bg-rgb: 238, 241, 244;
+  --surface-rgb: 255, 255, 255;
+  --surface-raised-rgb: 247, 249, 250;
+  --text-rgb: 16, 22, 28;
+  --text-muted-rgb: 91, 102, 114;
+  --border-rgb: 216, 222, 228;
+  --accent-rgb: 184, 134, 11;
+  --success-rgb: 31, 169, 124;
+  --error-rgb: 217, 70, 61;
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-size-4xl: 40px;
+  --font-size-5xl: 48px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 72px;
+  --space-12: 80px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+/* Dark theme */
+[data-theme='dark'] {
+  --bg: #0B0F14;
+  --surface: #131A21;
+  --surface-raised: #1B242D;
+  --text: #E6EDF3;
+  --text-muted: #7D8B99;
+  --border: #202A33;
+  --accent: #F2C14E;
+  --success: #4FD69C;
+  --error: #FF6B6B;
+
+  --bg-rgb: 11, 15, 20;
+  --surface-rgb: 19, 26, 33;
+  --surface-raised-rgb: 27, 36, 45;
+  --text-rgb: 230, 237, 243;
+  --text-muted-rgb: 125, 139, 153;
+  --border-rgb: 32, 42, 51;
+  --accent-rgb: 242, 193, 78;
+  --success-rgb: 79, 214, 156;
+  --error-rgb: 255, 107, 107;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+}

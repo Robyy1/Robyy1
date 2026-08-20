@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Keystroke</title>
+  <meta name="description" content="Customize your Keystroke typing experience.">
+
+  <!-- Theme before first paint -->
+  <script>
+    (function() {
+      var saved = localStorage.getItem('keystroke-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body class="page-settings">
+
+  <!-- Navigation -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo" aria-label="Keystroke home">
+        <span class="logo-icon" aria-hidden="true">&gt;_</span>
+        <span class="logo-text">keystroke</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/type.html">Type</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/settings.html" class="active" aria-current="page">Settings</a>
+        <div id="nav-auth-links"></div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="settings-container container">
+    <h1>Settings</h1>
+
+    <!-- Theme section -->
+    <section class="settings-section" aria-labelledby="theme-heading">
+      <h2 id="theme-heading" class="settings-section__title">Appearance</h2>
+      <div class="settings-row">
+        <label class="settings-label" for="theme-toggle">Dark Mode</label>
+        <p class="settings-hint">Toggle between dark and light theme. Your preference is saved locally and synced to your account.</p>
+        <div class="toggle-switch">
+          <input type="checkbox" id="theme-toggle" role="switch" aria-checked="true">
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Font section -->
+    <section class="settings-section" aria-labelledby="font-heading">
+      <h2 id="font-heading" class="settings-section__title">Monospace Font</h2>
+      <p class="settings-hint">Choose the font used in the typing area and stats. Changes apply immediately.</p>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label" for="font-selector">Font Family</label>
+        <select id="font-selector" class="input input--select" aria-describedby="font-desc">
+          <option value="jetbrains-mono">JetBrains Mono</option>
+          <option value="fira-code">Fira Code</option>
+          <option value="cascadia-code">Cascadia Code</option>
+          <option value="ibm-plex-mono">IBM Plex Mono</option>
+          <option value="source-code-pro">Source Code Pro</option>
+        </select>
+        <p id="font-desc" class="settings-hint">Preview:</p>
+        <div id="font-preview-text" class="font-preview" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Account section -->
+    <section class="settings-section" aria-labelledby="account-heading">
+      <h2 id="account-heading" class="settings-section__title">Account</h2>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label">Username</label>
+        <span id="account-username" class="account-detail">—</span>
+      </div>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label">Email</label>
+        <span id="account-email" class="account-detail">—</span>
+      </div>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label">Member since</label>
+        <span id="account-created" class="account-detail">—</span>
+      </div>
+    </section>
+
+    <!-- Change password section -->
+    <section class="settings-section" aria-labelledby="password-heading">
+      <h2 id="password-heading" class="settings-section__title">Change Password</h2>
+      <form id="change-password-form" class="settings-form" novalidate>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="current-password">Current Password</label>
+          <input type="password" id="current-password" class="input input--text" placeholder="Enter current password" required minlength="1" autocomplete="current-password">
+        </div>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="new-password">New Password</label>
+          <input type="password" id="new-password" class="input input--text" placeholder="Enter new password" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="confirm-new-password">Confirm New Password</label>
+          <input type="password" id="confirm-new-password" class="input input--text" placeholder="Re-enter new password" required minlength="6" autocomplete="new-password">
+        </div>
+        <p id="password-message" class="settings-message" role="alert"></p>
+        <button type="submit" class="btn btn--primary">Update Password</button>
+      </form>
+    </section>
+
+    <!-- Delete account section -->
+    <section class="settings-section settings-section--danger" aria-labelledby="delete-heading">
+      <h2 id="delete-heading" class="settings-section__title">Delete Account</h2>
+      <div class="settings-row">
+        <p class="settings-hint">Once deleted, your account and all results cannot be recovered.</p>
+        <button id="delete-account-btn" class="btn btn--danger">Delete My Account</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <div class="modal__content">
+      <h2 id="modal-title">Confirm Deletion</h2>
+      <p id="modal-desc">Type <strong>DELETE</strong> to confirm you want to permanently delete your account.</p>
+      <input type="text" id="delete-confirm-input" class="input input--text modal__input" placeholder='Type "DELETE"' autocomplete="off">
+      <div class="modal__actions">
+        <button id="delete-cancel-btn" class="btn btn--secondary">Cancel</button>
+        <button id="delete-confirm-btn" class="btn btn--danger">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2025 Keystroke. Type code faster.</p>
+    </div>
+  </footer>
+
+  <script src="/js/theme.js" type="module"></script>
+  <script src="/js/auth-client.js" type="module"></script>
+  <script src="/js/settings.js" type="module"></script>
+</body>
+</html>

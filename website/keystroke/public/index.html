@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keystroke — Type Code Faster</title>
+  <meta name="description" content="Practice typing real code across multiple languages. Track your speed, accuracy, and consistency with detailed stats.">
+
+  <!-- Theme before first paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('keystroke_theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" aria-label="Main navigation">
+    <a href="/" class="navbar-brand" aria-label="Keystroke home">&lt;keystroke/&gt;</a>
+    <div id="nav-guest-area" style="display:flex;">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+    </div>
+    <div id="nav-user-area" style="display:none;" class="navbar-user">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+      <span id="nav-username" style="font-size:var(--font-size-sm);color:var(--text-muted);margin-right:var(--space-2);"></span>
+      <button type="button" class="btn btn-ghost btn-sm logout-btn">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1 class="hero-title">Type <span class="accent">code</span>, not paragraphs.</h1>
+    <p class="hero-subtitle">Practice typing real code in JavaScript, Python, Rust, Go and more. Track your speed, accuracy, and consistency with detailed stats — just like a real editor.</p>
+
+    <!-- Live mini demo -->
+    <div class="hero-demo">
+      <div class="hero-demo-header">
+        <span class="hero-demo-dot"></span>
+        <span class="hero-demo-dot"></span>
+        <span class="hero-demo-dot"></span>
+        <span class="hero-demo-title">demo.js</span>
+      </div>
+      <div class="hero-demo-body" id="hero-demo-body">
+        <pre class="hero-demo-text" id="hero-demo-text" aria-live="polite"></pre>
+        <input type="text" class="hero-demo-input" id="hero-demo-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type the demo text here">
+      </div>
+    </div>
+
+    <div class="hero-cta-group">
+      <a href="/type.html" class="btn btn-primary btn-lg">Start typing test</a>
+      <a href="/signup.html" class="btn btn-secondary btn-lg">Sign up free</a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <h2 class="section-title">Why Keystroke?</h2>
+    <div class="features-grid">
+      <div class="card feature-card">
+        <div class="feature-icon">&#128187;</div>
+        <h3 class="feature-title">Code-first typing</h3>
+        <p class="feature-desc">Practice with real code snippets — not random sentences. Type actual JavaScript, Python, Rust and more with syntax-aware rendering.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">&#128200;</div>
+        <h3 class="feature-title">Detailed stats</h3>
+        <p class="feature-desc">WPM, raw WPM, accuracy, and consistency metrics. Track your progress over time with hand-rolled charts — no external dependencies.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">&#127942;</div>
+        <h3 class="feature-title">Leaderboards</h3>
+        <p class="feature-desc">Compete globally filtered by language, difficulty, and time period. See who types the fastest in each programming language.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Language showcase -->
+  <section class="lang-showcase">
+    <h2 class="lang-showcase-title">Supported languages</h2>
+    <div class="lang-strip">
+      <span class="lang-chip">JavaScript</span>
+      <span class="lang-chip">TypeScript</span>
+      <span class="lang-chip">Python</span>
+      <span class="lang-chip">Java</span>
+      <span class="lang-chip">C++</span>
+      <span class="lang-chip">Go</span>
+      <span class="lang-chip">Rust</span>
+      <span class="lang-chip">SQL</span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="text-align:center;padding:var(--space-6);color:var(--text-muted);font-size:var(--font-size-xs);border-top:1px solid var(--border);">
+    &copy; 2024 Keystroke. Open source. No tracking. No ads.
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js" type="module"></script>
+  <script src="/js/auth-client.js" type="module"></script>
+  <script src="/js/typing-engine.js" type="module"></script>
+  <script src="/js/stats.js" type="module"></script>
+
+  <!-- Hero demo inline script -->
+  <script>
+    (function() {
+      'use strict';
+      var DEMO_TEXT = 'const debounce = (fn, delay) => {\n  let timer;\n  return (...args) => {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), delay);\n  };\n};';
+      var demoInput = document.getElementById('hero-demo-input');
+      var demoTextEl = document.getElementById('hero-demo-text');
+
+      if (!demoInput || !demoTextEl) return;
+
+      // Render initial text
+      function renderDemo() {
+        var html = '';
+        for (var i = 0; i < DEMO_TEXT.length; i++) {
+          html += '<span class="char-untyped">' + escapeHtml(DEMO_TEXT[i]) + '</span>';
+        }
+        demoTextEl.innerHTML = html;
+      }
+
+      function escapeHtml(ch) {
+        return ch.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      renderDemo();
+
+      var typedIndex = 0;
+
+      demoInput.addEventListener('input', function(e) {
+        // Handle paste — ignore
+        if (e.inputType === 'insertFromPaste') return;
+
+        var chars = e.data ? [e.data] : [];
+        var spanEls = demoTextEl.querySelectorAll('span');
+
+        for (var i = 0; i < chars.length && typedIndex < DEMO_TEXT.length; i++, typedIndex++) {
+          var ch = chars[i];
+          var targetCh = DEMO_TEXT[typedIndex];
+          var span = spanEls[typedIndex];
+          if (!span) break;
+
+          if (ch === targetCh) {
+            span.className = 'char-correct';
+          } else {
+            span.className = 'char-incorrect';
+          }
+        }
+
+        // Set current caret position
+        if (typedIndex < DEMO_TEXT.length) {
+          var currentSpan = spanEls[typedIndex];
+          if (currentSpan) {
+            currentSpan.className = 'char-current';
+          }
+        }
+
+        // Auto-scroll demo text
+        var body = document.getElementById('hero-demo-body');
+        if (currentSpan) {
+          // simple scroll into view
+        }
+      });
+
+      // Focus input on click of demo area
+      document.getElementById('hero-demo-body').addEventListener('click', function() {
+        demoInput.focus();
+      });
+
+      // Auto-focus on load
+      setTimeout(function() { demoInput.focus(); }, 500);
+
+    })();
+  </script>
+
+</body>
+</html>

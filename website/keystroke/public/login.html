@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Keystroke</title>
+
+  <script>
+    (function() {
+      var t = localStorage.getItem('keystroke_theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" aria-label="Main navigation">
+    <a href="/" class="navbar-brand" aria-label="Keystroke home">&lt;keystroke/&gt;</a>
+    <div id="nav-guest-area" style="display:flex;">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+    </div>
+    <div id="nav-user-area" style="display:none;" class="navbar-user">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Auth card -->
+  <main class="auth-page">
+    <div class="card auth-card">
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to save your results and track progress.</p>
+
+      <div id="login-form-msg" class="alert" role="alert" style="display:none;"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email or username</label>
+          <input type="text" id="login-email" class="form-input" placeholder="you@example.com" required autocomplete="username">
+          <span id="login-email-error" class="form-error" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="form-password-wrapper">
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password" style="padding-right:48px;">
+            <button type="button" id="login-pass-toggle" class="form-password-toggle" aria-label="Toggle password visibility">&#128065;</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in</button>
+      </form>
+
+      <p class="auth-footer">Don't have an account? <a href="/signup.html">Sign up</a></p>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js" type="module"></script>
+  <script src="/js/auth-client.js" type="module"></script>
+
+  <script>
+    // Redirect if already logged in
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('registered') === '1') {
+        var msg = document.getElementById('login-form-msg');
+        if (msg) {
+          msg.className = 'alert alert-success';
+          msg.textContent = 'Account created! Sign in to continue.';
+          msg.style.display = 'block';
+        }
+      }
+    })();
+  </script>
+
+</body>
+</html>
