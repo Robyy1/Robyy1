@@ -4,9 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Type — Keystroke</title>
+
+  <!-- Theme before first paint -->
+  <script>
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="/css/tokens.css" rel="stylesheet" />
   <link href="/css/base.css" rel="stylesheet" />
   <link href="/css/components.css" rel="stylesheet" />
@@ -22,12 +39,19 @@
       </a>
       <div class="nav-links">
         <a href="/type.html" class="nav-link nav-link-active" aria-current="page">Type</a>
+        <a href="/learning.html" class="nav-link">Learning</a>
         <a href="/dashboard.html" class="nav-link">Dashboard</a>
         <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
       </div>
       <div class="nav-actions" id="navActions"></div>
     </div>
   </nav>
+
+  <!-- Page header / hero -->
+  <section class="type-hero">
+    <h1 class="type-hero-title">Take a typing test</h1>
+    <p class="type-hero-subtitle">Pick a mode and length, then start typing. WPM updates live as you go.</p>
+  </section>
 
   <!-- Configuration Bar -->
   <main class="type-page">
@@ -36,9 +60,11 @@
         <!-- Mode Selection -->
         <fieldset class="config-fieldset">
           <legend>Mode</legend>
-          <div class="mode-toggle" role="radiogroup" aria-label="Test mode">
+          <div class="mode-toggle" id="modeToggle" role="radiogroup" aria-label="Test mode">
+            <span class="segmented-indicator" id="modeIndicator" aria-hidden="true"></span>
             <button type="button" class="mode-btn mode-btn-active" data-mode="general" role="radio" aria-checked="true">General Text</button>
             <button type="button" class="mode-btn" data-mode="code" role="radio" aria-checked="false">Code</button>
+            <button type="button" class="mode-btn" data-mode="dictionary" role="radio" aria-checked="false">Dictionary</button>
           </div>
         </fieldset>
 
@@ -71,18 +97,19 @@
         <!-- Length Selection -->
         <fieldset class="config-fieldset">
           <legend>Length</legend>
-          <div class="length-toggle" role="radiogroup" aria-label="Test length">
+          <div class="length-toggle" id="lengthToggle" role="radiogroup" aria-label="Test length">
+            <span class="segmented-indicator" id="lengthIndicator" aria-hidden="true"></span>
             <button type="button" class="length-btn" data-length="15">15s</button>
             <button type="button" class="length-btn" data-length="30">30s</button>
             <button type="button" class="length-btn length-btn-active" data-length="60" role="radio" aria-checked="true">60s</button>
             <button type="button" class="length-btn" data-length="120">120s</button>
-            <button type="button" class="length-btn" data-length="full">Full Snippet</button>
+            <button type="button" class="length-btn" data-length="full" role="radio" aria-checked="false" title="No time limit — finish the whole text">No Limit</button>
           </div>
         </fieldset>
 
         <!-- Start Button -->
         <div class="config-actions">
-          <button type="submit" class="btn btn-accent btn-lg" id="startBtn">Start Test</button>
+          <button type="submit" class="btn btn-accent btn-lg btn-3d" id="startBtn">Start Test</button>
           <button type="button" class="btn btn-ghost" id="randomBtn">Random Test</button>
         </div>
       </form>
@@ -117,7 +144,7 @@
             <span class="dot dot-warning"></span>
             <span class="dot dot-success"></span>
           </div>
-          <span class="editor-title" id="editorTitle">typing...</span>
+          <span class="editor-title" id="editorTitle"></span>
           <div class="editor-spacer"></div>
         </div>
         <div class="editor-body" id="editorBody">
@@ -135,7 +162,7 @@
       </div>
 
       <!-- Countdown overlay (before test starts) -->
-      <div class="countdown-overlay" id="countdownOverlay">
+      <div class="countdown-overlay hidden" id="countdownOverlay">
         <span class="countdown-text" id="countdownText">3</span>
       </div>
     </section>

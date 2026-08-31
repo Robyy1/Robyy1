@@ -6,10 +6,16 @@
   <title>Sign up — Keystroke</title>
 
   <script>
-    (function() {
-      var t = localStorage.getItem('keystroke_theme');
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
       if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
       document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
     })();
   </script>
 
@@ -31,7 +37,8 @@
     <div id="nav-guest-area" style="display:flex;">
       <ul class="navbar-links">
         <li><a href="/type.html" class="navbar-link">Type Test</a></li>
-        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a>
+        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
       </ul>
     </div>
     <div id="nav-user-area" style="display:none;" class="navbar-user">

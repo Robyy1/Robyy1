@@ -4,6 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — Keystroke</title>
+
+  <!-- Theme before first paint -->
+  <script>
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -19,6 +35,7 @@
     <ul class="navbar-links">
       <li><a href="/type.html" class="navbar-link">Type</a></li>
       <li><a href="/dashboard.html" class="navbar-link active">Dashboard</a></li>
+      <li><a href="/learning.html" class="navbar-link">Learning</a></li>
       <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
     </ul>
     <div id="nav-guest-area" style="display: none;" class="navbar-user">
@@ -56,6 +73,21 @@
       <!-- Overall stats -->
       <section aria-label="Overall statistics">
         <div id="overall-stats-grid" class="stat-grid"></div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Learning progress widget -->
+      <section aria-label="Learning progress">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Learning</h2>
+            <a href="/learning.html" class="badge badge-accent" style="text-decoration:none;">Open Learning &rarr;</a>
+          </div>
+          <div id="dashboard-learning" class="learning-widget">
+            <p style="font-size: var(--font-size-sm); color: var(--text-muted);">Loading progress…</p>
+          </div>
+        </div>
       </section>
 
       <hr class="divider">
@@ -131,7 +163,7 @@
 
       <!-- Quick actions -->
       <section aria-label="Quick actions" style="margin-top: var(--space-6); text-align: center;">
-        <a href="/type.html" class="btn btn-primary btn-lg">Start a New Test</a>
+        <a href="/type.html" class="btn btn-primary btn-lg btn-3d">Start a New Test</a>
       </section>
     </div>
   </main>

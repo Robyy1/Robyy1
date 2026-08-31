@@ -39,7 +39,7 @@
   var liveErrors = document.getElementById('liveErrors');
 
   // --- State ---
-  var currentConfig = { mode: 'code', language: 'javascript', difficulty: 'intermediate', length: '60s' };
+  var currentConfig = { mode: 'code', language: 'javascript', difficulty: 'intermediate', length: '60s', indentWidthPref: 2 };
   var engine = null;
   var testText = '';
   var timerInterval = null;
@@ -53,6 +53,9 @@
     setupEventListeners();
     setupThemeToggleFloat();
     checkAuthState();
+    updateIndicators();
+    window.addEventListener('load', updateIndicators);
+    window.addEventListener('resize', debounce(updateIndicators, 150));
   }
 
   function renderNav() {
@@ -87,11 +90,18 @@
     currentConfig.mode = saved.mode || 'code';
     currentConfig.language = saved.language || 'javascript';
     currentConfig.difficulty = saved.difficulty || 'intermediate';
-    currentConfig.length = saved.length || '60s';
+    currentConfig.length = normalizeLength(saved.length || '60s');
+    currentConfig.indentWidthPref = saved.indentWidthPref || 2;
 
     // Update UI to match loaded config
     updateModeButtons();
     updateLengthButtons();
+    if (isTimedLength(currentConfig.length)) {
+      remainingSeconds = parseInt(currentConfig.length, 10) || 60;
+      updateTimerDisplay();
+    } else {
+      liveTimer.textContent = '--';
+    }
     languageSelect.value = currentConfig.language;
     difficultySelect.value = currentConfig.difficulty;
     toggleCodeOptions();
@@ -156,6 +166,20 @@
     });
   }
 
+  // --- Sliding segmented indicator ---
+  function positionIndicator(toggle, indicator) {
+    if (!toggle || !indicator) return;
+    var active = toggle.querySelector('.mode-btn-active, .length-btn-active');
+    if (!active) return;
+    indicator.style.left = (active.offsetLeft - toggle.clientLeft) + 'px';
+    indicator.style.width = active.offsetWidth + 'px';
+  }
+
+  function updateIndicators() {
+    positionIndicator(document.getElementById('modeToggle'), document.getElementById('modeIndicator'));
+    positionIndicator(document.getElementById('lengthToggle'), document.getElementById('lengthIndicator'));
+  }
+
   // --- Mode selection ---
   function handleModeChange(e) {
     var mode = e.target.dataset.mode;
@@ -164,6 +188,7 @@
     typingEngine.saveConfig(currentConfig);
     updateModeButtons();
     toggleCodeOptions();
+    updateIndicators();
   }
 
   function updateModeButtons() {
@@ -177,6 +202,7 @@
         btn.setAttribute('aria-checked', 'false');
       }
     }
+    updateIndicators();
   }
 
   function toggleCodeOptions() {
@@ -188,10 +214,22 @@
   }
 
   // --- Length selection ---
+  function normalizeLength(raw) {
+    // Turns a length value into its canonical form: '15s' | '30s' | '60s' | '120s' | 'full'
+    var trimmed = String(raw || '').replace(/s$/, '');
+    if (trimmed === 'full' || trimmed === 'none' || trimmed === '') return 'full';
+    var num = parseInt(trimmed, 10);
+    return isNaN(num) ? 'full' : num + 's';
+  }
+
+  function isTimedLength(length) {
+    return length && length !== 'full';
+  }
+
   function handleLengthChange(e) {
     var length = e.target.dataset.length;
     if (!length) return;
-    currentConfig.length = length + 's';
+    currentConfig.length = normalizeLength(length);
     typingEngine.saveConfig(currentConfig);
     updateLengthButtons();
   }
@@ -199,7 +237,7 @@
   function updateLengthButtons() {
     for (var j = 0; j < lengthBtns.length; j++) {
       var btn = lengthBtns[j];
-      var val = btn.dataset.length + 's';
+      var val = normalizeLength(btn.dataset.length);
       if (val === currentConfig.length) {
         btn.classList.add('length-btn-active');
         btn.setAttribute('aria-checked', 'true');
@@ -208,6 +246,7 @@
         btn.removeAttribute('aria-checked');
       }
     }
+    updateIndicators();
   }
 
   // --- Start test ---
@@ -224,8 +263,8 @@
       var diffs = ['beginner', 'intermediate', 'advanced'];
       currentConfig.difficulty = diffs[Math.floor(Math.random() * diffs.length)];
     } else {
-      // General mode: random length
-      var lengths = ['15s', '30s', '60s', '120s'];
+      // General mode: random length (occasionally no time limit)
+      var lengths = ['15s', '30s', '60s', '120s', 'full'];
       currentConfig.length = lengths[Math.floor(Math.random() * lengths.length)];
     }
     typingEngine.saveConfig(currentConfig);
@@ -234,6 +273,7 @@
     languageSelect.value = currentConfig.language;
     difficultySelect.value = currentConfig.difficulty;
     toggleCodeOptions();
+    updateIndicators();
     startTest();
   }
 
@@ -267,9 +307,10 @@
       params.set('language', language || '');
       params.set('difficulty', difficulty || '');
     } else {
-      // For general mode, map time-based lengths to a medium length for API
+      // For general/dictionary modes, map time-based lengths to a medium length for API
       var apiLength = 'medium';
       if (length === '15s' || length === '30s') apiLength = 'short';
+      if (mode === 'dictionary') apiLength = length || '60s';
       params.set('length', apiLength);
     }
     return fetch('/api/texts/random?' + params.toString())
@@ -321,17 +362,31 @@
     engine.start();
     hiddenInput.focus();
 
-    // Set remaining time for timed modes
-    var lengthVal = parseInt(currentConfig.length, 10);
-    if (currentConfig.length !== 'full' && !isNaN(lengthVal)) {
-      remainingSeconds = lengthVal;
+    // Set remaining time for timed modes; no-limit mode counts up instead.
+    if (isTimedLength(currentConfig.length)) {
+      remainingSeconds = parseInt(currentConfig.length, 10) || 60;
       startTimer();
     } else {
-      liveTimer.textContent = '--';
+      liveTimer.textContent = '0s';
+      startElapsedTimer();
     }
 
     editorTitle.textContent = currentConfig.mode === 'code' ?
-      (languageSelect.value + ' — ' + difficultySelect.value) : 'typing...';
+      (languageSelect.value + ' — ' + difficultySelect.value) : (currentConfig.mode === 'dictionary' ? 'Dictionary' : 'General Text');
+  }
+
+  // No-limit mode: show elapsed time counting up from zero.
+  function startElapsedTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    var startedAt = engine.startTime || Date.now();
+    timerInterval = setInterval(function () {
+      if (!engine || engine.state === typingEngine.STATE.FINISHED) {
+        clearInterval(timerInterval);
+        return;
+      }
+      var elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      liveTimer.textContent = elapsed + 's';
+    }, 500);
   }
 
   function startTimer() {
@@ -367,8 +422,14 @@
     if (ch === '\n' || ch === '\r') {
       ch = '\n';
     } else if (ch === '\t') {
-      // Convert tab to spaces (default 2 spaces)
-      ch = '  ';
+      // Convert tab to configured indent width spaces, feeding each one.
+      var indent = new Array((currentConfig.indentWidthPref || 2) + 1).join(' ');
+      for (var ti = 0; ti < indent.length; ti++) {
+        engine.handleInput(indent[ti]);
+      }
+      hiddenInput.value = '';
+      renderCurrentState();
+      return;
     }
 
     engine.handleInput(ch);
@@ -390,19 +451,33 @@
 
     // Ignore modifier keys, function keys, etc.
     if (e.ctrlKey || e.altKey || e.metaKey) return;
-    if (e.key.length > 1 && e.key !== 'Enter') return; // modifier or special key
 
-    // Prevent default for most keys during test to avoid browser shortcuts
-    if (!e.key.match(/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};:'",.<>\/?\\|`~]$/)) {
-      e.preventDefault();
-      return;
-    }
-
-    // For Enter key, convert to newline character
+    // Handle Enter first — it must not be swallowed by the printable-char
+    // guard below (which only matches single-char keys).
     if (e.key === 'Enter') {
       e.preventDefault();
       engine.handleInput('\n');
       renderCurrentState();
+      return;
+    }
+
+    // Tab expands to the configured indent width so code indentation can be
+    // typed naturally. Feed each space through the engine individually.
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      var indent = (currentConfig.indentWidthPref || 2);
+      for (var t = 0; t < indent; t++) {
+        engine.handleInput(' ');
+      }
+      renderCurrentState();
+      return;
+    }
+
+    if (e.key.length > 1) return; // modifier or special key
+
+    // Prevent default for most keys during test to avoid browser shortcuts
+    if (!e.key.match(/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};:'",.<>\/?\\|`~]$/)) {
+      e.preventDefault();
       return;
     }
 
@@ -569,6 +644,13 @@
   function forceFinish() {
     if (!engine || engine.state === typingEngine.STATE.FINISHED) return;
 
+    // Stop the engine's internal live-update timer so stats freeze on the results.
+    if (engine.timerInterval) {
+      clearInterval(engine.timerInterval);
+      engine.timerInterval = null;
+    }
+    engine.state = typingEngine.STATE.FINISHED;
+
     // Calculate metrics for partial completion
     var elapsedMs = Date.now() - engine.startTime;
     var metrics = typingEngine.calculateMetrics(
@@ -576,6 +658,7 @@
       engine.totalTyped,
       engine.errorCount,
       engine.keystrokes,
+      engine.startTime,
       elapsedMs
     );
     engine.metrics = metrics;
@@ -588,14 +671,27 @@
     typingSection.classList.add('hidden');
     resultsSection.classList.remove('hidden');
 
+    // Headline: big WPM + accuracy so the score is instantly readable.
+    var accuracy = metrics.accuracy || 0;
+    var headline =
+      '<div class="results-headline">' +
+      '<div class="results-headline-main">' +
+      '<span class="results-headline-value">' + (metrics.wpm || 0) + '</span>' +
+      '<span class="results-headline-label">WPM</span>' +
+      '</div>' +
+      '<div class="results-headline-main">' +
+      '<span class="results-headline-value results-headline-value-' + (accuracy >= 95 ? 'good' : (accuracy < 80 ? 'bad' : 'mid')) + '">' + accuracy.toFixed(1) + '%</span>' +
+      '<span class="results-headline-label">Accuracy</span>' +
+      '</div>' +
+      '</div>';
+
     // Render stat cards
     var statsHtml = '';
     var statItems = [
-      { label: 'WPM', value: metrics.wpm || 0, color: 'accent' },
       { label: 'Raw WPM', value: metrics.rawWpm || 0, color: '' },
-      { label: 'Accuracy', value: (metrics.accuracy || 0).toFixed(1) + '%', color: (metrics.accuracy || 0) >= 95 ? '' : ((metrics.accuracy || 0) < 80 ? 'error' : '') },
-      { label: 'Consistency', value: (metrics.consistency || 0).toFixed(1) + '%', color: (metrics.consistency || 0) >= 80 ? '' : 'error' },
+      { label: 'Consistency', value: (metrics.consistency || 0).toFixed(1) + '%', color: (metrics.consistency || 0) >= 80 ? 'success' : 'error' },
       { label: 'Errors', value: metrics.errorCount || 0, color: 'error' },
+      { label: 'Characters', value: testText ? testText.length : 0, color: '' },
       { label: 'Duration', value: formatDuration((Date.now() - (engine && engine.startTime ? engine.startTime : Date.now()))), color: '' }
     ];
 
@@ -611,7 +707,7 @@
       statsHtml += '</div>';
     }
 
-    resultsGrid.innerHTML = statsHtml;
+    resultsGrid.innerHTML = headline + statsHtml;
 
     // Show chart if we have enough data points
     if (engine && engine.wpmHistory && engine.wpmHistory.length > 2) {
@@ -639,92 +735,22 @@
 
     resultsChart.innerHTML = '';
 
+    // wpmHistory holds chars-per-second buckets; * 12 converts to WPM (60/5).
     var dataPoints = [];
     for (var i = 0; i < engine.wpmHistory.length; i++) {
-      // Convert chars/sec to WPM approximation (* 12 as average word length)
-      dataPoints.push({ wpm: Math.round(engine.wpmHistory[i] * 12), x: i, y: i });
+      dataPoints.push({ x: i + 1, wpm: Math.round(engine.wpmHistory[i] * 12) });
     }
 
-    var width = resultsChart.clientWidth || 600;
-    var height = 200;
-    var padding = { top: 20, right: 20, bottom: 30, left: 50 };
-    var chartW = width - padding.left - padding.right;
-    var chartH = height - padding.top - padding.bottom;
+    if (dataPoints.length < 2) return;
 
-    // Find max WPM for scaling
-    var maxWpm = 0;
-    for (var j = 0; j < dataPoints.length; j++) {
-      if (dataPoints[j].wpm > maxWpm) maxWpm = dataPoints[j].wpm;
+    if (window.stats && typeof window.stats.createLineChart === 'function') {
+      window.stats.createLineChart(resultsChart, dataPoints, {
+        lineColor: 'var(--accent)',
+        height: 220,
+        dotRadius: '3',
+        title: 'WPM Over Time'
+      });
     }
-    maxWpm = Math.max(maxWpm, 1);
-
-    var svgNS = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    svg.style.width = '100%';
-    svg.style.height = 'auto';
-
-    // Grid lines and Y-axis labels
-    for (var g = 0; g <= 4; g++) {
-      var yVal = (maxWpm / 4) * g;
-      var yPos = padding.top + chartH - (g / 4) * chartH;
-
-      var gridLine = document.createElementNS(svgNS, 'line');
-      gridLine.setAttribute('x1', padding.left);
-      gridLine.setAttribute('y1', yPos);
-      gridLine.setAttribute('x2', width - padding.right);
-      gridLine.setAttribute('y2', yPos);
-      gridLine.setAttribute('stroke', 'var(--border)');
-      gridLine.setAttribute('stroke-width', '0.5');
-      svg.appendChild(gridLine);
-
-      var label = document.createElementNS(svgNS, 'text');
-      label.setAttribute('x', padding.left - 8);
-      label.setAttribute('y', yPos + 4);
-      label.setAttribute('text-anchor', 'end');
-      label.setAttribute('fill', 'var(--text-muted)');
-      label.setAttribute('font-size', '11');
-      label.setAttribute('font-family', 'monospace');
-      label.textContent = Math.round(yVal);
-      svg.appendChild(label);
-    }
-
-    // Draw line path
-    var pathD = '';
-    for (var p = 0; p < dataPoints.length; p++) {
-      var px = padding.left + (p / (dataPoints.length - 1 || 1)) * chartW;
-      var py = padding.top + chartH - (dataPoints[p].wpm / maxWpm) * chartH;
-
-      if (p === 0) {
-        pathD += 'M ' + px + ' ' + py;
-      } else {
-        pathD += ' L ' + px + ' ' + py;
-      }
-    }
-
-    var path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', pathD);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#F2C14E');
-    path.setAttribute('stroke-width', '2.5');
-    path.setAttribute('stroke-linecap', 'round');
-    svg.appendChild(path);
-
-    // Draw dots at each point
-    for (var d = 0; d < dataPoints.length; d++) {
-      var dotX = padding.left + (d / (dataPoints.length - 1 || 1)) * chartW;
-      var dotY = padding.top + chartH - (dataPoints[d].wpm / maxWpm) * chartH;
-
-      var circle = document.createElementNS(svgNS, 'circle');
-      circle.setAttribute('cx', dotX);
-      circle.setAttribute('cy', dotY);
-      circle.setAttribute('r', '3');
-      circle.setAttribute('fill', '#F2C14E');
-      svg.appendChild(circle);
-    }
-
-    resultsChart.appendChild(svg);
   }
 
   function saveResult(metrics) {
@@ -749,11 +775,12 @@
       body.difficulty = currentConfig.difficulty;
     } else {
       // Map length to a general difficulty label
-      if (lengthVal <= 30) body.difficulty = 'beginner';
+      if (!isTimedLength(currentConfig.length)) {
+        body.difficulty = 'intermediate';
+      } else if (lengthVal <= 30) body.difficulty = 'beginner';
       else if (lengthVal <= 60) body.difficulty = 'intermediate';
       else body.difficulty = 'advanced';
     }
-
     fetch('/api/results', {
       method: 'POST',
       credentials: 'include',
@@ -787,11 +814,11 @@
     liveTimer.style.color = '';
 
     var lengthVal = parseInt(currentConfig.length, 10);
-    if (currentConfig.length !== 'full' && !isNaN(lengthVal)) {
+    if (isTimedLength(currentConfig.length) && !isNaN(lengthVal)) {
       remainingSeconds = lengthVal;
       updateTimerDisplay();
     } else {
-      liveTimer.textContent = '--';
+      liveTimer.textContent = '0s';
     }
 
     startCountdown();
@@ -816,15 +843,16 @@
   }
 
   // --- Theme toggle (floating button) ---
+  // Bound centrally in theme.js; kept as a safe no-op so init() is unchanged.
   function setupThemeToggleFloat() {
     var themeToggleFloat = document.getElementById('themeToggleFloat');
     if (!themeToggleFloat) return;
-
-    themeToggleFloat.addEventListener('click', function () {
-      if (window.themeManager) {
+    if (themeToggleFloat.getAttribute('data-theme-bound') !== '1' && window.theme) {
+      themeToggleFloat.setAttribute('data-theme-bound', '1');
+      themeToggleFloat.addEventListener('click', function () {
         window.theme.toggleTheme();
-      }
-    });
+      });
+    }
   }
 
   // --- Utility: debounce ---

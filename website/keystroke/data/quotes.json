@@ -1,57 +1,352 @@
 [
-  { "id": "q001", "text": "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the English alphabet at least once, making it useful for testing typewriters and keyboards.", "length": "short" },
-  { "id": "q002", "text": "To be or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.", "length": "medium" },
-  { "id": "q003", "text": "In the beginning was the Word, and the Word was with God, and the Word was God. He was in the beginning with God. All things were made through Him, and without Him nothing was made that was made.", "length": "medium" },
-  { "id": "q004", "text": "The only thing we have to fear is fear itself — nameless, unreasoning, unjustified terror that paralyzes needed efforts to convert retreat into advance. These are the words spoken during an inaugural address that changed the course of a nation.", "length": "medium" },
-  { "id": "q005", "text": "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife. However little known the feelings or views of such a man may be on his first entering a neighbourhood.", "length": "medium" },
-  { "id": "q006", "text": "Call me Ishmael. Some years ago — never mind how long precisely — having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.", "length": "medium" },
-  { "id": "q007", "text": "The sun did not shine. It was too wet to play. So we sat in the house all that cold, cold, cold day. I sat there with Sally. She sat there, herself — just as she does! Put on your clothes, the lady said.", "length": "medium" },
-  { "id": "q008", "text": "Four score and seven years ago our fathers brought forth on this continent a new nation, conceived in liberty and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war.", "length": "medium" },
-  { "id": "q009", "text": "The path of the righteous man is beset on all sides by the inequities of the selfish and the tyranny of evil men. Blessed is he, who in the name of charity and good will, shepherds the weak through the valley of darkness.", "length": "medium" },
-  { "id": "q010", "text": "I have a dream that one day this nation will rise up and live out the true meaning of its creed: We hold these truths to be self-evident, that all men are created equal. I have a dream today.", "length": "medium" },
-  { "id": "q011", "text": "The Internet was born in 1969 as ARPANET, a project by the U.S. Department of Defense to connect computers at different universities. Today over five billion people use the internet, generating more than 2.5 quintillion bytes of data daily across every continent.", "length": "long" },
-  { "id": "q012", "text": "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water. Photosynthesis in plants generally involves the green pigment chlorophyll and generates oxygen as a byproduct.", "length": "long" },
-  { "id": "q013", "text": "The Great Wall of China stretches over 13,000 miles if you include all branches and sections. Construction began as early as the 7th century BC, though most of what exists today was built during the Ming Dynasty between 1368 and 1644 AD.", "length": "long" },
-  { "id": "q014", "text": "The human brain contains approximately 86 billion neurons, each connected to thousands of others forming trillions of synapses. This neural network processes information at speeds up to 268 miles per hour and consumes roughly 20 watts of power.", "length": "long" },
-  { "id": "q015", "text": "The Mariana Trench in the Pacific Ocean reaches a depth of approximately 36,070 feet below sea level. If Mount Everest were placed at the bottom, its peak would still be over two miles underwater. The pressure at that depth is more than eight tons per square inch.", "length": "long" },
-  { "id": "q016", "text": "The Library of Alexandria was one of the largest and most significant libraries of the ancient world, founded in the 3rd century BC. It was dedicated to the Muses, the nine goddesses of the arts, and aimed to collect all the knowledge of the known world.", "length": "long" },
-  { "id": "q017", "text": "The atomic number of carbon is six, meaning every carbon atom has six protons in its nucleus. Carbon can form bonds with up to four other atoms simultaneously, making it uniquely suited for building the complex molecular structures found in all known life.", "length": "long" },
-  { "id": "q018", "text": "The first computer programmer was Ada Lovelace, who wrote an algorithm for Charles Babbage's early mechanical general-purpose computer, the Analytical Engine, in 1843. She recognized that machines could go beyond mere calculation.", "length": "long" },
-  { "id": "q019", "text": "The speed of light in a vacuum is exactly 299,792,458 meters per second — about 186,282 miles per second. Nothing with mass can travel faster than this universal speed limit, which fundamentally shapes the structure of spacetime itself.", "length": "long" },
-  { "id": "q020", "text": "The Renaissance was a fervent period of European cultural, artistic, political and economic rebirth following the Middle Ages. Generally described as taking place from the 14th to the 17th century, it began in Italy and spread to the rest of Europe.", "length": "long" },
-  { "id": "q021", "text": "The periodic table organizes all known chemical elements by atomic number. Dmitri Mendeleev published the first widely recognized version in 1869, arranging elements so that properties repeated at regular intervals — hence the name periodic.", "length": "long" },
-  { "id": "q022", "text": "The Amazon rainforest produces approximately 20 percent of the world's oxygen. It spans 5.5 million square kilometers across nine nations in South America and contains the greatest diversity of plant and animal life on Earth.", "length": "long" },
-  { "id": "q023", "text": "The human genome consists of approximately three billion base pairs of DNA arranged into 23 chromosomes. Despite vast differences between individuals, humans share about 99.9 percent identical genetic material with each other.", "length": "long" },
-  { "id": "q024", "text": "The first successful powered flight occurred on December 17, 1903, at Kitty Hawk, North Carolina. Orville and Wilbur Wright's Flyer flew for 12 seconds covering 120 feet before landing safely in the sand.", "length": "long" },
-  { "id": "q025", "text": "The number pi (π) is an irrational number approximately equal to 3.14159, representing the ratio of a circle's circumference to its diameter. It has been calculated to over 62 trillion digits with no repeating pattern ever found.", "length": "long" },
-  { "id": "q026", "text": "The Eiffel Tower was built for the 1889 Exposition Universelle in Paris to celebrate the French Revolution. At 330 meters tall, it was the tallest man-made structure in the world until the Chrysler Building was completed in New York.", "length": "long" },
-  { "id": "q027", "text": "The human body contains approximately 5 liters of blood, which travels through roughly 60,000 miles of blood vessels. The heart beats about 100,000 times per day, pumping enough blood in a lifetime to fill over 200 railroad tank cars.", "length": "long" },
-  { "id": "q028", "text": "The pyramids of Giza were constructed around 2560 BC as tombs for the Egyptian pharaoh Khufu. The Great Pyramid originally stood at 146.5 meters and consists of an estimated 2.3 million stone blocks, each weighing several tons.", "length": "long" },
-  { "id": "q029", "text": "The Doppler effect describes the change in frequency of a wave relative to an observer moving toward or away from the source. It explains why a siren sounds higher-pitched as it approaches and lower-pitched as it recedes.", "length": "long" },
-  { "id": "q030", "text": "The Voyager 1 spacecraft, launched in 1977, is now over 24 billion kilometers from Earth — the most distant human-made object. It carries a golden record containing sounds and images of Earth intended for any intelligent extraterrestrial life that might find it.", "length": "long" },
-  { "id": "q031", "text": "The Mona Lisa, painted by Leonardo da Vinci between 1503 and 1519, hangs in the Louvre Museum in Paris. Its enigmatic smile has made it arguably the most famous painting in the world, attracting over 10 million visitors annually.", "length": "long" },
-  { "id": "q032", "text": "The theory of general relativity, published by Albert Einstein in 1915, describes gravity not as a force but as a curvature of spacetime caused by mass and energy. It predicted phenomena later confirmed including gravitational lensing and black holes.", "length": "long" },
-  { "id": "q033", "text": "The Pacific Ocean covers approximately 165 million square kilometers — more than all landmasses combined. It contains the Mariana Trench, the deepest point on Earth at nearly 11 kilometers below sea level.", "length": "long" },
-  { "id": "q034", "text": "The first mobile phone call was made by Martin Cooper of Motorola on April 3, 1973. The prototype device weighed about one kilogram and offered 30 minutes of talk time before requiring a 10-hour recharge.", "length": "long" },
-  { "id": "q035", "text": "The human eye can distinguish approximately ten million different colors. Light enters through the pupil, passes through the lens, and strikes the retina at the back of the eye, where photoreceptor cells convert it into electrical signals.", "length": "long" },
-  { "id": "q036", "text": "The Colosseum in Rome could hold between 50,000 and 80,000 spectators. Built between 70 and 80 AD under emperors Vespasian and Titus, it hosted gladiatorial contests and public spectacles for nearly four centuries.", "length": "long" },
-  { "id": "q037", "text": "The chemical formula H₂O represents water — two hydrogen atoms bonded to one oxygen atom. Water is the only substance that naturally exists in all three states of matter: solid ice, liquid water, and gaseous vapor at temperatures found on Earth.", "length": "long" },
-  { "id": "q038", "text": "The first website ever created was published by Tim Berners-Lee on August 6, 1991, at CERN in Switzerland. It described the World Wide Web project and explained how to browse and install a web server.", "length": "long" },
-  { "id": "q039", "text": "The human skeleton of an adult consists of exactly 206 bones. At birth, humans have approximately 270 bones, but many fuse together during growth and development to form the adult skeletal structure.", "length": "long" },
-  { "id": "q040", "text": "The Ring of Fire is a horseshoe-shaped zone around the Pacific Ocean where numerous earthquakes and volcanic eruptions occur. It contains over 75 percent of the world's active and dormant volcanoes.", "length": "long" },
-  { "id": "q041", "text": "The first electronic general-purpose computer, ENIAC, was completed in 1945 at the University of Pennsylvania. It weighed 30 tons, occupied 1,800 square feet, and used approximately 18,000 vacuum tubes.", "length": "long" },
-  { "id": "q042", "text": "The human liver performs over 500 functions including detoxification, protein synthesis, and production of biochemicals for digestion. It is the only internal organ capable of regenerating itself completely from as little as 25 percent of its tissue.", "length": "long" },
-  { "id": "q043", "text": "The Taj Mahal in Agra, India, was built between 1632 and 1653 by the Mughal emperor Shah Jahan as a tomb for his beloved wife Mumtaz Mahal. It took over 20,000 artisans nearly 22 years to complete.", "length": "long" },
-  { "id": "q044", "text": "The quantum mechanical model of the atom describes electrons not as particles in fixed orbits but as probability clouds called orbitals. This counterintuitive framework has been verified by countless experiments since the 1920s.", "length": "long" },
-  { "id": "q045", "text": "The first transatlantic telegraph cable was completed in 1866, enabling near-instant communication between Europe and North America for the first time in history. It took over two decades of attempts and failures.", "length": "long" },
-  { "id": "q046", "text": "The human nose can detect approximately one trillion different odors, far more than the previously estimated 10,000. Each odorant molecule binds to specific receptors in the nasal epithelium, triggering neural signals to the olfactory bulb.", "length": "long" },
-  { "id": "q047", "text": "The Stone Age ended differently across regions — around 2000 BC in the Middle East but not until 600 AD in parts of Africa and Asia. It was defined by the creation and use of stone tools, which comprised over 90 percent of human technological history.", "length": "long" },
-  { "id": "q048", "text": "The Hubble Space Telescope has captured images over 1.3 million gigabytes in its decades of operation from orbit 547 kilometers above Earth. It has helped determine the age of the universe at approximately 13.8 billion years.", "length": "long" },
-  { "id": "q049", "text": "The human immune system contains specialized white blood cells called lymphocytes that can recognize and remember virtually any pathogen encountered. This immunological memory is the principle behind vaccination, first developed by Edward Jenner in 1796.", "length": "long" },
-  { "id": "q050", "text": "The Antarctic ice sheet contains approximately 61.9 million cubic kilometers of ice — about 61 percent of all fresh water on Earth. If it melted completely, global sea levels would rise by approximately 58 meters.", "length": "long" },
-  { "id": "q051", "text": "The Fibonacci sequence begins: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34... Each number is the sum of the two preceding ones. This pattern appears frequently in nature — in spiral arrangements of sunflower seeds, pinecones, and nautilus shells.", "length": "long" },
-  { "id": "q052", "text": "The first commercial flight took place on January 15, 1914, between St. Petersburg and Tampa, Florida. Pilot Tony Jannus flew passengers across the bay for a fare of five dollars — roughly equivalent to $160 today.", "length": "long" },
-  { "id": "q053", "text": "The human brain stores information using synaptic connections between neurons that can number in the trillions. While exact capacity estimates vary, some researchers suggest the brain's memory storage could equal several petabytes of digital data.", "length": "long" },
-  { "id": "q054", "text": "The Rosetta Stone, discovered in 1799 by French soldiers in Egypt, contained the same decree written in three scripts: Greek, Demotic, and hieroglyphic. It provided the key to deciphering Egyptian hieroglyphs for the first time.", "length": "long" },
-  { "id": "q055", "text": "The number zero as a mathematical concept was independently developed by multiple civilizations including the Mayans and ancient Indian mathematicians. Brahmagupta's 628 AD text provided the first formal rules for arithmetic operations with zero.", "length": "long" }
+  {
+    "id": "q001",
+    "text": "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the English alphabet at least once, making it useful for testing typewriters and keyboards.",
+    "length": "short"
+  },
+  {
+    "id": "q002",
+    "text": "To be or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.",
+    "length": "medium"
+  },
+  {
+    "id": "q003",
+    "text": "In the beginning was the Word, and the Word was with God, and the Word was God. He was in the beginning with God. All things were made through Him, and without Him nothing was made that was made.",
+    "length": "medium"
+  },
+  {
+    "id": "q004",
+    "text": "The only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror that paralyzes needed efforts to convert retreat into advance. These are the words spoken during an inaugural address that changed the course of a nation.",
+    "length": "medium"
+  },
+  {
+    "id": "q005",
+    "text": "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife. However little known the feelings or views of such a man may be on his first entering a neighbourhood.",
+    "length": "medium"
+  },
+  {
+    "id": "q006",
+    "text": "Call me Ishmael. Some years ago \u2014 never mind how long precisely \u2014 having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.",
+    "length": "medium"
+  },
+  {
+    "id": "q007",
+    "text": "The sun did not shine. It was too wet to play. So we sat in the house all that cold, cold, cold day. I sat there with Sally. She sat there, herself \u2014 just as she does! Put on your clothes, the lady said.",
+    "length": "medium"
+  },
+  {
+    "id": "q008",
+    "text": "Four score and seven years ago our fathers brought forth on this continent a new nation, conceived in liberty and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war.",
+    "length": "medium"
+  },
+  {
+    "id": "q009",
+    "text": "The path of the righteous man is beset on all sides by the inequities of the selfish and the tyranny of evil men. Blessed is he, who in the name of charity and good will, shepherds the weak through the valley of darkness.",
+    "length": "medium"
+  },
+  {
+    "id": "q010",
+    "text": "I have a dream that one day this nation will rise up and live out the true meaning of its creed: We hold these truths to be self-evident, that all men are created equal. I have a dream today.",
+    "length": "medium"
+  },
+  {
+    "id": "q011",
+    "text": "The Internet was born in 1969 as ARPANET, a project by the U.S. Department of Defense to connect computers at different universities. Today over five billion people use the internet, generating more than 2.5 quintillion bytes of data daily across every continent.",
+    "length": "long"
+  },
+  {
+    "id": "q012",
+    "text": "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water. Photosynthesis in plants generally involves the green pigment chlorophyll and generates oxygen as a byproduct.",
+    "length": "long"
+  },
+  {
+    "id": "q013",
+    "text": "The Great Wall of China stretches over 13,000 miles if you include all branches and sections. Construction began as early as the 7th century BC, though most of what exists today was built during the Ming Dynasty between 1368 and 1644 AD.",
+    "length": "long"
+  },
+  {
+    "id": "q014",
+    "text": "The human brain contains approximately 86 billion neurons, each connected to thousands of others forming trillions of synapses. This neural network processes information at speeds up to 268 miles per hour and consumes roughly 20 watts of power.",
+    "length": "long"
+  },
+  {
+    "id": "q015",
+    "text": "The Mariana Trench in the Pacific Ocean reaches a depth of approximately 36,070 feet below sea level. If Mount Everest were placed at the bottom, its peak would still be over two miles underwater. The pressure at that depth is more than eight tons per square inch.",
+    "length": "long"
+  },
+  {
+    "id": "q016",
+    "text": "The Library of Alexandria was one of the largest and most significant libraries of the ancient world, founded in the 3rd century BC. It was dedicated to the Muses, the nine goddesses of the arts, and aimed to collect all the knowledge of the known world.",
+    "length": "long"
+  },
+  {
+    "id": "q017",
+    "text": "The atomic number of carbon is six, meaning every carbon atom has six protons in its nucleus. Carbon can form bonds with up to four other atoms simultaneously, making it uniquely suited for building the complex molecular structures found in all known life.",
+    "length": "long"
+  },
+  {
+    "id": "q018",
+    "text": "The first computer programmer was Ada Lovelace, who wrote an algorithm for Charles Babbage's early mechanical general-purpose computer, the Analytical Engine, in 1843. She recognized that machines could go beyond mere calculation.",
+    "length": "long"
+  },
+  {
+    "id": "q019",
+    "text": "The speed of light in a vacuum is exactly 299,792,458 meters per second \u2014 about 186,282 miles per second. Nothing with mass can travel faster than this universal speed limit, which fundamentally shapes the structure of spacetime itself.",
+    "length": "long"
+  },
+  {
+    "id": "q020",
+    "text": "The Renaissance was a fervent period of European cultural, artistic, political and economic rebirth following the Middle Ages. Generally described as taking place from the 14th to the 17th century, it began in Italy and spread to the rest of Europe.",
+    "length": "long"
+  },
+  {
+    "id": "q021",
+    "text": "The periodic table organizes all known chemical elements by atomic number. Dmitri Mendeleev published the first widely recognized version in 1869, arranging elements so that properties repeated at regular intervals \u2014 hence the name periodic.",
+    "length": "long"
+  },
+  {
+    "id": "q022",
+    "text": "The Amazon rainforest produces approximately 20 percent of the world's oxygen. It spans 5.5 million square kilometers across nine nations in South America and contains the greatest diversity of plant and animal life on Earth.",
+    "length": "long"
+  },
+  {
+    "id": "q023",
+    "text": "The human genome consists of approximately three billion base pairs of DNA arranged into 23 chromosomes. Despite vast differences between individuals, humans share about 99.9 percent identical genetic material with each other.",
+    "length": "long"
+  },
+  {
+    "id": "q024",
+    "text": "The first successful powered flight occurred on December 17, 1903, at Kitty Hawk, North Carolina. Orville and Wilbur Wright's Flyer flew for 12 seconds covering 120 feet before landing safely in the sand.",
+    "length": "long"
+  },
+  {
+    "id": "q025",
+    "text": "The number pi (\u03c0) is an irrational number approximately equal to 3.14159, representing the ratio of a circle's circumference to its diameter. It has been calculated to over 62 trillion digits with no repeating pattern ever found.",
+    "length": "long"
+  },
+  {
+    "id": "q026",
+    "text": "The Eiffel Tower was built for the 1889 Exposition Universelle in Paris to celebrate the French Revolution. At 330 meters tall, it was the tallest man-made structure in the world until the Chrysler Building was completed in New York.",
+    "length": "long"
+  },
+  {
+    "id": "q027",
+    "text": "The human body contains approximately 5 liters of blood, which travels through roughly 60,000 miles of blood vessels. The heart beats about 100,000 times per day, pumping enough blood in a lifetime to fill over 200 railroad tank cars.",
+    "length": "long"
+  },
+  {
+    "id": "q028",
+    "text": "The pyramids of Giza were constructed around 2560 BC as tombs for the Egyptian pharaoh Khufu. The Great Pyramid originally stood at 146.5 meters and consists of an estimated 2.3 million stone blocks, each weighing several tons.",
+    "length": "long"
+  },
+  {
+    "id": "q029",
+    "text": "The Doppler effect describes the change in frequency of a wave relative to an observer moving toward or away from the source. It explains why a siren sounds higher-pitched as it approaches and lower-pitched as it recedes.",
+    "length": "long"
+  },
+  {
+    "id": "q030",
+    "text": "The Voyager 1 spacecraft, launched in 1977, is now over 24 billion kilometers from Earth \u2014 the most distant human-made object. It carries a golden record containing sounds and images of Earth intended for any intelligent extraterrestrial life that might find it.",
+    "length": "long"
+  },
+  {
+    "id": "q031",
+    "text": "The Mona Lisa, painted by Leonardo da Vinci between 1503 and 1519, hangs in the Louvre Museum in Paris. Its enigmatic smile has made it arguably the most famous painting in the world, attracting over 10 million visitors annually.",
+    "length": "long"
+  },
+  {
+    "id": "q032",
+    "text": "The theory of general relativity, published by Albert Einstein in 1915, describes gravity not as a force but as a curvature of spacetime caused by mass and energy. It predicted phenomena later confirmed including gravitational lensing and black holes.",
+    "length": "long"
+  },
+  {
+    "id": "q033",
+    "text": "The Pacific Ocean covers approximately 165 million square kilometers \u2014 more than all landmasses combined. It contains the Mariana Trench, the deepest point on Earth at nearly 11 kilometers below sea level.",
+    "length": "long"
+  },
+  {
+    "id": "q034",
+    "text": "The first mobile phone call was made by Martin Cooper of Motorola on April 3, 1973. The prototype device weighed about one kilogram and offered 30 minutes of talk time before requiring a 10-hour recharge.",
+    "length": "long"
+  },
+  {
+    "id": "q035",
+    "text": "The human eye can distinguish approximately ten million different colors. Light enters through the pupil, passes through the lens, and strikes the retina at the back of the eye, where photoreceptor cells convert it into electrical signals.",
+    "length": "long"
+  },
+  {
+    "id": "q036",
+    "text": "The Colosseum in Rome could hold between 50,000 and 80,000 spectators. Built between 70 and 80 AD under emperors Vespasian and Titus, it hosted gladiatorial contests and public spectacles for nearly four centuries.",
+    "length": "long"
+  },
+  {
+    "id": "q037",
+    "text": "The chemical formula H\u2082O represents water \u2014 two hydrogen atoms bonded to one oxygen atom. Water is the only substance that naturally exists in all three states of matter: solid ice, liquid water, and gaseous vapor at temperatures found on Earth.",
+    "length": "long"
+  },
+  {
+    "id": "q038",
+    "text": "The first website ever created was published by Tim Berners-Lee on August 6, 1991, at CERN in Switzerland. It described the World Wide Web project and explained how to browse and install a web server.",
+    "length": "long"
+  },
+  {
+    "id": "q039",
+    "text": "The human skeleton of an adult consists of exactly 206 bones. At birth, humans have approximately 270 bones, but many fuse together during growth and development to form the adult skeletal structure.",
+    "length": "long"
+  },
+  {
+    "id": "q040",
+    "text": "The Ring of Fire is a horseshoe-shaped zone around the Pacific Ocean where numerous earthquakes and volcanic eruptions occur. It contains over 75 percent of the world's active and dormant volcanoes.",
+    "length": "long"
+  },
+  {
+    "id": "q041",
+    "text": "The first electronic general-purpose computer, ENIAC, was completed in 1945 at the University of Pennsylvania. It weighed 30 tons, occupied 1,800 square feet, and used approximately 18,000 vacuum tubes.",
+    "length": "long"
+  },
+  {
+    "id": "q042",
+    "text": "The human liver performs over 500 functions including detoxification, protein synthesis, and production of biochemicals for digestion. It is the only internal organ capable of regenerating itself completely from as little as 25 percent of its tissue.",
+    "length": "long"
+  },
+  {
+    "id": "q043",
+    "text": "The Taj Mahal in Agra, India, was built between 1632 and 1653 by the Mughal emperor Shah Jahan as a tomb for his beloved wife Mumtaz Mahal. It took over 20,000 artisans nearly 22 years to complete.",
+    "length": "long"
+  },
+  {
+    "id": "q044",
+    "text": "The quantum mechanical model of the atom describes electrons not as particles in fixed orbits but as probability clouds called orbitals. This counterintuitive framework has been verified by countless experiments since the 1920s.",
+    "length": "long"
+  },
+  {
+    "id": "q045",
+    "text": "The first transatlantic telegraph cable was completed in 1866, enabling near-instant communication between Europe and North America for the first time in history. It took over two decades of attempts and failures.",
+    "length": "long"
+  },
+  {
+    "id": "q046",
+    "text": "The human nose can detect approximately one trillion different odors, far more than the previously estimated 10,000. Each odorant molecule binds to specific receptors in the nasal epithelium, triggering neural signals to the olfactory bulb.",
+    "length": "long"
+  },
+  {
+    "id": "q047",
+    "text": "The Stone Age ended differently across regions \u2014 around 2000 BC in the Middle East but not until 600 AD in parts of Africa and Asia. It was defined by the creation and use of stone tools, which comprised over 90 percent of human technological history.",
+    "length": "long"
+  },
+  {
+    "id": "q048",
+    "text": "The Hubble Space Telescope has captured images over 1.3 million gigabytes in its decades of operation from orbit 547 kilometers above Earth. It has helped determine the age of the universe at approximately 13.8 billion years.",
+    "length": "long"
+  },
+  {
+    "id": "q049",
+    "text": "The human immune system contains specialized white blood cells called lymphocytes that can recognize and remember virtually any pathogen encountered. This immunological memory is the principle behind vaccination, first developed by Edward Jenner in 1796.",
+    "length": "long"
+  },
+  {
+    "id": "q050",
+    "text": "The Antarctic ice sheet contains approximately 61.9 million cubic kilometers of ice \u2014 about 61 percent of all fresh water on Earth. If it melted completely, global sea levels would rise by approximately 58 meters.",
+    "length": "long"
+  },
+  {
+    "id": "q051",
+    "text": "The Fibonacci sequence begins: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34... Each number is the sum of the two preceding ones. This pattern appears frequently in nature \u2014 in spiral arrangements of sunflower seeds, pinecones, and nautilus shells.",
+    "length": "long"
+  },
+  {
+    "id": "q052",
+    "text": "The first commercial flight took place on January 15, 1914, between St. Petersburg and Tampa, Florida. Pilot Tony Jannus flew passengers across the bay for a fare of five dollars \u2014 roughly equivalent to $160 today.",
+    "length": "long"
+  },
+  {
+    "id": "q053",
+    "text": "The human brain stores information using synaptic connections between neurons that can number in the trillions. While exact capacity estimates vary, some researchers suggest the brain's memory storage could equal several petabytes of digital data.",
+    "length": "long"
+  },
+  {
+    "id": "q054",
+    "text": "The Rosetta Stone, discovered in 1799 by French soldiers in Egypt, contained the same decree written in three scripts: Greek, Demotic, and hieroglyphic. It provided the key to deciphering Egyptian hieroglyphs for the first time.",
+    "length": "long"
+  },
+  {
+    "id": "q055",
+    "text": "The number zero as a mathematical concept was independently developed by multiple civilizations including the Mayans and ancient Indian mathematicians. Brahmagupta's 628 AD text provided the first formal rules for arithmetic operations with zero.",
+    "length": "long"
+  },
+  {
+    "id": "q101",
+    "text": "Practice makes progress. Every keystroke counts toward a faster you.",
+    "length": "short"
+  },
+  {
+    "id": "q102",
+    "text": "Slow is smooth and smooth is fast. Focus on accuracy first.",
+    "length": "short"
+  },
+  {
+    "id": "q103",
+    "text": "The best time to start was yesterday. The next best time is now.",
+    "length": "short"
+  },
+  {
+    "id": "q104",
+    "text": "Speed follows accuracy. Type carefully and the words will flow.",
+    "length": "short"
+  },
+  {
+    "id": "q105",
+    "text": "A journey of a thousand miles begins with a single keystroke.",
+    "length": "short"
+  },
+  {
+    "id": "q106",
+    "text": "Keep your eyes on the screen and your fingers on the keys.",
+    "length": "short"
+  },
+  {
+    "id": "q107",
+    "text": "Consistency beats intensity. A little every day goes far.",
+    "length": "short"
+  },
+  {
+    "id": "q108",
+    "text": "Measure your progress, not your perfection.",
+    "length": "short"
+  },
+  {
+    "id": "q109",
+    "text": "Every expert was once a beginner who refused to give up.",
+    "length": "short"
+  },
+  {
+    "id": "q110",
+    "text": "Type the way you train and you will race the way you type.",
+    "length": "short"
+  },
+  {
+    "id": "q111",
+    "text": "Learning to touch type is less about moving your fingers faster and more about moving them with confidence. When your hands know where each key lives without looking, your mind is free to focus on the words themselves. That freedom is what turns a clumsy typist into a fluent one.",
+    "length": "medium"
+  },
+  {
+    "id": "q112",
+    "text": "Muscle memory is built one repetition at a time. The first time you reach for the correct finger movement it feels slow and deliberate, but after a hundred repetitions it becomes automatic. This is why short daily practice sessions outperform occasional marathon sessions every single time.",
+    "length": "medium"
+  },
+  {
+    "id": "q113",
+    "text": "The most important habit in touch typing is keeping your eyes on the copy rather than on your fingers. Looking down breaks your rhythm and forces you to relocate your place each time. Trust your fingers to find the keys and they will learn to do exactly that.",
+    "length": "medium"
+  },
+  {
+    "id": "q114",
+    "text": "The keyboard is one of the most enduring interfaces in the history of computing, surviving decades of competing input methods because it is fast, tactile, and universally understood. Mastering it is not simply a productivity trick; it is a form of literacy for the digital age. Those who type quickly and accurately can translate thought into text almost as fast as they can form the thought itself, removing one of the oldest bottlenecks between an idea and its expression.",
+    "length": "long"
+  },
+  {
+    "id": "q115",
+    "text": "Consider how much of modern work happens through typing: emails, documents, code, chat messages, search queries. The person who types comfortably spends less energy on the mechanics of communication and more on its substance. This is why typing speed and accuracy remain genuinely valuable skills, and why a little structured practice each day pays off for years. The keyboard is the pen of our century, and handwriting it well is worth the effort.",
+    "length": "long"
+  }
 ]

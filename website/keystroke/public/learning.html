@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning — Keystroke</title>
+  <meta name="description" content="Structured courses that teach you to type real code and concepts, one lesson at a time.">
+
+  <!-- Theme before first paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/css/tokens.css" rel="stylesheet" />
+  <link href="/css/base.css" rel="stylesheet" />
+  <link href="/css/components.css" rel="stylesheet" />
+  <link href="/css/pages.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/" class="logo" aria-label="Keystroke home">
+        <span class="logo-icon" aria-hidden="true">&gt;_</span>
+        <span class="logo-text">keystroke</span>
+      </a>
+      <div class="nav-links">
+        <a href="/type.html" class="nav-link">Type</a>
+        <a href="/learning.html" class="nav-link nav-link-active" aria-current="page">Learning</a>
+        <a href="/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
+      </div>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
+
+  <main class="learning-page">
+    <section class="learning-hero">
+      <h1 class="type-hero-title">Learning</h1>
+      <p class="type-hero-subtitle">Short courses that teach you to type real code and core concepts — one lesson at a time. Complete a lesson, unlock the next.</p>
+    </section>
+
+    <section class="learning-summary" id="learningSummary" aria-label="Learning summary">
+      <div class="card summary-card">
+        <div class="summary-stat">
+          <span class="summary-value" id="summaryStarted">0</span>
+          <span class="summary-label">courses started</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-value" id="summaryCompleted">0</span>
+          <span class="summary-label">lessons completed</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-value" id="summaryWeek">0</span>
+          <span class="summary-label">this week</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="course-grid" id="courseGrid" aria-label="Available courses">
+      <p class="loading-text" id="courseGridLoading">Loading courses…</p>
+    </section>
+
+    <section class="guest-banner card hidden" id="guestBanner">
+      <p><strong>Learning as a guest.</strong> Your progress is only tracked in this session. <a href="/signup.html">Sign up</a> or <a href="/login.html">log in</a> to save it and earn XP.</p>
+    </section>
+  </main>
+
+  <button class="theme-toggle-float" id="themeToggleFloat" aria-label="Toggle theme">
+    <span class="theme-icon-sun" aria-hidden="true">&#9728;</span>
+    <span class="theme-icon-moon" aria-hidden="true">&#9790;</span>
+  </button>
+
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <p>&copy; 2024 Keystroke. Type code faster.</p>
+    </div>
+  </footer>
+
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/scroll-reveal.js"></script>
+  <script src="/js/learning.js"></script>
+</body>
+</html>

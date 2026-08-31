@@ -16,7 +16,9 @@
     DASHBOARD_ELEMENTS.dashboardLoading = document.getElementById('dashboard-loading');
     DASHBOARD_ELEMENTS.dashboardError = document.getElementById('dashboard-error');
     DASHBOARD_ELEMENTS.dashboardEmpty = document.getElementById('dashboard-empty');
+    DASHBOARD_ELEMENTS.dashboardContent = document.getElementById('dashboard-content');
     DASHBOARD_ELEMENTS.overallStatsGrid = document.getElementById('overall-stats-grid');
+    DASHBOARD_ELEMENTS.learningWidget = document.getElementById('dashboard-learning');
   }
 
   // --- Fetch user stats from API ---
@@ -51,10 +53,19 @@
         renderPersonalBests(results);
         renderRecentResults(results.slice(0, 10));
         renderStreakChart(results);
+        loadLearningWidget();
         showLoading(false);
 
         if (results.length === 0) {
           showEmpty(true);
+          if (DASHBOARD_ELEMENTS.dashboardContent) {
+            DASHBOARD_ELEMENTS.dashboardContent.style.display = 'none';
+          }
+        } else {
+          showEmpty(false);
+          if (DASHBOARD_ELEMENTS.dashboardContent) {
+            DASHBOARD_ELEMENTS.dashboardContent.style.display = 'block';
+          }
         }
       })
       .catch(function (err) {
@@ -298,6 +309,35 @@
     stats.createStreakChart(DASHBOARD_ELEMENTS.streakChartContainer, streakData, { cellSize: 14 });
   }
 
+  // --- Render learning progress widget ---
+  function loadLearningWidget() {
+    if (!DASHBOARD_ELEMENTS.learningWidget) return;
+    fetch('/api/courses', { credentials: 'include' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var summary = data.summary || {};
+        DASHBOARD_ELEMENTS.learningWidget.innerHTML =
+          '<div class="learning-widget-grid">' +
+            '<div class="learning-widget-stat">' +
+              '<span class="learning-widget-value">' + (summary.coursesStarted || 0) + '</span>' +
+              '<span class="learning-widget-label">courses started</span>' +
+            '</div>' +
+            '<div class="learning-widget-stat">' +
+              '<span class="learning-widget-value">' + (summary.lessonsCompleted || 0) + '</span>' +
+              '<span class="learning-widget-label">lessons completed</span>' +
+            '</div>' +
+            '<div class="learning-widget-stat">' +
+              '<span class="learning-widget-value">' + (summary.lessonsCompletedThisWeek || 0) + '</span>' +
+              '<span class="learning-widget-label">this week</span>' +
+            '</div>' +
+          '</div>' +
+          '<a href="/learning.html" class="btn btn-ghost btn-sm" style="margin-top:var(--space-3);">Continue learning</a>';
+      })
+      .catch(function () {
+        DASHBOARD_ELEMENTS.learningWidget.innerHTML = '<p style="font-size: var(--font-size-sm); color: var(--text-muted);">Could not load learning progress.</p>';
+      });
+  }
+
   // --- UI state helpers ---
   function showLoading(show) {
     if (DASHBOARD_ELEMENTS.dashboardLoading) {
@@ -441,7 +481,8 @@
     renderWpmTimelineChart: renderWpmTimelineChart,
     renderPersonalBests: renderPersonalBests,
     renderRecentResults: renderRecentResults,
-    renderStreakChart: renderStreakChart
+    renderStreakChart: renderStreakChart,
+    loadLearningWidget: loadLearningWidget
   };
 
   // --- Boot ---

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Shooter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-container">
+  <canvas id="game" width="480" height="640"></canvas>
+  <div id="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span><canvas id="credit-icon" width="14" height="14" style="vertical-align:middle"></canvas> <b id="credits">0</b> &nbsp; &#x1F511; <b id="keys">0</b></span>
+    <span>Lives: <b id="lives">3</b></span>
+    <span>Level: <b id="level">1</b></span>
+  </div>
+  <div id="overlay">
+    <h1 id="title">SPACE SHOOTER</h1>
+    <p id="subtitle">Press Play</p>
+    <button id="start-btn">PLAY</button>
+    <div style="margin-top:10px">
+      <button id="hangar-btn">HANGAR</button>
+      <button id="shop-btn">SHOP</button>
+      <button id="inv-btn">INVENTORY</button>
+    </div>
+  </div>
+  <div id="pause-screen" class="hidden">
+    <h2>PAUSED</h2>
+    <button id="resume-btn">RESUME</button>
+  </div>
+  <div id="hangar" class="hidden menu">
+    <h2>HANGAR — Weapon Slots</h2>
+    <div id="ship-list"></div>
+    <div id="weapon-slots"></div>
+    <div id="consumable-slots"></div>
+    <div id="unlock-list"></div>
+    <button id="hangar-close">BACK</button>
+  </div>
+  <div id="shop" class="hidden menu">
+    <h2>SHOP</h2>
+    <div id="shop-list"></div>
+    <button id="shop-close">BACK</button>
+  </div>
+  <div id="inventory" class="hidden menu">
+    <h2>INVENTORY</h2>
+    <div id="inv-content"></div>
+    <button id="inv-close">BACK</button>
+  </div>
+</div>
+<script src="data.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

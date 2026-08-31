@@ -46,6 +46,11 @@
   }
 
   TypingEngine.prototype.reset = function () {
+    // Make sure any previous timer is actually stopped (not just the reference dropped).
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
     this.state = STATE.IDLE;
     this.currentIndex = 0;
     this.correctChars = 0;
@@ -56,6 +61,7 @@
     this.elapsedMs = 0;
     this.timerInterval = null;
     this.lastTick = Date.now();
+    this.lastRecordedSecond = 0;
     this.keystrokes = []; // [{char, timestamp, correct}]
     // Per-position correctness so the renderer can show wrong chars as incorrect.
     // Indexed by the position that was typed; value is a boolean.
@@ -82,6 +88,7 @@
     if (this.state !== STATE.RUNNING) return;
     this.state = STATE.FINISHED;
     clearInterval(this.timerInterval);
+    this.timerInterval = null;
     this.elapsedMs = Date.now() - this.startTime;
     this.onStateChange(this.state);
     // Calculate final metrics
@@ -90,6 +97,7 @@
       this.totalTyped,
       this.errorCount,
       this.keystrokes,
+      this.startTime,
       this.elapsedMs
     );
     this.metrics = metrics;
@@ -109,7 +117,10 @@
     var isBackspace = (typeof data === 'string' && data === '\b') || data === null;
 
     if (isBackspace) {
-      return this.handleBackspace();
+      var handledBackspace = this.handleBackspace();
+      // Keep live stats current after a correction.
+      if (handledBackspace) this.publishInstant();
+      return handledBackspace;
     }
 
     // Only process single printable characters
@@ -146,7 +157,11 @@
     // Check if test is complete
     if (this.currentIndex >= this.targetText.length) {
       this.finish();
+      return true;
     }
+
+    // Real-time WPM/accuracy update on every keystroke (typeracer-style).
+    this.publishInstant();
 
     return true;
   };
@@ -172,15 +187,15 @@
     return true;
   };
 
-  TypingEngine.prototype.updateLive = function () {
+  TypingEngine.prototype.publishInstant = function () {
     if (this.state !== STATE.RUNNING) return;
 
     var now = Date.now();
     this.elapsedMs = now - this.startTime;
-
-    // Calculate running WPM and accuracy
     var elapsedMin = this.elapsedMs / 60000;
-    if (elapsedMin > 0 && this.correctChars > 0) {
+
+    // Avoid the first-keystroke WPM spike by waiting until a full second has passed.
+    if (this.elapsedMs >= 1000 && elapsedMin > 0 && this.correctChars > 0) {
       this.runningWpm = Math.round((this.correctChars / 5) / elapsedMin);
     } else {
       this.runningWpm = 0;
@@ -192,17 +207,10 @@
       this.runningAccuracy = 100;
     }
 
-    // Update consistency bucket (per-second WPM windows)
-    var currentSecond = Math.floor(this.elapsedMs / 1000);
-    if (currentSecond > 0) {
-      this.wpmHistory.push(calculateInstantWpm(this.keystrokes, currentSecond));
-    }
-
-    // Notify UI update
     var consistency = calculateConsistency(this.wpmHistory);
     this.onUpdate({
       wpm: this.runningWpm,
-      rawWpm: Math.round((this.totalTyped / 5) / elapsedMin) || 0,
+      rawWpm: elapsedMin > 0 ? (Math.round((this.totalTyped / 5) / elapsedMin) || 0) : 0,
       accuracy: this.runningAccuracy,
       errors: this.errorsThisTest,
       elapsedSeconds: Math.floor(this.elapsedMs / 1000),
@@ -210,6 +218,19 @@
       totalLength: this.targetText.length,
       consistency: consistency
     });
+  };
+
+  TypingEngine.prototype.updateLive = function () {
+    if (this.state !== STATE.RUNNING) return;
+
+    // Record a per-second consistency bucket (once per second, relative to startTime).
+    var currentSecond = Math.floor((Date.now() - this.startTime) / 1000);
+    if (currentSecond > this.lastRecordedSecond) {
+      this.lastRecordedSecond = currentSecond;
+      this.wpmHistory.push(calculateInstantWpm(this.keystrokes, this.startTime, currentSecond));
+    }
+
+    this.publishInstant();
   };
 
   TypingEngine.prototype.getConfig = function () {
@@ -221,7 +242,7 @@
   };
 
   // --- Metrics calculation ---
-  function calculateMetrics(correctChars, totalTyped, errorCount, keystrokes, elapsedMs) {
+  function calculateMetrics(correctChars, totalTyped, errorCount, keystrokes, startTime, elapsedMs) {
     var elapsedMin = elapsedMs / 60000;
     if (elapsedMin <= 0 || correctChars === 0) {
       return { wpm: 0, rawWpm: 0, accuracy: totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 0, consistency: 100, errorCount: errorCount };
@@ -230,19 +251,22 @@
     var wpm = Math.round((correctChars / 5) / elapsedMin);
     var rawWpm = Math.round((totalTyped / 5) / elapsedMin);
     var accuracy = Math.round((correctChars / totalTyped) * 100);
-    var consistency = calculateConsistencyFromKeystrokes(keystrokes, elapsedMs);
+    var consistency = calculateConsistencyFromKeystrokes(keystrokes, startTime, elapsedMs);
 
     return { wpm: wpm, rawWpm: rawWpm, accuracy: accuracy, consistency: consistency, errorCount: errorCount };
   }
 
-  function calculateInstantWpm(keystrokes, second) {
+  // Counts keystrokes that landed inside the 1-second window [startTime+(second-1)s, startTime+second s).
+  function calculateInstantWpm(keystrokes, startTime, second) {
     var count = 0;
+    var winStart = startTime + (second - 1) * 1000;
+    var winEnd = startTime + second * 1000;
     for (var i = 0; i < keystrokes.length; i++) {
-      if (keystrokes[i].timestamp >= (second - 1) * 1000 && keystrokes[i].timestamp < second * 1000) {
+      if (keystrokes[i].timestamp >= winStart && keystrokes[i].timestamp < winEnd) {
         count++;
       }
     }
-    return count; // chars per second, will be converted to WPM later
+    return count; // chars typed in that second, converted to WPM later
   }
 
   function calculateConsistency(wpmHistory) {
@@ -259,14 +283,16 @@
     return Math.max(0, Math.min(100, Math.round(100 - cv)));
   }
 
-  function calculateConsistencyFromKeystrokes(keystrokes, totalMs) {
+  function calculateConsistencyFromKeystrokes(keystrokes, startTime, totalMs) {
     if (keystrokes.length < 2 || totalMs <= 1000) return 100;
     var numSeconds = Math.max(1, Math.floor(totalMs / 1000));
     var perSecond = [];
     for (var s = 1; s <= numSeconds; s++) {
+      var winStart = startTime + (s - 1) * 1000;
+      var winEnd = startTime + s * 1000;
       var count = 0;
       for (var i = 0; i < keystrokes.length; i++) {
-        if (keystrokes[i].timestamp >= (s - 1) * 1000 && keystrokes[i].timestamp < s * 1000) {
+        if (keystrokes[i].timestamp >= winStart && keystrokes[i].timestamp < winEnd) {
           count++;
         }
       }

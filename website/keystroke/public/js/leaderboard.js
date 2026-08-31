@@ -18,6 +18,7 @@
     LEADERBOARD_ELEMENTS.loadingEl = document.getElementById('leaderboard-loading');
     LEADERBOARD_ELEMENTS.errorEl = document.getElementById('leaderboard-error');
     LEADERBOARD_ELEMENTS.emptyEl = document.getElementById('leaderboard-empty');
+    LEADERBOARD_ELEMENTS.contentEl = document.getElementById('leaderboard-content');
   }
 
   var LEADERBOARD_ENTRIES_TABLE_BODY;
@@ -78,13 +79,17 @@
         return res.json();
       })
       .then(function (data) {
-        var entries = data.entries || [];
+        var entries = data.entries || data.leaderboard || [];
         renderEntries(entries);
         renderChart(entries);
         showLoading(false);
 
         if (entries.length === 0) {
           showEmpty(true);
+          if (LEADERBOARD_ELEMENTS.contentEl) LEADERBOARD_ELEMENTS.contentEl.style.display = 'none';
+        } else {
+          showEmpty(false);
+          if (LEADERBOARD_ELEMENTS.contentEl) LEADERBOARD_ELEMENTS.contentEl.style.display = 'block';
         }
       })
       .catch(function (err) {
@@ -264,8 +269,8 @@
   // --- Filter change handlers ---
   function onModeChange(e) {
     currentFilters.mode = e.target.value;
-    // Reset language filter when switching modes (general has no language)
-    if (currentFilters.mode === 'general') {
+    // Reset language filter when switching modes (general/dictionary have no language)
+    if (currentFilters.mode !== 'code') {
       currentFilters.language = '';
       LEADERBOARD_ELEMENTS.languageFilter.style.display = 'none';
     } else {

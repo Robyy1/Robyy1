@@ -8,8 +8,8 @@ router.post('/', optionalAuth, (req, res) => {
   try {
     const { mode, language, difficulty, wpm, rawWpm, accuracy, consistency, errorCount, durationSeconds, charCount } = req.body;
 
-    if (!mode || !['general', 'code'].includes(mode)) {
-      return res.status(400).json({ error: 'Mode is required and must be "general" or "code"' });
+    if (!mode || !['general', 'code', 'dictionary'].includes(mode)) {
+      return res.status(400).json({ error: 'Mode is required and must be "general", "code", or "dictionary"' });
     }
 
     if (typeof wpm !== 'number' || typeof rawWpm !== 'number' || typeof accuracy !== 'number') {
@@ -55,8 +55,7 @@ router.post('/', optionalAuth, (req, res) => {
       req.user?.id || null,
       mode,
       mode === 'code' ? language : null,
-      mode === 'code' ? difficulty : null,
-      Math.round(wpm * 10) / 10,
+      mode === 'code' ? difficulty : null,      Math.round(wpm * 10) / 10,
       Math.round(rawWpm * 10) / 10,
       Math.round(accuracy * 10) / 10,
       Math.round(consistency * 10) / 10,

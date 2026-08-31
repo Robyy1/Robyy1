@@ -1,0 +1,56 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #05060f;
+  color: #e8f0ff;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+#game-container {
+  position: relative;
+  width: 480px;
+  height: 640px;
+  box-shadow: 0 0 60px rgba(80, 160, 255, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#game { display: block; cursor: crosshair; background: radial-gradient(ellipse at center, #0b1230 0%, #04050e 100%); }
+#hud {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 8px 12px; font-size: 13px;
+  background: rgba(0,0,0,0.45); pointer-events: none;
+}
+#overlay, #pause-screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  background: rgba(4,5,14,0.88); text-align: center;
+}
+#overlay.hidden, #pause-screen.hidden, .menu.hidden { display: none; }
+.menu {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; padding: 18px 14px;
+  background: rgba(4,5,14,0.94); overflow-y: auto; text-align: left;
+}
+.menu h2 { font-size: 16px; letter-spacing: 2px; margin-bottom: 10px; text-align: center; }
+#ship-list, #weapon-slots, #consumable-slots, #unlock-list, #shop-list, #inv-content {
+  width: 100%; max-width: 440px; margin-bottom: 8px;
+}
+.slot-row { display: flex; gap: 6px; margin: 4px 0; align-items: center; }
+.card { background: rgba(143,220,255,0.08); border: 1px solid rgba(143,220,255,0.25); border-radius: 6px; padding: 6px 8px; font-size: 11px; flex: 1; }
+.card.owned { border-color: #8fdcff; }
+.card.locked { opacity: 0.55; }
+.card button { padding: 4px 8px; font-size: 11px; }
+#title { font-size: 28px; letter-spacing: 3px; margin-bottom: 8px; }
+#subtitle { opacity: 0.8; margin-bottom: 16px; }
+button {
+  background: #8fdcff; color: #04050e; border: none;
+  padding: 10px 22px; border-radius: 6px; font-weight: 700;
+  cursor: pointer; margin: 4px;
+}
+button:hover { background: #e6faff; }

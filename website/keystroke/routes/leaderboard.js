@@ -7,8 +7,8 @@ router.get('/', (req, res) => {
   try {
     const { mode, language, period } = req.query;
 
-    if (!mode || !['general', 'code'].includes(mode)) {
-      return res.status(400).json({ error: 'Mode is required and must be "general" or "code"' });
+    if (!mode || !['general', 'code', 'dictionary'].includes(mode)) {
+      return res.status(400).json({ error: 'Mode is required and must be "general", "code", or "dictionary"' });
     }
 
     let whereClauses = [`results.mode = '${mode}'`];
@@ -45,18 +45,7 @@ router.get('/', (req, res) => {
     const whereSql = whereClauses.join(' AND ');
 
     let query;
-    if (mode === 'general') {
-      query = `
-        SELECT results.wpm, results.raw_wpm, results.accuracy, results.consistency,
-               results.error_count, results.duration_seconds, results.char_count,
-               results.created_at, users.username
-        FROM results
-        LEFT JOIN users ON results.user_id = users.id
-        WHERE ${whereSql} AND results.language IS NULL
-        ORDER BY results.wpm DESC
-        LIMIT 100
-      `;
-    } else {
+    if (mode === 'code') {
       query = `
         SELECT results.wpm, results.raw_wpm, results.accuracy, results.consistency,
                results.error_count, results.duration_seconds, results.char_count,
@@ -64,6 +53,17 @@ router.get('/', (req, res) => {
         FROM results
         LEFT JOIN users ON results.user_id = users.id
         WHERE ${whereSql} AND results.language IS NOT NULL
+        ORDER BY results.wpm DESC
+        LIMIT 100
+      `;
+    } else {
+      query = `
+        SELECT results.wpm, results.raw_wpm, results.accuracy, results.consistency,
+               results.error_count, results.duration_seconds, results.char_count,
+               results.created_at, users.username
+        FROM results
+        LEFT JOIN users ON results.user_id = users.id
+        WHERE ${whereSql} AND results.language IS NULL
         ORDER BY results.wpm DESC
         LIMIT 100
       `;

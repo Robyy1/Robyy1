@@ -46,7 +46,9 @@ npm start
 
 The server starts on the port specified in `.env` (default: 3000). Open `http://localhost:3000` in your browser.
 
-On first run, the database is initialized automatically from `db/schema.sql` and populated with sample data from `data/quotes.json` and `data/code-snippets.json`.
+On first run, the database is initialized automatically from `db/schema.sql` and populated with sample data from `data/quotes.json` and `data/code-snippets.json`. Course data is seeded from `data/courses.json` when the `courses` table is empty.
+
+> **Upgrading an existing database:** `db/db.js` runs a lightweight migration system on every boot (tracked with SQLite's `PRAGMA user_version`). It is non-destructive: existing rows are kept, new columns are added, and new tables (`courses`, `lessons`, `user_lesson_progress`) are created automatically. If you need to re-seed course data, run `npm run seed`.
 
 ## Project Structure
 
@@ -59,17 +61,19 @@ keystroke/
 ├── README.md
 ├── db/
 │   ├── schema.sql            # Database schema (tables, indexes)
-│   ├── db.js                 # SQLite database connection wrapper
+│   ├── db.js                 # SQLite connection + migration runner
 │   └── seed.js               # Seeds database on first run
 ├── data/
-│   ├── quotes.json           # 50+ general-text passages
-│   └── code-snippets.json    # 190+ real code snippets across 8 languages
+│   ├── quotes.json           # 70 general-text passages
+│   ├── code-snippets.json    # 96 real code snippets across 8 languages
+│   └── courses.json          # 6 courses / 58 lessons for Learning mode
 ├── routes/
 │   ├── auth.js               # Signup, login, logout, me endpoints
 │   ├── texts.js              # Random text/snippet retrieval
 │   ├── results.js            # Save and fetch typing results
 │   ├── leaderboard.js        # Global rankings with filters
-│   └── user.js               # User settings, password, account deletion
+│   ├── learning.js           # Courses, lessons, attempts, read-marks
+│   └── user.js               # User settings, password, account deletion, export
 ├── middleware/
 │   ├── auth.js               # JWT verification middleware
 │   └── errorHandler.js       # Centralized Express error handler
@@ -78,6 +82,9 @@ keystroke/
     ├── login.html             # Login form
     ├── signup.html            # Signup form
     ├── type.html              # Typing test interface
+    ├── learning.html          # Course grid / learning hub
+    ├── course.html            # Lesson list for one course
+    ├── lesson.html            # Type or read a lesson
     ├── dashboard.html         # Personal stats and charts
     ├── leaderboard.html       # Global rankings
     ├── settings.html          # Theme, font, account settings
@@ -94,6 +101,9 @@ keystroke/
         ├── stats.js           # WPM/accuracy math + chart rendering
         ├── dashboard.js       # Dashboard page logic
         ├── leaderboard.js     # Leaderboard page logic
+        ├── learning.js        # Learning hub logic
+        ├── course.js          # Course page logic
+        ├── lesson.js          # Lesson page logic
         └── settings.js        # Settings page logic
 ```
 
@@ -109,9 +119,15 @@ keystroke/
 | `POST` | `/api/results` | Save typing result | Optional |
 | `GET` | `/api/results/me` | User's result history | Yes |
 | `GET` | `/api/leaderboard?mode=code&language=python&period=week` | Global rankings | No |
-| `PUT` | `/api/user/settings` | Update theme/font preferences | Yes |
+| `PUT` | `/api/user/settings` | Update theme/font/accent/learning preferences | Yes |
 | `PUT` | `/api/user/password` | Change password | Yes |
+| `GET` | `/api/user/export` | Download full data export (results + learning progress) | Yes |
 | `DELETE` | `/api/user/me` | Delete account | Yes |
+| `GET` | `/api/courses` | List courses + learning summary | Optional |
+| `GET` | `/api/courses/:slug` | Course detail with lesson lock states | Optional |
+| `GET` | `/api/lessons/:id` | Lesson content (403 if prior lesson incomplete) | Optional |
+| `POST` | `/api/lessons/:id/attempt` | Submit a typed attempt (pass/fail gate) | Optional |
+| `POST` | `/api/lessons/:id/mark-read` | Complete a lesson in read mode | Optional |
 
 ## Features
 
@@ -120,8 +136,9 @@ keystroke/
 - **Live stats:** Real-time WPM, raw WPM, accuracy, and consistency during tests.
 - **Dashboard:** Personal WPM-over-time charts (hand-rolled SVG), personal bests, recent results table.
 - **Leaderboard:** Global rankings filterable by mode, language, and time period.
-- **Settings:** Dark/light theme toggle, monospace font selector with live preview, account management.
-- **Optional auth:** Guests can type without logging in; results persist when authenticated.
+- **Settings:** Dark/light theme toggle, accent color picker, monospace font selector with live preview, reduce-motion control, learning mode, indent width, sound toggle, and account management (email, password, JSON data export, account deletion).
+- **Learning mode:** 6 courses / 58 lessons across JavaScript, Python, Git & CLI, SQL, Regex, and AI Prompting. Lessons unlock sequentially; type the snippet to pass (accuracy gate) or read it to mark complete. Progress persists per account.
+- **Optional auth:** Guests can type without logging in; results and learning progress persist when authenticated.
 
 ## Deployment
 
@@ -133,4 +150,4 @@ Keystroke is designed for straightforward deployment to any platform that suppor
 
 ## Keyboard Accessibility
 
-All interactive elements are reachable via Tab navigation with visible focus rings. The typing test uses a hidden input field to capture keystrokes reliably across desktop and mobile (on-screen keyboard). Escape key closes modals on settings pages.
+All interactive elements are reachable via Tab navigation with visible focus rings. The typing test uses a hidden input field to capture keystrokes reliably across desktop and mobile (on-screen keyboard). Escape key closes modals on settings pages. Accent swatches and segmented controls support arrow-key navigation. The reduce-motion setting can force animations off for accessibility.

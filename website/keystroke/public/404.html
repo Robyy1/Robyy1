@@ -7,9 +7,16 @@
 
   <!-- Theme before first paint -->
   <script>
-    (function() {
-      var saved = localStorage.getItem('keystroke-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
     })();
   </script>
 
@@ -36,6 +43,7 @@
         <a href="/type.html">Type</a>
         <a href="/dashboard.html">Dashboard</a>
         <a href="/leaderboard.html">Leaderboard</a>
+        <li><a href="/learning.html" class="nav-link">Learning</a></li>
         <a href="/settings.html">Settings</a>
       </nav>
     </div>

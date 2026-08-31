@@ -8,6 +8,8 @@ const textsRoutes = require('./routes/texts.js');
 const resultsRoutes = require('./routes/results.js');
 const leaderboardRoutes = require('./routes/leaderboard.js');
 const userRoutes = require('./routes/user.js');
+const learningRoutes = require('./routes/learning.js');
+const statsRoutes = require('./routes/stats.js');
 const { errorHandler } = require('./middleware/errorHandler.js');
 
 const app = express();
@@ -42,6 +44,8 @@ app.use('/api/texts', textsRoutes);
 app.use('/api/results', resultsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', learningRoutes);
+app.use('/api/stats', statsRoutes);
 
 // SPA routing — serve index.html for root, then individual HTML pages.
 // Only register routes for pages that actually exist so we don't try to
@@ -54,6 +58,9 @@ const htmlPages = [
   'dashboard.html',
   'leaderboard.html',
   'settings.html',
+  'learning.html',
+  'course.html',
+  'lesson.html',
 ];
 
 app.get('/', (_req, res) => {
@@ -87,11 +94,24 @@ app.use(errorHandler);
 let server;
 
 function startServer() {
-  server = app.listen(PORT, () => {
-    console.log(`Keystroke running on http://localhost:${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
+  function listenOn(port) {
+    server = app.listen(port, () => {
+      console.log(`Keystroke running on http://localhost:${port}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
 
+    server.on('error', (err) => {
+      if (err && err.code === 'EADDRINUSE' && port === PORT) {
+        const fallbackPort = port + 1;
+        console.warn(`Port ${port} is busy; retrying on ${fallbackPort}.`);
+        listenOn(fallbackPort);
+        return;
+      }
+      throw err;
+    });
+  }
+
+  listenOn(PORT);
   return server;
 }
 

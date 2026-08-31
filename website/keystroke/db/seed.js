@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const Database = require('better-sqlite3');
+const { runMigrations } = require('./db.js');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'keystroke.db');
 
@@ -13,6 +14,9 @@ function initDatabase() {
 
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
   db.exec(schema);
+
+  // Apply pending migrations (non-destructive on existing databases).
+  runMigrations(db);
 
   return db;
 }
@@ -90,6 +94,128 @@ function seedSampleResults(db) {
   console.log('[seed] Inserted 50 sample results for demo user.');
 }
 
+function seedCourses(db) {
+  let coursesData;
+  try {
+    const coursesPath = path.join(__dirname, '..', 'data', 'courses.json');
+    coursesData = JSON.parse(fs.readFileSync(coursesPath, 'utf-8'));
+  } catch (err) {
+    console.error('[seed] Could not load courses.json:', err.message);
+    return;
+  }
+
+  const courses = Array.isArray(coursesData) ? coursesData : (coursesData.courses || []);
+
+  const findCourse = db.prepare('SELECT id, order_index FROM courses WHERE slug = ?');
+  const insertCourse = db.prepare(
+    'INSERT INTO courses (slug, title, description, tagline, estimated_minutes, featured, category, icon, order_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  );
+  const updateCourse = db.prepare(
+    'UPDATE courses SET title = ?, description = ?, tagline = ?, estimated_minutes = ?, featured = ?, category = ?, icon = ? WHERE id = ?'
+  );
+  const findLesson = db.prepare(
+    'SELECT id FROM lessons WHERE course_id = ? AND order_index = ?'
+  );
+  const insertLesson = db.prepare(
+    'INSERT INTO lessons (course_id, order_index, title, explanation, lesson_type, snippet_language, snippet_code, min_accuracy, xp_reward) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  );
+  const updateLesson = db.prepare(
+    'UPDATE lessons SET title = ?, explanation = ?, lesson_type = ?, snippet_language = ?, snippet_code = ?, min_accuracy = ?, xp_reward = ? WHERE id = ?'
+  );
+  const clearShortcuts = db.prepare('DELETE FROM shortcuts WHERE lesson_id = ?');
+  const insertShortcut = db.prepare(
+    'INSERT INTO shortcuts (lesson_id, order_index, action_label, keys_win, keys_mac) VALUES (?, ?, ?, ?, ?)'
+  );
+
+  const insertTx = db.transaction(() => {
+    for (let c = 0; c < courses.length; c++) {
+      const course = courses[c];
+      const existingCourse = findCourse.get(course.slug);
+
+      let courseId;
+      if (existingCourse) {
+        updateCourse.run(
+          course.title,
+          course.description,
+          course.tagline || '',
+          course.estimated_minutes || 20,
+          course.featured || 0,
+          course.category || 'language',
+          course.icon || null,
+          existingCourse.id
+        );
+        courseId = existingCourse.id;
+      } else {
+        courseId = insertCourse.run(
+          course.slug,
+          course.title,
+          course.description,
+          course.tagline || '',
+          course.estimated_minutes || 20,
+          course.featured || 0,
+          course.category || 'language',
+          course.icon || null,
+          c + 1
+        ).lastInsertRowid;
+      }
+
+      const lessons = course.lessons || [];
+      for (let l = 0; l < lessons.length; l++) {
+        const lesson = lessons[l];
+        const lessonType = lesson.lesson_type || 'typing';
+        const snippetCode = lessonType === 'shortcut' ? '' : (lesson.snippet_code || '');
+        const existingLesson = findLesson.get(courseId, l + 1);
+
+        let lessonId;
+        if (existingLesson) {
+          updateLesson.run(
+            lesson.title,
+            lesson.explanation || '',
+            lessonType,
+            lesson.snippet_language || null,
+            snippetCode,
+            lesson.min_accuracy != null ? lesson.min_accuracy : 95,
+            lesson.xp_reward != null ? lesson.xp_reward : 10,
+            existingLesson.id
+          );
+          lessonId = existingLesson.id;
+        } else {
+          lessonId = insertLesson.run(
+            courseId,
+            l + 1,
+            lesson.title,
+            lesson.explanation || '',
+            lessonType,
+            lesson.snippet_language || null,
+            snippetCode,
+            lesson.min_accuracy != null ? lesson.min_accuracy : 95,
+            lesson.xp_reward != null ? lesson.xp_reward : 10
+          ).lastInsertRowid;
+        }
+
+        const shortcuts = lesson.shortcuts || [];
+        clearShortcuts.run(lessonId);
+        for (let s = 0; s < shortcuts.length; s++) {
+          const shortcut = shortcuts[s];
+          insertShortcut.run(
+            lessonId,
+            s + 1,
+            shortcut.action,
+            shortcut.keys_win,
+            shortcut.keys_mac
+          );
+        }
+      }
+    }
+  });
+
+  insertTx();
+  const totalCourses = db.prepare('SELECT COUNT(*) as cnt FROM courses').get().cnt;
+  const totalLessons = db.prepare('SELECT COUNT(*) as cnt FROM lessons').get().cnt;
+  const totalShortcuts = db.prepare('SELECT COUNT(*) as cnt FROM shortcuts').get().cnt;
+  console.log(`[seed] Seeded ${totalCourses} courses with ${totalLessons} lessons and ${totalShortcuts} shortcuts.`);
+}
+
 function main() {
   try {
     const dbDir = path.dirname(DB_PATH);
@@ -102,6 +228,7 @@ function main() {
 
     seedDemoUser(db);
     seedSampleResults(db);
+    seedCourses(db);
 
     db.close();
     console.log('[seed] Done.');

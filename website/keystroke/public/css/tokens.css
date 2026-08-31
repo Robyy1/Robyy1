@@ -8,8 +8,10 @@
   --text-muted: #5B6672;
   --border: #D8DEE4;
   --accent: #B8860B;
+  --on-accent: #FFFFFF;
   --success: #1FA97C;
   --error: #D9463D;
+  --density-scale: 1;
 
   --bg-rgb: 238, 241, 244;
   --surface-rgb: 255, 255, 255;
@@ -61,6 +63,16 @@
   --transition-normal: 250ms ease;
 }
 
+html[data-density='compact'] {
+  --density-scale: 0.92;
+  --space-3: 10px;
+  --space-4: 14px;
+  --space-5: 18px;
+  --space-6: 20px;
+  --space-7: 28px;
+  --space-8: 32px;
+}
+
 /* Dark theme */
 [data-theme='dark'] {
   --bg: #0B0F14;
@@ -70,6 +82,7 @@
   --text-muted: #7D8B99;
   --border: #202A33;
   --accent: #F2C14E;
+  --on-accent: #1A1A1A;
   --success: #4FD69C;
   --error: #FF6B6B;
 
@@ -86,4 +99,76 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------------ */
+/* Accent palette                                                       */
+/* `--accent` and `--accent-rgb` are overridden per accent; the theme  */
+/* blocks above provide the default (amber). `--on-accent` is the text */
+/* color that reads well on an accent background.                      */
+/* ------------------------------------------------------------------ */
+
+/* Amber */
+[data-accent='amber'][data-theme='dark'],
+[data-accent='amber']:not([data-theme]) {
+  --accent: #F2C14E;
+  --accent-rgb: 242, 193, 78;
+  --on-accent: #1A1A1A;
+}
+[data-accent='amber'][data-theme='light'] {
+  --accent: #B8860B;
+  --accent-rgb: 184, 134, 11;
+  --on-accent: #FFFFFF;
+}
+
+/* Cyan */
+[data-accent='cyan'][data-theme='dark'],
+[data-accent='cyan']:not([data-theme]) {
+  --accent: #5EC8F2;
+  --accent-rgb: 94, 200, 242;
+  --on-accent: #0B0F14;
+}
+[data-accent='cyan'][data-theme='light'] {
+  --accent: #1C7FB0;
+  --accent-rgb: 28, 127, 176;
+  --on-accent: #FFFFFF;
+}
+
+/* Violet */
+[data-accent='violet'][data-theme='dark'],
+[data-accent='violet']:not([data-theme]) {
+  --accent: #B98EFF;
+  --accent-rgb: 185, 142, 255;
+  --on-accent: #1A1A1A;
+}
+[data-accent='violet'][data-theme='light'] {
+  --accent: #7C4FD6;
+  --accent-rgb: 124, 79, 214;
+  --on-accent: #FFFFFF;
+}
+
+/* Rose */
+[data-accent='rose'][data-theme='dark'],
+[data-accent='rose']:not([data-theme]) {
+  --accent: #F2789E;
+  --accent-rgb: 242, 120, 158;
+  --on-accent: #1A1A1A;
+}
+[data-accent='rose'][data-theme='light'] {
+  --accent: #C23F68;
+  --accent-rgb: 194, 63, 104;
+  --on-accent: #FFFFFF;
+}
+
+/* Mono */
+[data-accent='mono'][data-theme='dark'],
+[data-accent='mono']:not([data-theme]) {
+  --accent: #E6EDF3;
+  --accent-rgb: 230, 237, 243;
+  --on-accent: #0B0F14;
+}
+[data-accent='mono'][data-theme='light'] {
+  --accent: #10161C;
+  --accent-rgb: 16, 22, 28;
+  --on-accent: #FFFFFF;
 }

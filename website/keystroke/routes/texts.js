@@ -6,6 +6,7 @@ const router = express.Router();
 
 let quotesData = [];
 let codeSnippetsData = [];
+let dictionaryData = [];
 
 try {
   const quotesPath = path.join(__dirname, '..', 'data', 'quotes.json');
@@ -19,6 +20,23 @@ try {
   codeSnippetsData = JSON.parse(fs.readFileSync(snippetsPath, 'utf-8'));
 } catch (err) {
   console.warn('[texts] Could not load code-snippets.json:', err.message);
+}
+
+try {
+  const dictPath = path.join(__dirname, '..', 'data', 'dictionary.json');
+  dictionaryData = JSON.parse(fs.readFileSync(dictPath, 'utf-8'));
+} catch (err) {
+  console.warn('[texts] Could not load dictionary.json:', err.message);
+}
+
+// Number of random words per length setting.
+const DICTIONARY_WORD_COUNT = { '15s': 30, '30s': 60, '60s': 120, '120s': 240, full: 200 };
+
+function getDictionaryText(length) {
+  if (dictionaryData.length === 0) return null;
+  const count = DICTIONARY_WORD_COUNT[length] || 60;
+  const words = shuffleArray(dictionaryData).slice(0, count);
+  return words.join(' ');
 }
 
 function shuffleArray(array) {
@@ -92,8 +110,19 @@ router.get('/random', (req, res) => {
   try {
     const { mode, language, difficulty, length } = req.query;
 
-    if (!mode || !['general', 'code'].includes(mode)) {
-      return res.status(400).json({ error: 'Mode is required and must be "general" or "code"' });
+    if (!mode || !['general', 'code', 'dictionary'].includes(mode)) {
+      return res.status(400).json({ error: 'Mode is required and must be "general", "code", or "dictionary"' });
+    }
+
+    if (mode === 'dictionary') {
+      const text = getDictionaryText(length);
+      if (!text) {
+        return res.status(404).json({ error: 'Dictionary unavailable' });
+      }
+      return res.json({
+        mode: 'dictionary',
+        text,
+      });
     }
 
     if (mode === 'general') {
