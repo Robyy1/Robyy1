@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Pong Game</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #00ff88;
+            --danger-color: #ff4444;
+            --primary-color: #007bff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+            cursor: none;
+        }
+
+        /* Menu Styles */
+        #menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .menu-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-color);
+            animation: pulse 2s infinite;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .menu-btn:hover {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        .menu-btn.secondary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .menu-btn.secondary:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        /* HUD Styles */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .score-display {
+            display: flex;
+            gap: 20px;
+        }
+
+        .score-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Power-up indicators */
+        #powerups-display {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .powerup-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #555;
+            display: inline-block;
+        }
+
+        /* Shop Styles */
+        #shop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            z-index: 20;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .shop-item {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .shop-item h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        .shop-item p {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .shop-item .cost {
+            float: right;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .shop-item button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .shop-item button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Pause Menu */
+        #pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+        }
+
+        #pause-overlay.active {
+            display: flex;
+        }
+
+        /* Game Over */
+        #game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 25;
+        }
+
+        .game-over-title {
+            font-size: 4rem;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px var(--danger-color);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud">
+            <div class="score-display">
+                <div class="score-box">
+                    P1: <span id="score1">0</span>
+                </div>
+                <div class="score-box">
+                    P2: <span id="score2">0</span>
+                </div>
+            </div>
+            <div>
+                Coins: <span id="coins">0</span>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menu-overlay">
+            <div class="menu-title">Advanced Pong</div>
+            <button class="menu-btn" onclick="startGame()">Start Game</button>
+            <button class="menu-btn secondary" onclick="showShop()">Open Shop</button>
+            <div style="margin-top: 20px; color: #666; font-size: 0.9rem;">
+                Controls: W/S (P1) | Up/Down (P2) | P (Pause) | ESC (Menu)
+            </div>
+        </div>
+
+        <!-- Shop -->
+        <div id="shop-overlay">
+            <div class="shop-header">
+                <h2>Shop</h2>
+                <button class="menu-btn" onclick="hideShop()">Close Shop</button>
+            </div>
+            <div class="shop-grid" id="shop-items">
+                <!-- Shop items will be generated here -->
+            </div>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-overlay">
+            <h1 style="color: var(--accent-color); font-size: 3rem;">PAUSED</h1>
+            <button class="menu-btn" onclick="togglePause()">Resume</button>
+            <button class="menu-btn secondary" onclick="showMenu()">Main Menu</button>
+        </div>
+
+        <!-- Game Over -->
+        <div id="game-over-overlay">
+            <div class="game-over-title">GAME OVER</div>
+            <h2 id="winner-text">Player 1 Wins!</h2>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button class="menu-btn" onclick="startGame()">Play Again</button>
+            <button class="menu-btn secondary" onclick="showMenu()">Main Menu</button>
+        </div>
+    </div>
+
+    <script>
+        // Audio System
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            const now = audioContext.currentTime;
+            
+            switch(type) {
+                case 'paddle':
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    break;
+                case 'wall':
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    break;
+                case 'score':
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.linearRampToValueAtTime(800, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    break;
+                case 'powerup':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.setValueAtTime(1200, now + 0.05);
+                    osc.frequency.setValueAtTime(300, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    break;
+                case 'levelup':
+                    osc.type = 'square';
+                    for(let i=0; i<3; i++) {
+                        osc.frequency.setValueAtTime(400 + (i*200), now + i*0.1);
+                        gain.gain.setValueAtTime(0.1, now + i*0.1);
+                        gain.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.08);
+                    }
+                    break;
+            }
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+
+        // Game Configuration
+        const config = {
+            paddleSpeed: 8,
+            ballSpeed: 6,
+            ballSpeedIncrement: 0.2,
+            maxBallSpeed: 15,
+            powerupSpawnRate: 0.005, // Chance per frame
+            powerupDuration: 10000, // 10 seconds
+            shop: {
+                paddleSize: { cost: 50, level: 1, maxLevel: 3 },
+                paddleSpeed: { cost: 100, level: 1, maxLevel: 3 },
+                extraLife: { cost: 200, level: 0, maxLevel: 5 }
+            }
+        };
+
+        // Game State
+        const state = {
+            isPlaying: false,
+            isPaused: false,
+            score1: 0,
+            score2: 0,
+            coins: 0,
+            lives1: 3,
+            lives2: 3,
+            keys: {},
+            powerups: [],
+            activePowerups: {
+                player1: {},
+                player2: {}
+            }
+        };
+
+        // Canvas Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game Objects
+        const paddleWidth = 15;
+        let paddleHeight = 100;
+        const ballSize = 15;
+        
+        const player1 = {
+            x: 50,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            dy: 0,
+            color: '#00ff88'
+        };
+
+        const player2 = {
+            x: canvas.width - 50 - paddleWidth,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            dy: 0,
+            color: '#007bff'
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: ballSize,
+            speed: config.ballSpeed,
+            dx: 5,
+            dy: 5,
+            color: '#ffffff'
+        };
+
+        // Power-up System
+        class Powerup {
+            constructor() {
+                this.radius = 10;
+                this.x = Math.random() * (canvas.width - 100) + 50;
+                this.y = Math.random() * (canvas.height - 100) + 50;
+                this.type = this.getRandomType();
+                this.color = this.getColorForType(this.type);
+                this.active = true;
+            }
+
+            getRandomType() {
+                const types = ['speed', 'size', 'slow', 'reverse', 'extra'];
+                return types[Math.floor(Math.random() * types.length)];
+            }
+
+            getColorForType(type) {
+                switch(type) {
+                    case 'speed': return '#ffaa00'; // Orange
+                    case 'size': return '#00ff88'; // Green
+                    case 'slow': return '#0088ff'; // Blue
+                    case 'reverse': return '#ff0088'; // Pink
+                    case 'extra': return '#ffff00'; // Yellow
+                    default: return '#ffffff';
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw type indicator
+                ctx.fillStyle = '#000';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type[0].toUpperCase(), this.x, this.y);
+            }
+
+            checkCollision(rect) {
+                // Circle-Rectangle collision
+                const closestX = Math.max(rect.x, Math.min(this.x, rect.x + rect.width));
+                const closestY = Math.max(rect.y, Math.min(this.y, rect.y + rect.height));
+                
+                const distanceX = this.x - closestX;
+                const distanceY = this.y - closestY;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                return distance < this.radius;
+            }
+        }
+
+        // Input Handling
+        document.addEventListener('keydown', (e) => {
+            state.keys[e.key] = true;
+            
+            if (e.key === 'p' && state.isPlaying) {
+                togglePause();
+            }
+            
+            if (e.key === 'Escape') {
+                if (state.isPaused) {
+                    togglePause();
+                } else {
+                    showMenu();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            state.keys[e.key] = false;
+        });
+
+        // Game Logic
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            
+            // Random direction
+            const angle = Math.random() * Math.PI * 2;
+            ball.dx = Math.cos(angle) * config.ballSpeed;
+            ball.dy = Math.sin(angle) * config.ballSpeed;
+            
+            // Ensure ball doesn't go straight up/down
+            if (Math.abs(ball.dy) < 2) {
+                ball.dy = ball.dy > 0 ? 2 : -2;
+            }
+        }
+
+        function updatePaddles() {
+            // Player 1 controls
+            if (state.keys['w'] && player1.y > 0) {
+                player1.y -= config.paddleSpeed;
+            }
+            if (state.keys['s'] && player1.y + player1.height < canvas.height) {
+                player1.y += config.paddleSpeed;
+            }
+
+            // Player 2 controls
+            if (state.keys['ArrowUp'] && player2.y > 0) {
+                player2.y -= config.paddleSpeed;
+            }
+            if (state.keys['ArrowDown'] && player2.y + player2.height < canvas.height) {
+                player2.y += config.paddleSpeed;
+            }
+
+            // Apply powerup effects to paddle size
+            const p1SizeMultiplier = state.activePowerups.player1.size ? 1.5 : 1;
+            const p2SizeMultiplier = state.activePowerups.player2.size ? 1.5 : 1;
+            
+            player1.height = paddleHeight * p1SizeMultiplier;
+            player2.height = paddleHeight * p2SizeMultiplier;
+        }
+
+        function updateBall() {
+            // Apply powerup effects to ball speed
+            let currentSpeed = config.ballSpeed;
+            if (state.activePowerups.player1.speed || state.activePowerups.player2.speed) {
+                currentSpeed *= 1.5;
+            }
+            if (state.activePowerups.player1.slow || state.activePowerups.player2.slow) {
+                currentSpeed *= 0.5;
+            }
+
+            // Update position
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Wall collisions
+            if (ball.y <= 0 || ball.y >= canvas.height - ball.size) {
+                ball.dy = -ball.dy;
+                playSound('wall');
+            }
+
+            // Paddle collisions
+            // Player 1
+            if (ball.x <= player1.x + player1.width &&
+                ball.y + ball.size >= player1.y &&
+                ball.y <= player1.y + player1.height &&
+                ball.dx < 0) {
+                
+                // Calculate angle based on where ball hits paddle
+                const hitPoint = (ball.y - player1.y) / player1.height;
+                const angle = (hitPoint - 0.5) * Math.PI / 2;
+                
+                ball.dx = Math.abs(ball.dx);
+                ball.dy = Math.sin(angle) * currentSpeed;
+                
+                playSound('paddle');
+                config.ballSpeed = Math.min(config.maxBallSpeed, config.ballSpeed + config.ballSpeedIncrement);
+            }
+
+            // Player 2
+            if (ball.x + ball.size >= player2.x &&
+                ball.y + ball.size >= player2.y &&
+                ball.y <= player2.y + player2.height &&
+                ball.dx > 0) {
+                
+                const hitPoint = (ball.y - player2.y) / player2.height;
+                const angle = (hitPoint - 0.5) * Math.PI / 2;
+                
+                ball.dx = -Math.abs(ball.dx);
+                ball.dy = Math.sin(angle) * currentSpeed;
+                
+                playSound('paddle');
+                config.ballSpeed = Math.min(config.maxBallSpeed, config.ballSpeed + config.ballSpeedIncrement);
+            }
+
+            // Score
+            if (ball.x < 0) {
+                state.score2++;
+                state.coins += 10;
+                playSound('score');
+                resetBall();
+                updateHUD();
+            }
+            
+            if (ball.x > canvas.width) {
+                state.score1++;
+                state.coins += 10;
+                playSound('score');
+                resetBall();
+                updateHUD();
+            }
+        }
+
+        function updatePowerups() {
+            // Spawn new powerups
+            if (Math.random() < config.powerupSpawnRate) {
+                state.powerups.push(new Powerup());
+            }
+
+            // Update existing powerups
+            for (let i = state.powerups.length - 1; i >= 0; i--) {
+                const powerup = state.powerups[i];
+                if (!powerup.active) {
+                    state.powerups.splice(i, 1);
+                    continue;
+                }
+
+                // Check collisions
+                if (powerup.checkCollision(player1)) {
+                    applyPowerup('player1', powerup.type);
+                    powerup.active = false;
+                    playSound('powerup');
+                } else if (powerup.checkCollision(player2)) {
+                    applyPowerup('player2', powerup.type);
+                    powerup.active = false;
+                    playSound('powerup');
+                }
+            }
+
+            // Check powerup durations
+            Object.keys(state.activePowerups).forEach(player => {
+                Object.keys(state.activePowerups[player]).forEach(type => {
+                    const powerup = state.activePowerups[player][type];
+                    if (Date.now() > powerup.expiry) {
+                        delete state.activePowerups[player][type];
+                    }
+                });
+            });
+        }
+
+        function applyPowerup(player, type) {
+            const expiry = Date.now() + config.powerupDuration;
+            
+            switch(type) {
+                case 'speed':
+                    state.activePowerups[player].speed = { expiry };
+                    break;
+                case 'size':
+                    state.activePowerups[player].size = { expiry };
+                    break;
+                case 'slow':
+                    state.activePowerups[player].slow = { expiry };
+                    break;
+                case 'reverse':
+                    state.activePowerups[player].reverse = { expiry };
+                    // Reverse controls for opponent
+                    const opponent = player === 'player1' ? 'player2' : 'player1';
+                    state.activePowerups[opponent].reverse = { expiry };
+                    break;
+                case 'extra':
+                    if (player === 'player1') state.lives1++;
+                    else state.lives2++;
+                    state.coins += 25;
+                    playSound('levelup');
+                    break;
+            }
+            
+            updateHUD();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw center line
+            ctx.beginPath();
+            ctx.setLineDash([10, 15]);
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw paddles
+            ctx.fillStyle = player1.color;
+            ctx.fillRect(player1.x, player1.y, player1.width, player1.height);
+            
+            ctx.fillStyle = player2.color;
+            ctx.fillRect(player2.x, player2.y, player2.width, player2.height);
+
+            // Draw ball
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw powerups
+            state.powerups.forEach(powerup => powerup.draw());
+
+            // Draw powerup indicators
+            drawPowerupIndicators();
+        }
+
+        function drawPowerupIndicators() {
+            // Player 1 indicators
+            let y = 50;
+            Object.keys(state.activePowerups.player1).forEach(type => {
+                ctx.fillStyle = getPowerupColor(type);
+                ctx.fillRect(10, y, 20, 20);
+                y += 25;
+            });
+
+            // Player 2 indicators
+            y = 50;
+            Object.keys(state.activePowerups.player2).forEach(type => {
+                ctx.fillStyle = getPowerupColor(type);
+                ctx.fillRect(canvas.width - 30, y, 20, 20);
+                y += 25;
+            });
+        }
+
+        function getPowerupColor(type) {
+            switch(type) {
+                case 'speed': return '#ffaa00';
+                case 'size': return '#00ff88';
+                case 'slow': return '#0088ff';
+                case 'reverse': return '#ff0088';
+                default: return '#ffffff';
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('score1').textContent = state.score1;
+            document.getElementById('score2').textContent = state.score2;
+            document.getElementById('coins').textContent = state.coins;
+        }
+
+        function checkGameOver() {
+            if (state.score1 >= 10 || state.score2 >= 10) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            state.isPlaying = false;
+            const winner = state.score1 > state.score2 ? 'Player 1' : 'Player 2';
+            document.getElementById('winner-text').textContent = `${winner} Wins!`;
+            document.getElementById('final-score').textContent = `${state.score1} - ${state.score2}`;
+            document.getElementById('game-over-overlay').style.display = 'flex';
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!state.isPlaying || state.isPaused) return;
+
+            updatePaddles();
+            updateBall();
+            updatePowerups();
+            draw();
+            checkGameOver();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Menu Functions
+        function startGame() {
+            // Reset game state
+            state.score1 = 0;
+            state.score2 = 0;
+            state.coins = 0;
+            state.lives1 = 3;
+            state.lives2 = 3;
+            state.powerups = [];
+            state.activePowerups = { player1: {}, player2: {} };
+            config.ballSpeed = 6;
+            
+            resetBall();
+            updateHUD();
+            
+            // Hide overlays
+            document.getElementById('menu-overlay').style.display = 'none';
+            document.getElementById('shop-overlay').style.display = 'none';
+            document.getElementById('pause-overlay').style.display = 'none';
+            document.getElementById('game-over-overlay').style.display = 'none';
+            
+            state.isPlaying = true;
+            state.isPaused = false;
+            
+            gameLoop();
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            const overlay = document.getElementById('pause-overlay');
+            if (state.isPaused) {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+                if (state.isPlaying) gameLoop();
+            }
+        }
+
+        function showMenu() {
+            state.isPlaying = false;
+            state.isPaused = false;
+            document.getElementById('menu-overlay').style.display = 'flex';
+            document.getElementById('pause-overlay').style.display = 'none';
+            document.getElementById('shop-overlay').style.display = 'none';
+            document.getElementById('game-over-overlay').style.display = 'none';
+        }
+
+        function showShop() {
+            document.getElementById('menu-overlay').style.display = 'none';
+            document.getElementById('shop-overlay').style.display = 'flex';
+            renderShop();
+        }
+
+        function hideShop() {
+            document.getElementById('shop-overlay').style.display = 'none';
+            document.getElementById('menu-overlay').style.display = 'flex';
+        }
+
+        // Shop System
+        function renderShop() {
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+
+            const items = [
+                {
+                    id: 'paddleSize',
+                    name: 'Bigger Paddle',
+                    description: 'Increases paddle size by 25%',
+                    cost: config.shop.paddleSize.cost,
+                    level: config.shop.paddleSize.level,
+                    maxLevel: config.shop.paddleSize.maxLevel
+                },
+                {
+                    id: 'paddleSpeed',
+                    name: 'Faster Paddle',
+                    description: 'Increases paddle speed by 20%',
+                    cost: config.shop.paddleSpeed.cost,
+                    level: config.shop.paddleSpeed.level,
+                    maxLevel: config.shop.paddleSpeed.maxLevel
+                },
+                {
+                    id: 'extraLife',
+                    name: 'Extra Life',
+                    description: 'Gain an additional life',
+                    cost: config.shop.extraLife.cost,
+                    level: config.shop.extraLife.level,
+                    maxLevel: config.shop.extraLife.maxLevel
+                }
+            ];
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <h3>${item.name} <span class="cost">${item.cost} coins</span></h3>
+                    <p>${item.description}</p>
+                    <p>Level: ${item.level}/${item.maxLevel}</p>
+                    <button onclick="buyItem('${item.id}')" ${state.coins < item.cost || item.level >= item.maxLevel ? 'disabled' : ''}>
+                        ${item.level >= item.maxLevel ? 'MAX LEVEL' : 'Buy'}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function buyItem(itemId) {
+            const item = config.shop[itemId];
+            if (state.coins >= item.cost && item.level < item.maxLevel) {
+                state.coins -= item.cost;
+                item.level++;
+                item.cost = Math.floor(item.cost * 1.5); // Increase cost
+                
+                // Apply upgrade
+                switch(itemId) {
+                    case 'paddleSize':
+                        paddleHeight = 100 + (item.level * 25);
+                        playSound('levelup');
+                        break;
+                    case 'paddleSpeed':
+                        config.paddleSpeed = 8 + (item.level * 2);
+                        playSound('levelup');
+                        break;
+                    case 'extraLife':
+                        state.lives1++;
+                        state.lives2++;
+                        playSound('levelup');
+                        break;
+                }
+                
+                updateHUD();
+                renderShop();
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Start audio context on first user interaction
+            document.body.addEventListener('click', () => {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }, { once: true });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.GeneratedMSBuildEditorConfig.editorconfig
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.AssemblyInfoInputs.cache
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.AssemblyInfo.cs
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.csproj.CoreCompileInputs.cache
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.sourcelink.json
+/Users/robby/Documents/Programing/Robyy1/testing c#/bin/Debug/net9.0/testing c#
+/Users/robby/Documents/Programing/Robyy1/testing c#/bin/Debug/net9.0/testing c#.deps.json
+/Users/robby/Documents/Programing/Robyy1/testing c#/bin/Debug/net9.0/testing c#.runtimeconfig.json
+/Users/robby/Documents/Programing/Robyy1/testing c#/bin/Debug/net9.0/testing c#.dll
+/Users/robby/Documents/Programing/Robyy1/testing c#/bin/Debug/net9.0/testing c#.pdb
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.dll
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/refint/testing c#.dll
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.pdb
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/testing c#.genruntimeconfig.cache
+/Users/robby/Documents/Programing/Robyy1/testing c#/obj/Debug/net9.0/ref/testing c#.dll

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pancake Loading Animation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="loader-container">
+      <svg viewBox="0 0 200 200">
+        <g class="tall-stack">
+          <g class="plate-group">
+            <g class="plate-visuals">
+              <rect
+                x="25"
+                y="152"
+                width="150"
+                height="10"
+                rx="5"
+                fill="var(--shadow-color)"
+              />
+              <path
+                d="M25 150 Q25 140 35 140 H165 Q175 140 175 150 V152 Q175 160 165 160 H35 Q25 160 25 152 Z"
+                fill="var(--plate-shadow)"
+              />
+              <path
+                d="M25 148 Q25 138 35 138 H165 Q175 138 175 148 V150 Q175 158 165 158 H35 Q25 158 25 150 Z"
+                fill="var(--plate-main)"
+              />
+              <rect
+                x="35"
+                y="142"
+                width="130"
+                height="8"
+                rx="4"
+                fill="var(--plate-inner)"
+              />
+              <rect
+                x="30"
+                y="140"
+                width="40"
+                height="2"
+                rx="1"
+                fill="white"
+                opacity="0.6"
+              />
+            </g>
+
+            <g class="falling-pancake pancake-1">
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+            </g>
+
+            <g class="falling-pancake pancake-2">
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+            </g>
+
+            <g class="falling-pancake pancake-3">
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+            </g>
+
+            <g class="falling-pancake pancake-4">
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+            </g>
+
+            <g class="falling-pancake pancake-5">
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+            </g>
+
+            <g class="syrup-container">
+              <path
+                class="syrup-stream"
+                d="M100 50 Q100 70 95 90 Q90 110 85 130"
+                fill="none"
+                stroke="var(--syrup-color)"
+                stroke-width="3"
+                stroke-linecap="round"
+                opacity="0"
+              />
+              <ellipse
+                class="syrup-pancake"
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--pancake-color)"
+                stroke="var(--pancake-outline)"
+                stroke-width="1"
+              />
+              <ellipse
+                class="syrup-inner"
+                cx="100"
+                cy="115"
+                rx="30"
+                ry="6"
+                fill="var(--pancake-inner)"
+                opacity="0.8"
+              />
+              <ellipse
+                class="syrup-top"
+                cx="100"
+                cy="115"
+                rx="35"
+                ry="8"
+                fill="var(--syrup-color)"
+                opacity="0"
+              />
+            </g>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </body>
+</html>
