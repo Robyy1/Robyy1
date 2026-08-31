@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Type — Keystroke</title>
+
+  <!-- Theme before first paint -->
+  <script>
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/css/tokens.css" rel="stylesheet" />
+  <link href="/css/base.css" rel="stylesheet" />
+  <link href="/css/components.css" rel="stylesheet" />
+  <link href="/css/pages.css" rel="stylesheet" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/" class="logo" aria-label="Keystroke home">
+        <span class="logo-icon" aria-hidden="true">&gt;_</span>
+        <span class="logo-text">keystroke</span>
+      </a>
+      <div class="nav-links">
+        <a href="/type.html" class="nav-link nav-link-active" aria-current="page">Type</a>
+        <a href="/learning.html" class="nav-link">Learning</a>
+        <a href="/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
+      </div>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
+
+  <!-- Page header / hero -->
+  <section class="type-hero">
+    <h1 class="type-hero-title">Take a typing test</h1>
+    <p class="type-hero-subtitle">Pick a mode and length, then start typing. WPM updates live as you go.</p>
+  </section>
+
+  <!-- Configuration Bar -->
+  <main class="type-page">
+    <section class="config-bar" aria-label="Test configuration">
+      <form class="config-form" id="configForm">
+        <!-- Mode Selection -->
+        <fieldset class="config-fieldset">
+          <legend>Mode</legend>
+          <div class="mode-toggle" id="modeToggle" role="radiogroup" aria-label="Test mode">
+            <span class="segmented-indicator" id="modeIndicator" aria-hidden="true"></span>
+            <button type="button" class="mode-btn mode-btn-active" data-mode="general" role="radio" aria-checked="true">General Text</button>
+            <button type="button" class="mode-btn" data-mode="code" role="radio" aria-checked="false">Code</button>
+            <button type="button" class="mode-btn" data-mode="dictionary" role="radio" aria-checked="false">Dictionary</button>
+          </div>
+        </fieldset>
+
+        <!-- Code-specific options -->
+        <fieldset class="config-fieldset config-fieldset-hidden" id="codeOptions">
+          <legend>Code Options</legend>
+          <div class="config-row">
+            <label for="languageSelect" class="config-label">Language</label>
+            <select id="languageSelect" class="config-select" aria-label="Programming language">
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+              <option value="cpp">C++</option>
+              <option value="go">Go</option>
+              <option value="rust">Rust</option>
+              <option value="typescript">TypeScript</option>
+              <option value="sql">SQL</option>
+            </select>
+          </div>
+          <div class="config-row">
+            <label for="difficultySelect" class="config-label">Difficulty</label>
+            <select id="difficultySelect" class="config-select" aria-label="Difficulty level">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate" selected>Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <!-- Length Selection -->
+        <fieldset class="config-fieldset">
+          <legend>Length</legend>
+          <div class="length-toggle" id="lengthToggle" role="radiogroup" aria-label="Test length">
+            <span class="segmented-indicator" id="lengthIndicator" aria-hidden="true"></span>
+            <button type="button" class="length-btn" data-length="15">15s</button>
+            <button type="button" class="length-btn" data-length="30">30s</button>
+            <button type="button" class="length-btn length-btn-active" data-length="60" role="radio" aria-checked="true">60s</button>
+            <button type="button" class="length-btn" data-length="120">120s</button>
+            <button type="button" class="length-btn" data-length="full" role="radio" aria-checked="false" title="No time limit — finish the whole text">No Limit</button>
+          </div>
+        </fieldset>
+
+        <!-- Start Button -->
+        <div class="config-actions">
+          <button type="submit" class="btn btn-accent btn-lg btn-3d" id="startBtn">Start Test</button>
+          <button type="button" class="btn btn-ghost" id="randomBtn">Random Test</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Typing Area -->
+    <section class="typing-section" id="typingSection" aria-label="Typing test area">
+      <!-- Live Stats Overlay -->
+      <div class="live-stats" id="liveStats" role="status" aria-live="polite" aria-label="Live statistics">
+        <div class="stat-item stat-wpm">
+          <span class="stat-value stat-value-accent" id="liveWpm">0</span>
+          <span class="stat-unit">WPM</span>
+        </div>
+        <div class="stat-item stat-accuracy">
+          <span class="stat-value" id="liveAccuracy">100.0</span>
+          <span class="stat-unit">%</span>
+        </div>
+        <div class="stat-item stat-timer">
+          <span class="stat-value" id="liveTimer">60s</span>
+        </div>
+        <div class="stat-item stat-errors">
+          <span class="stat-value stat-value-error" id="liveErrors">0</span>
+          <span class="stat-unit">errors</span>
+        </div>
+      </div>
+
+      <!-- Editor Pane -->
+      <div class="editor-pane" id="editorPane">
+        <div class="editor-header">
+          <div class="editor-dots" aria-hidden="true">
+            <span class="dot dot-error"></span>
+            <span class="dot dot-warning"></span>
+            <span class="dot dot-success"></span>
+          </div>
+          <span class="editor-title" id="editorTitle"></span>
+          <div class="editor-spacer"></div>
+        </div>
+        <div class="editor-body" id="editorBody">
+          <!-- Line numbers gutter -->
+          <div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>
+          <!-- Typing text container -->
+          <div class="typing-container" id="typingContainer">
+            <div class="typing-text" id="typingText"></div>
+            <!-- Caret (blinking cursor) -->
+            <span class="caret-indicator" id="caret" aria-hidden="true"></span>
+          </div>
+        </div>
+        <!-- Hidden input for keystroke capture -->
+        <input type="text" class="hidden-input" id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here" />
+      </div>
+
+      <!-- Countdown overlay (before test starts) -->
+      <div class="countdown-overlay hidden" id="countdownOverlay">
+        <span class="countdown-text" id="countdownText">3</span>
+      </div>
+    </section>
+
+    <!-- Results Panel (hidden until test completes) -->
+    <section class="results-section hidden" id="resultsSection" aria-label="Test results">
+      <div class="results-card">
+        <h2 class="results-title">Test Complete</h2>
+        <div class="results-grid" id="resultsGrid"></div>
+        <!-- WPM Timeline Chart -->
+        <div class="chart-container hidden" id="resultsChartContainer">
+          <h3 class="chart-label">WPM Over Time</h3>
+          <div id="resultsChart"></div>
+        </div>
+        <div class="results-actions">
+          <button type="button" class="btn btn-accent" id="restartBtn">Restart Test</button>
+          <button type="button" class="btn btn-ghost" id="nextTestBtn">Next Test</button>
+          <a href="/dashboard.html" class="btn btn-ghost">View Dashboard</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error message area -->
+    <div class="error-message hidden" id="errorMessage" role="alert"></div>
+  </main>
+
+  <!-- Theme toggle (floating) -->
+  <button class="theme-toggle-float" id="themeToggleFloat" aria-label="Toggle theme">
+    <span class="theme-icon-sun" aria-hidden="true">&#9728;</span>
+    <span class="theme-icon-moon" aria-hidden="true">&#9790;</span>
+  </button>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <p>&copy; 2024 Keystroke. Type code faster.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/typing-engine.js" type="module"></script>
+  <script src="/js/stats.js"></script>
+  <script src="/js/type.js" type="module"></script>
+</body>
+</html>

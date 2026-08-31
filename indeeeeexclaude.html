@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tidewood Isle</title>
+<style>
+  :root{
+    --wood-dark:#2c1f14;
+    --wood-mid:#4a3320;
+    --wood-light:#6b4a2c;
+    --wood-glow:#8a6338;
+    --parchment:#f1e5c4;
+    --parchment-dim:#cdbb90;
+    --forest-deep:#132615;
+    --forest-mid:#20401f;
+    --forest-light:#39602f;
+    --accent-amber:#e0972f;
+    --accent-teal:#3fae8a;
+    --hp-red:#c1443a;
+    --hp-red-dark:#7a2620;
+    --xp-blue:#4a90c4;
+    --gold:#e8c14b;
+    --panel-shadow: 0 8px 24px rgba(0,0,0,0.55);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0b1410;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:var(--parchment); user-select:none;}
+  #game{position:fixed;top:0;left:0;width:100%;height:100%;display:block;background:#1a3a4a;cursor:crosshair;}
+
+  .plank{
+    background:
+      repeating-linear-gradient(100deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 2px, transparent 2px, transparent 7px),
+      linear-gradient(160deg, var(--wood-light), var(--wood-mid) 55%, var(--wood-dark));
+    border:3px solid var(--wood-dark);
+    border-radius:10px;
+    box-shadow: var(--panel-shadow), inset 0 0 0 2px rgba(241,229,196,0.08);
+  }
+  .plank-nail{
+    position:absolute; width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #cbb98f, #4a3320 75%);
+    box-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  /* ---------- START SCREEN ---------- */
+  #startScreen{
+    position:fixed;inset:0;z-index:100;
+    display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(232,193,75,0.10), transparent 60%),
+      linear-gradient(180deg, #0d1f12, #08120c 70%);
+  }
+  .start-card{
+    max-width:560px;width:92%;padding:34px 36px 28px;position:relative;
+  }
+  .start-card::before, .start-card::after{content:'';position:absolute;width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #cbb98f, #4a3320 75%); box-shadow:0 1px 2px rgba(0,0,0,0.6);}
+  .start-card::before{top:12px;left:12px;} .start-card::after{top:12px;right:12px;}
+  .title{
+    font-family:'Palatino Linotype', Georgia, serif;
+    font-size:2.6em; letter-spacing:2px; text-align:center; margin:0 0 2px;
+    color:var(--gold); text-shadow:0 2px 0 rgba(0,0,0,0.5), 0 0 22px rgba(232,193,75,0.25);
+    font-variant:small-caps;
+  }
+  .subtitle{text-align:center;color:var(--parchment-dim);margin:0 0 22px;font-size:0.95em;letter-spacing:1px;}
+  .start-desc{font-size:0.92em;line-height:1.55;color:var(--parchment);margin-bottom:18px;}
+  .controls-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:0.85em;margin-bottom:22px;
+    background:rgba(0,0,0,0.2);padding:12px 16px;border-radius:6px;}
+  .key{
+    display:inline-block;background:var(--wood-dark);border:1px solid var(--wood-glow);border-radius:4px;
+    padding:2px 8px;font-family:Consolas,Menlo,monospace;color:var(--gold);min-width:20px;text-align:center;
+  }
+  #startBtn{
+    display:block;width:100%;padding:14px;font-size:1.15em;font-weight:bold;letter-spacing:1px;
+    background:linear-gradient(180deg, var(--accent-amber), #a5641a);
+    border:2px solid #7a4a12; border-radius:8px; color:#2c1a06; cursor:pointer;
+    box-shadow:0 4px 0 #5a3810, 0 6px 10px rgba(0,0,0,0.4);
+    font-family:'Trebuchet MS',sans-serif;
+  }
+  #startBtn:active{transform:translateY(3px); box-shadow:0 1px 0 #5a3810;}
+
+  /* ---------- HUD TOP ---------- */
+  #hud{position:fixed;top:10px;left:10px;right:10px;z-index:20;display:flex;justify-content:space-between;
+    align-items:flex-start;pointer-events:none;gap:10px;}
+  #hudLeft{
+    position:relative; padding:10px 18px 10px 34px; min-width:250px;
+    clip-path: polygon(0 8%, 4% 0, 96% 0, 100% 8%, 100% 92%, 96% 100%, 4% 100%, 0 92%);
+  }
+  #hudLeft .plank-nail:nth-child(1){top:4px;left:6px;} #hudLeft .plank-nail:nth-child(2){bottom:4px;left:6px;}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:0.78em;}
+  .bar-label{width:16px;text-align:center;font-size:1.1em;}
+  .bar-track{flex:1;height:12px;border-radius:6px;background:rgba(0,0,0,0.45);overflow:hidden;
+    border:1px solid rgba(0,0,0,0.5); position:relative;}
+  .bar-fill{height:100%;transition:width 0.25s ease;}
+  .bar-fill.hp{background:linear-gradient(180deg,#e0665a,var(--hp-red-dark));}
+  .bar-fill.xp{background:linear-gradient(180deg,#7ec1ea,var(--xp-blue));}
+  .bar-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:9px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.8);font-family:Consolas,monospace;}
+  .lvl-badge{font-family:Consolas,monospace;font-size:0.75em;color:var(--gold);min-width:34px;text-align:right;}
+
+  #hudRight{display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:auto;}
+  .coin-pill{
+    padding:7px 16px 7px 12px; display:flex;align-items:center;gap:6px; font-family:Consolas,monospace;
+    font-size:1.05em; color:var(--gold); border-radius:20px;
+    background:linear-gradient(180deg, var(--wood-light), var(--wood-mid));
+    border:2px solid var(--wood-dark); box-shadow:0 3px 6px rgba(0,0,0,0.4);
+  }
+  #dayNight{
+    padding:6px 14px; border-radius:20px; font-size:0.8em; display:flex;align-items:center;gap:8px;
+    background:linear-gradient(180deg, var(--wood-light), var(--wood-mid)); border:2px solid var(--wood-dark);
+    box-shadow:0 3px 6px rgba(0,0,0,0.4);
+  }
+  #dayIcon{font-size:1.1em;filter:drop-shadow(0 0 4px rgba(255,220,120,0.4));}
+  #dnTrack{width:80px;height:6px;border-radius:3px;background:rgba(0,0,0,0.4);overflow:hidden;}
+  #dnFill{height:100%;background:linear-gradient(90deg,#ffd98a,#ff9d5c);}
+  .night #dnFill{background:linear-gradient(90deg,#5c7cff,#233a8a);}
+  #helpBtn{width:34px;height:34px;border-radius:50%;background:linear-gradient(180deg,var(--wood-light),var(--wood-mid));
+    border:2px solid var(--wood-dark);color:var(--gold);font-weight:bold;cursor:pointer;font-size:1em;
+    box-shadow:0 3px 6px rgba(0,0,0,0.4);}
+
+  /* ---------- FLASH / TOASTS ---------- */
+  #hitFlash{position:fixed;inset:0;background:radial-gradient(ellipse at center, rgba(193,68,58,0.0), rgba(120,10,10,0.0));
+    pointer-events:none;z-index:15;transition:background 0.15s;}
+  #nightVeil{position:fixed;inset:0;pointer-events:none;z-index:5;background:rgba(10,15,45,0);transition:background 3s linear;}
+  #toasts{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;
+    gap:6px;align-items:center;pointer-events:none;}
+  .toast{padding:8px 18px;border-radius:6px;font-size:0.85em;color:var(--parchment);
+    background:linear-gradient(180deg, rgba(74,51,32,0.95), rgba(44,31,20,0.95));
+    border:1px solid var(--wood-glow); box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    animation:toastIn 0.3s ease, toastOut 0.4s ease 2.6s forwards; white-space:nowrap;}
+  .toast.achieve{border-color:var(--gold);color:var(--gold);font-weight:bold;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-8px);}}
+
+  /* ---------- BOTTOM BAR ---------- */
+  #bottomBar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:center;
+    pointer-events:none;}
+  #hotbar{display:flex;gap:5px;padding:8px 14px;margin-bottom:6px;border-radius:10px 10px 0 0;pointer-events:auto;
+    overflow-x:auto;max-width:96vw;}
+  .hot-item{display:flex;flex-direction:column;align-items:center;min-width:44px;padding:4px 6px;border-radius:6px;
+    background:rgba(0,0,0,0.25);}
+  .hot-item .ic{font-size:1.15em;}
+  .hot-item .ct{font-size:0.7em;font-family:Consolas,monospace;color:var(--parchment);}
+  #tabBar{display:flex;gap:4px;pointer-events:auto;margin-bottom:10px;}
+  .tabBtn{
+    padding:9px 16px;border:2px solid var(--wood-dark);border-bottom:none;border-radius:8px 8px 0 0;
+    background:linear-gradient(180deg,var(--wood-mid),var(--wood-dark));color:var(--parchment-dim);
+    font-size:0.82em;cursor:pointer;letter-spacing:0.5px;font-weight:bold;
+  }
+  .tabBtn.active{background:linear-gradient(180deg,var(--accent-amber),#a5641a);color:#2c1a06;}
+  .tabBtn .badge{display:inline-block;margin-left:4px;background:var(--hp-red);color:#fff;border-radius:8px;
+    font-size:0.75em;padding:0 5px;}
+
+  /* ---------- SIDE PANEL ---------- */
+  #panelWrap{position:fixed;bottom:118px;left:50%;transform:translateX(-50%);z-index:25;width:min(560px,94vw);
+    max-height:58vh;display:none;pointer-events:auto;}
+  #panelWrap.open{display:block;}
+  #panelInner{padding:14px 16px;max-height:58vh;overflow-y:auto;}
+  #panelInner h3{margin:0 0 10px;color:var(--gold);font-size:1.05em;font-variant:small-caps;letter-spacing:1px;
+    border-bottom:1px solid rgba(241,229,196,0.15);padding-bottom:6px;}
+  .row{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:6px;margin-bottom:4px;
+    background:rgba(0,0,0,0.18);}
+  .row .ic{font-size:1.5em;min-width:30px;text-align:center;}
+  .row .info{flex:1;min-width:0;}
+  .row .name{font-size:0.88em;font-weight:bold;color:var(--parchment);}
+  .row .desc{font-size:0.74em;color:var(--parchment-dim);margin-top:1px;}
+  .row .cost{font-size:0.72em;color:var(--parchment-dim);margin-top:3px;font-family:Consolas,monospace;}
+  .cost span.bad{color:#e08a7a;}
+  .cost span.ok{color:#9ed49e;}
+  .btn{
+    padding:7px 12px;border-radius:6px;border:2px solid var(--wood-dark);cursor:pointer;font-size:0.78em;
+    font-weight:bold;background:linear-gradient(180deg,var(--wood-light),var(--wood-mid));color:var(--parchment);
+    white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.15);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;filter:none;}
+  .btn.buy{background:linear-gradient(180deg,var(--accent-teal),#217a5c);border-color:#154a38;color:#fff;}
+  .btn.sell{background:linear-gradient(180deg,var(--accent-amber),#a5641a);border-color:#5a3810;color:#2c1a06;}
+  .btn.small{padding:5px 8px;font-size:0.72em;}
+  .btn-group{display:flex;gap:4px;}
+  .maxed{color:var(--gold);font-size:0.75em;font-weight:bold;padding:6px 10px;}
+  .lvl-dots{display:flex;gap:3px;margin-top:4px;}
+  .lvl-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);}
+  .lvl-dots span.filled{background:var(--gold);}
+  .progress-outer{height:8px;border-radius:4px;background:rgba(0,0,0,0.4);overflow:hidden;margin-top:4px;}
+  .progress-inner{height:100%;background:linear-gradient(90deg,var(--accent-teal),#7fe0bd);}
+  .ach-done{opacity:0.55;}
+  .ach-check{color:var(--accent-teal);font-size:1.2em;}
+  #panelClose{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--parchment-dim);
+    font-size:1.3em;cursor:pointer;line-height:1;}
+  #skillPtsLine{text-align:center;margin-bottom:10px;color:var(--gold);font-size:0.85em;font-weight:bold;}
+
+  /* ---------- BUILD MODE BANNER ---------- */
+  #buildBanner{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:22;padding:8px 18px;
+    border-radius:8px;background:rgba(20,15,8,0.85);border:2px solid var(--accent-amber);color:var(--parchment);
+    font-size:0.85em;display:none;text-align:center;}
+  #buildBanner.show{display:block;}
+  #buildBanner b{color:var(--gold);}
+
+  /* ---------- MINIMAP ---------- */
+  #minimapWrap{position:fixed;top:10px;right:10px;z-index:19;width:130px;height:130px;border-radius:50%;
+    border:3px solid var(--wood-dark); box-shadow:var(--panel-shadow); overflow:hidden; display:none;}
+  #minimapWrap.show{display:block;}
+  #minimap{width:100%;height:100%;display:block;background:#183a4a;}
+
+  /* ---------- DEATH OVERLAY ---------- */
+  #deathOverlay{position:fixed;inset:0;z-index:60;background:rgba(10,4,4,0.75);display:none;align-items:center;
+    justify-content:center;flex-direction:column;text-align:center;}
+  #deathOverlay.show{display:flex;}
+  #deathOverlay h2{color:var(--hp-red);font-size:2em;margin-bottom:6px;font-family:'Palatino Linotype',Georgia,serif;}
+  #deathOverlay p{color:var(--parchment-dim);margin-bottom:18px;}
+
+  /* ---------- HELP MODAL ---------- */
+  #helpModal{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;}
+  #helpModal.show{display:flex;}
+  #helpCard{max-width:480px;width:90%;padding:24px 26px;position:relative;}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--wood-glow);border-radius:4px;}
+  ::-webkit-scrollbar-track{background:rgba(0,0,0,0.2);}
+
+  @media (max-width:640px){
+    .title{font-size:1.9em;}
+    #hudLeft{min-width:190px;padding:8px 12px 8px 26px;}
+    #minimapWrap{width:96px;height:96px;}
+    .tabBtn{padding:8px 10px;font-size:0.72em;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<div id="nightVeil"></div>
+<div id="hitFlash"></div>
+
+<!-- START SCREEN -->
+<div id="startScreen">
+  <div class="start-card plank">
+    <div class="plank-nail"></div><div class="plank-nail"></div>
+    <div class="title">Tidewood Isle</div>
+    <div class="subtitle">a lone drifter's crafting isle</div>
+    <div class="start-desc">
+      Your raft wrecked on the shores of an uncharted island. Chop, mine, and forage to survive —
+      craft sharper tools, raise a camp of automatons to work while you explore, level up, and push
+      back the creatures that stir when the sun goes down. The island stretches far in every direction;
+      the deeper you go, the richer — and more dangerous — it gets.
+    </div>
+    <div class="controls-grid">
+      <span class="key">WASD</span><span>Move around the isle</span>
+      <span class="key">Click</span><span>Gather resources / attack enemies</span>
+      <span class="key">Space</span><span>Use tool in the direction you're facing</span>
+      <span class="key">C</span><span>Open Craft menu</span>
+      <span class="key">B</span><span>Open Build menu (place structures)</span>
+      <span class="key">K</span><span>Open Skills menu</span>
+      <span class="key">M</span><span>Open Market (sell goods)</span>
+      <span class="key">U</span><span>Open Achievements</span>
+      <span class="key">Esc</span><span>Close menu / cancel placing</span>
+    </div>
+    <button id="startBtn">Wash Ashore</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hudLeft" class="plank">
+    <div class="plank-nail"></div><div class="plank-nail"></div>
+    <div class="bar-row">
+      <span class="bar-label">❤</span>
+      <div class="bar-track"><div class="bar-fill hp" id="hpFill" style="width:100%"></div>
+        <div class="bar-text" id="hpText">100/100</div></div>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">✦</span>
+      <div class="bar-track"><div class="bar-fill xp" id="xpFill" style="width:0%"></div>
+        <div class="bar-text" id="xpText">0/50</div></div>
+      <span class="lvl-badge" id="lvlText">Lv1</span>
+    </div>
+  </div>
+  <div id="hudRight">
+    <div style="display:flex;gap:8px;">
+      <div id="dayNight"><span id="dayIcon">☀</span><div id="dnTrack"><div id="dnFill" style="width:0%"></div></div><span id="dnLabel">Day</span></div>
+      <div class="coin-pill">🪙 <span id="coinText">10</span></div>
+      <button id="helpBtn">?</button>
+    </div>
+  </div>
+</div>
+
+<div id="minimapWrap"><canvas id="minimap" width="200" height="200"></canvas></div>
+<div id="buildBanner">Placing: <b id="buildBannerName"></b> — click on open land to build, Esc to cancel</div>
+<div id="toasts"></div>
+
+<!-- BOTTOM BAR -->
+<div id="bottomBar">
+  <div id="hotbar" class="plank"></div>
+  <div id="tabBar">
+    <button class="tabBtn" data-tab="craft">🔨 Craft</button>
+    <button class="tabBtn" data-tab="build">🏗 Build</button>
+    <button class="tabBtn" data-tab="skills">🌟 Skills</button>
+    <button class="tabBtn" data-tab="market">💰 Market</button>
+    <button class="tabBtn" data-tab="achievements">🏆 Feats</button>
+  </div>
+</div>
+
+<div id="panelWrap" class="plank">
+  <div class="plank-nail"></div><div class="plank-nail"></div>
+  <button id="panelClose">✕</button>
+  <div id="panelInner"></div>
+</div>
+
+<div id="deathOverlay">
+  <h2>You were overwhelmed...</h2>
+  <p id="deathSub">Washed back up near camp. Some coin scattered along the way.</p>
+  <button class="btn buy" id="respawnBtn" style="padding:12px 28px;font-size:1em;">Return to Camp</button>
+</div>
+
+<div id="helpModal">
+  <div id="helpCard" class="plank">
+    <button id="helpClose" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--parchment-dim);font-size:1.3em;cursor:pointer;">✕</button>
+    <h3 style="color:var(--gold);margin-top:0;">Controls & Tips</h3>
+    <div class="controls-grid">
+      <span class="key">WASD</span><span>Move</span>
+      <span class="key">Click</span><span>Gather / Attack (must be close)</span>
+      <span class="key">Space</span><span>Use tool facing your last direction</span>
+      <span class="key">C/B/K/M/U</span><span>Craft / Build / Skills / Market / Feats</span>
+      <span class="key">Esc</span><span>Close menus</span>
+    </div>
+    <p style="font-size:0.82em;color:var(--parchment-dim);line-height:1.5;">
+      Ore deposits need a strong enough pickaxe to break. Build Lumber Mills, Quarries and Farms near
+      camp to gather resources passively even while you explore. Furnaces turn ore into bars for
+      higher tier gear. Nights bring tougher foes — keep your tools and skills sharp.
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================== CONSTANTS & DATA ============================== */
+const TILE = 32;
+const WORLD_R = 62;        // island radius in tiles
+const SPAWN_CLEAR = 7;     // radius kept clear of resources at spawn
+const BASE_COOLDOWN = 0.5; // seconds, base tool swing cooldown
+const REACH = 58;          // px interaction reach
+
+const RES = {
+  wood:      {name:'Wood',        icon:'🪵', sell:1},
+  stone:     {name:'Stone',       icon:'🪨', sell:1},
+  fiber:     {name:'Fiber',       icon:'🌿', sell:1},
+  food:      {name:'Berries',     icon:'🍓', sell:2},
+  copperOre: {name:'Copper Ore',  icon:'🟤', sell:4},
+  ironOre:   {name:'Iron Ore',    icon:'⚙️', sell:8},
+  goldOre:   {name:'Gold Ore',    icon:'🟡', sell:16},
+  crystal:   {name:'Crystal',     icon:'💎', sell:45},
+  copperBar: {name:'Copper Bar',  icon:'🥉', sell:9},
+  ironBar:   {name:'Iron Bar',    icon:'🥈', sell:18},
+  goldBar:   {name:'Gold Bar',    icon:'🥇', sell:36},
+};
+const RES_ORDER = ['wood','stone','fiber','food','copperOre','ironOre','goldOre','crystal','copperBar','ironBar','goldBar'];
+
+const NODE_DEFS = {
+  tree:    {drop:'wood',  hp:3,  respawn:16, category:'wood',  blocking:true, yMin:2,yMax:4},
+  rock:    {drop:'stone', hp:4,  respawn:20, category:'stone', blocking:true, yMin:2,yMax:4, reqPick:0},
+  copper:  {drop:'copperOre', hp:5, respawn:38, category:'ore', blocking:true, yMin:1,yMax:2, reqPick:1},
+  iron:    {drop:'ironOre',   hp:6, respawn:52, category:'ore', blocking:true, yMin:1,yMax:2, reqPick:2},
+  gold:    {drop:'goldOre',   hp:8, respawn:70, category:'ore', blocking:true, yMin:1,yMax:2, reqPick:3},
+  crystal: {drop:'crystal',   hp:10,respawn:95, category:'ore', blocking:true, yMin:1,yMax:1, reqPick:4},
+  bush:    {drop:'food',  category:'instant', blocking:false, cooldown:5, yMin:1,yMax:2},
+  fiberp:  {drop:'fiber', category:'instant', blocking:false, cooldown:4, yMin:1,yMax:2},
+};
+
+const TIER_NAMES = ['Wood','Stone','Copper','Iron','Gold','Crystal'];
+const TIER_DMG    = [1, 1.7, 2.6, 3.9, 5.7, 8.2];
+const TIER_SPEED  = [1, 1.08, 1.16, 1.26, 1.38, 1.52];
+const TIER_COST = [
+  null,
+  {wood:15, stone:15},
+  {stone:20, copperBar:10},
+  {copperBar:15, ironBar:12},
+  {ironBar:18, goldBar:12},
+  {goldBar:20, crystal:10},
+];
+const TOOL_KINDS = {
+  axe:     {label:'Axe',     icon:'🪓', baseDmg:1.3, usedFor:'trees'},
+  pickaxe: {label:'Pickaxe', icon:'⛏️', baseDmg:1.3, usedFor:'stone & ore'},
+  sword:   {label:'Sword',   icon:'⚔️', baseDmg:2.3, usedFor:'enemies'},
+};
+
+const BUILD_DEFS = {
+  lumberMill:{name:'Lumber Mill', icon:'🪚', baseCost:{wood:20,stone:10}, scale:1.6, produce:{wood:0.55}, desc:'Passively chops wood over time.'},
+  quarry:    {name:'Quarry',      icon:'⛰️', baseCost:{wood:15,stone:20}, scale:1.6, produce:{stone:0.55}, desc:'Passively mines stone over time.'},
+  farm:      {name:'Farm Plot',   icon:'🚜', baseCost:{wood:10,fiber:15}, scale:1.5, produce:{food:0.45,fiber:0.15}, desc:'Grows berries and fiber over time.'},
+  furnace:   {name:'Furnace',     icon:'🔥', baseCost:{stone:30,wood:10}, scale:1.7, smelt:0.28, desc:'Smelts ore into bars automatically.'},
+  chest:     {name:'Storage Chest', icon:'📦', baseCost:{wood:25}, scale:1.4, storage:45, desc:'Raises your resource storage cap.'},
+  turret:    {name:'Watch Turret',icon:'🗼', baseCost:{stone:40,copperBar:10}, scale:1.8, range:170, dmg:4.5, atkSpeed:1.1, minLevel:4, desc:'Automatically fires on nearby enemies.'},
+  totem:     {name:'Skill Totem', icon:'🗿', baseCost:{goldBar:15,crystal:5}, scale:2.0, spInterval:140, minLevel:10, desc:'Slowly generates skill points over time.'},
+};
+const BUILD_ORDER = ['lumberMill','quarry','farm','furnace','chest','turret','totem'];
+
+const SKILL_DEFS = [
+  {id:'gatherDmg',  name:'Sharp Tools',        icon:'🪓', desc:'+10% gathering damage per level.'},
+  {id:'atkSpeed',   name:'Swift Hands',        icon:'⚡', desc:'+8% tool/weapon speed per level.'},
+  {id:'luck',       name:'Lucky Strike',       icon:'🍀', desc:'+5% chance to double resource yield.'},
+  {id:'maxHp',      name:'Iron Skin',          icon:'🛡️', desc:'+15 max health per level.'},
+  {id:'regen',      name:'Regeneration',       icon:'💗', desc:'Faster health regen out of combat.'},
+  {id:'weaponDmg',  name:"Warrior's Might",    icon:'⚔️', desc:'+12% weapon damage per level.'},
+  {id:'moveSpeed',  name:'Swift Feet',         icon:'👟', desc:'+6% movement speed per level.'},
+  {id:'storage',    name:'Deep Pockets',       icon:'🎒', desc:'+20 storage cap per level (all goods).'},
+  {id:'sellBonus',  name:"Merchant's Eye",     icon:'📜', desc:'+8% coins from selling per level.'},
+  {id:'buildSpeed', name:'Efficient Engineering', icon:'⚙️', desc:'+10% structure output per level.'},
+  {id:'coinDrop',   name:'Treasure Hunter',    icon:'🪙', desc:'+15% coins from slain creatures per level.'},
+];
+const SKILL_MAX = 5;
+
+const ENEMY_DEFS = {
+  slime:  {name:'Slime',  hp:12, dmg:4,  speed:52, xp:3,  coin:[2,4],   color:'#5fbf4a', dark:'#39802b', r:14},
+  spider: {name:'Spider', hp:20, dmg:7,  speed:82, xp:6,  coin:[4,7],   color:'#6a4a8f', dark:'#3f2b5c', r:13},
+  wraith: {name:'Wraith', hp:17, dmg:9,  speed:68, xp:9,  coin:[6,10],  color:'rgba(150,190,255,0.85)', dark:'rgba(90,120,190,0.85)', r:14, nightOnly:true},
+  golem:  {name:'Golem',  hp:75, dmg:15, speed:38, xp:26, coin:[20,42], color:'#9a7a54', dark:'#5c4630', r:21, rare:true, minLevel:6},
+};
+
+const ACHIEVEMENTS = [
+  {id:'lj1', name:'Lumberjack I', desc:'Chop 25 trees.', stat:'treesChopped', target:25, reward:{coins:20}},
+  {id:'lj2', name:'Lumberjack II', desc:'Chop 150 trees.', stat:'treesChopped', target:150, reward:{coins:80,sp:1}},
+  {id:'lj3', name:'Lumberjack III', desc:'Chop 750 trees.', stat:'treesChopped', target:750, reward:{coins:300,sp:2}},
+  {id:'mn1', name:'Miner I', desc:'Break 25 rocks.', stat:'rocksMined', target:25, reward:{coins:20}},
+  {id:'mn2', name:'Miner II', desc:'Break 150 rocks.', stat:'rocksMined', target:150, reward:{coins:80,sp:1}},
+  {id:'mn3', name:'Miner III', desc:'Break 750 rocks.', stat:'rocksMined', target:750, reward:{coins:300,sp:2}},
+  {id:'pr1', name:'Prospector', desc:'Mine 100 ore of any kind.', stat:'oreMined', target:100, reward:{coins:150,sp:1}},
+  {id:'mh1', name:'Monster Hunter I', desc:'Defeat 10 creatures.', stat:'enemiesKilled', target:10, reward:{coins:30}},
+  {id:'mh2', name:'Monster Hunter II', desc:'Defeat 100 creatures.', stat:'enemiesKilled', target:100, reward:{coins:150,sp:1}},
+  {id:'mh3', name:'Monster Hunter III', desc:'Defeat 500 creatures.', stat:'enemiesKilled', target:500, reward:{coins:500,sp:3}},
+  {id:'ar1', name:'Architect', desc:'Place 20 structures.', stat:'buildingsPlaced', target:20, reward:{coins:200,sp:1}},
+  {id:'cr1', name:'Craftsman', desc:'Craft 30 tools.', stat:'itemsCrafted', target:30, reward:{coins:100}},
+  {id:'no1', name:'Night Owl', desc:'Survive 3 nights.', stat:'nightsSurvived', target:3, reward:{coins:100,sp:1}},
+  {id:'ex1', name:'Explorer', desc:'Wander 90 tiles from camp.', stat:'maxDistance', target:90, reward:{coins:250,sp:2}},
+  {id:'ty1', name:'Tycoon', desc:'Earn 2000 coins total.', stat:'coinsEarned', target:2000, reward:{sp:3}},
+  {id:'gm1', name:'Grandmaster', desc:'Craft a Crystal-tier tool.', stat:'crystalToolCrafted', target:1, reward:{coins:500,sp:3}},
+];
+
+/* ============================== STATE ============================== */
+let canvas, ctx, mmCanvas, mmCtx;
+let W=0, H=0;
+let gameStarted=false;
+let last=0;
+
+const keys = {};
+let mouse = {x:0,y:0,worldX:0,worldY:0,down:false};
+
+const camera = {x:0,y:0,shakeMag:0,shakeTime:0};
+
+const player = {
+  x:0, y:0, r:11, dir:'down', moving:false, animT:0,
+  hp:100, maxHp:100, level:1, xp:0, xpNeed:60,
+  coins:10, skillPoints:0,
+  tools:{axe:0, pickaxe:0, sword:0},
+  atkCooldown:0, swingT:0, swingDir:'down',
+  lastHitTime:-999, invuln:0,
+  cap:110,
+};
+const skills = {}; SKILL_DEFS.forEach(s=>skills[s.id]=0);
+const inv = {}; RES_ORDER.forEach(r=>inv[r]=0);
+inv.wood=5; inv.food=3;
+
+const stats = {
+  treesChopped:0, rocksMined:0, oreMined:0, enemiesKilled:0, buildingsPlaced:0,
+  itemsCrafted:0, coinsEarned:0, nightsSurvived:0, maxDistance:0, crystalToolCrafted:0,
+};
+const achDone = {};
+
+const resourceMap = new Map();   // key "tx,ty" -> node
+const buildingMap = new Map();   // key "tx,ty" -> building
+const buildings = [];            // list of building instances
+const enemies = [];
+const particles = [];            // floating text / bursts
+const fireflies = [];
+
+let time = { cycle:0, dayLen:200, nightLen:100, isNight:false, dayCount:1 };
+let spawnTimer=0;
+let furnaceAcc = {copperOre:0, ironOre:0, goldOre:0};
+let totemAcc = 0;
+let buildProdAcc = {}; RES_ORDER.forEach(r=>buildProdAcc[r]=0);
+
+let activeTab = null;
+let buildMode = null; // building type id while placing
+
+/* ============================== UTIL ============================== */
+function hash(x,y){
+  let n = x*374761393 + y*668265263;
+  n = (n ^ (n >> 13)) * 1274126177;
+  n = n ^ (n >> 16);
+  return ((n >>> 0) % 10000) / 10000;
+}
+function rand(a,b){ return a + Math.random()*(b-a); }
+function randi(a,b){ return Math.floor(rand(a,b+1)); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function dist2(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.sqrt(dx*dx+dy*dy); }
+function fmt(n){ n=Math.floor(n); return n>=1000 ? n.toLocaleString() : String(n); }
+function tileKey(tx,ty){ return tx+','+ty; }
+function worldToTile(px,py){ return {tx:Math.floor(px/TILE), ty:Math.floor(py/TILE)}; }
+
+function isWater(tx,ty){
+  const d = Math.hypot(tx,ty);
+  const edge = WORLD_R - 3 + (hash(tx,ty)-0.5)*6;
+  return d > edge;
+}
+function isSand(tx,ty){
+  if(isWater(tx,ty)) return false;
+  const d = Math.hypot(tx,ty);
+  const edge = WORLD_R - 3 + (hash(tx,ty)-0.5)*6;
+  return d > edge - 4.5;
+}
+
+/* ============================== WORLD GEN ============================== */
+function oreTypeFor(dist){
+  const r = Math.random();
+  if(dist>52 && r<0.30) return 'crystal';
+  if(dist>38 && r<0.34) return 'gold';
+  if(dist>24 && r<0.38) return 'iron';
+  if(dist>11 && r<0.42) return 'copper';
+  return 'rock';
+}
+
+function generateWorld(){
+  for(let tx=-WORLD_R; tx<=WORLD_R; tx++){
+    for(let ty=-WORLD_R; ty<=WORLD_R; ty++){
+      if(isWater(tx,ty) || isSand(tx,ty)) continue;
+      const d = Math.hypot(tx,ty);
+      if(d < SPAWN_CLEAR) continue;
+      const r = Math.random();
+      let type=null;
+      if(r<0.115) type='tree';
+      else if(r<0.175) type = oreTypeFor(d);
+      else if(r<0.215) type='bush';
+      else if(r<0.255) type='fiberp';
+      if(!type) continue;
+      const def = NODE_DEFS[type];
+      resourceMap.set(tileKey(tx,ty), {
+        type, hp:def.hp||1, maxHp:def.hp||1, dead:false, respawnAt:0, lastCollected:-999,
+      });
+    }
+  }
+}
+
+function isBlockedTile(tx,ty){
+  if(isWater(tx,ty)) return true;
+  const node = resourceMap.get(tileKey(tx,ty));
+  if(node && !node.dead && NODE_DEFS[node.type].blocking) return true;
+  if(buildingMap.has(tileKey(tx,ty))) return true;
+  return false;
+}
+function collidesBox(cx,cy,r){
+  const pts=[[cx-r,cy-r],[cx+r,cy-r],[cx-r,cy+r],[cx+r,cy+r]];
+  for(const [px,py] of pts){
+    const tx=Math.floor(px/TILE), ty=Math.floor(py/TILE);
+    if(isBlockedTile(tx,ty)) return true;
+  }
+  return false;
+}
+
+/* ============================== STAT COMPUTATION ============================== */
+function recomputeStats(){
+  player.maxHp = 100 + skills.maxHp*15;
+  if(player.hp>player.maxHp) player.hp=player.maxHp;
+  player.cap = 110 + skills.storage*20 + buildings.filter(b=>b.type==='chest').length*BUILD_DEFS.chest.storage;
+}
+function moveSpeedMul(){ return 160 * (1+skills.moveSpeed*0.06); }
+function gatherDmgMul(){ return 1+skills.gatherDmg*0.10; }
+function atkSpeedMul(){ return 1+skills.atkSpeed*0.08; }
+function luckChance(){ return skills.luck*0.05; }
+function weaponDmgMul(){ return 1+skills.weaponDmg*0.12; }
+function sellMul(){ return 1+skills.sellBonus*0.08; }
+function buildMul(){ return 1+skills.buildSpeed*0.10; }
+function coinDropMul(){ return 1+skills.coinDrop*0.15; }
+function regenRate(){ return 0.6 + skills.regen*0.35; }
+
+function toolDmg(kind){
+  const tier = player.tools[kind];
+  const base = TOOL_KINDS[kind].baseDmg;
+  let mul = TIER_DMG[tier];
+  if(kind==='sword') return base*mul*weaponDmgMul();
+  return base*mul*gatherDmgMul();
+}
+function toolCooldown(kind){
+  const tier = player.tools[kind];
+  return BASE_COOLDOWN / (TIER_SPEED[tier]*atkSpeedMul());
+}
+
+/* ============================== INVENTORY ============================== */
+function addRes(key, amount){
+  if(amount<=0) return 0;
+  const room = player.cap - inv[key];
+  const add = Math.max(0, Math.min(amount, room));
+  inv[key]+= add;
+  return add;
+}
+function canAfford(cost){
+  for(const k in cost){ if((inv[k]||0) < cost[k]) return false; }
+  return true;
+}
+function payCost(cost){
+  for(const k in cost){ inv[k]-=cost[k]; }
+}
+
+/* ============================== PARTICLES / FX ============================== */
+function addFloatText(x,y,text,color){
+  particles.push({kind:'text', x,y, text, color, vy:-38, life:0.9, maxLife:0.9});
+}
+function addBurst(x,y,color,n){
+  n = n||8;
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2;
+    const sp = rand(30,90);
+    particles.push({kind:'burst', x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, color, life:0.5, maxLife:0.5, size:rand(2,4)});
+  }
+}
+function shake(mag,time_){ camera.shakeMag=Math.max(camera.shakeMag,mag); camera.shakeTime=Math.max(camera.shakeTime,time_); }
+
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.life-=dt;
+    if(p.kind==='text'){ p.y+=p.vy*dt; p.vy*=0.98; }
+    else { p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.9; p.vy*=0.9; }
+    if(p.life<=0) particles.splice(i,1);
+  }
+}
+
+/* ============================== TOASTS ============================== */
+function toast(msg, achieve){
+  const el = document.createElement('div');
+  el.className='toast'+(achieve?' achieve':'');
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3100);
+}
+
+/* ============================== XP / LEVEL ============================== */
+function xpNeeded(lvl){ return Math.floor(40*Math.pow(lvl,1.55))+40; }
+function gainXp(n){
+  player.xp += n;
+  while(player.xp >= player.xpNeed){
+    player.xp -= player.xpNeed;
+    player.level++;
+    player.skillPoints++;
+    player.xpNeed = xpNeeded(player.level);
+    player.hp = player.maxHp;
+    recomputeStats();
+    toast('Level up! Now level '+player.level+' (+1 skill point)');
+    addBurst(player.x, player.y-10, '#e8c14b', 16);
+    shake(4,0.2);
+  }
+}
+function gainCoins(n){
+  player.coins += n;
+  stats.coinsEarned += n;
+}
+
+/* ============================== ACHIEVEMENTS ============================== */
+function checkAchievements(){
+  for(const a of ACHIEVEMENTS){
+    if(achDone[a.id]) continue;
+    if(stats[a.stat] >= a.target){
+      achDone[a.id]=true;
+      if(a.reward.coins) gainCoins(a.reward.coins);
+      if(a.reward.sp) player.skillPoints += a.reward.sp;
+      toast('🏆 '+a.name+' unlocked!'+(a.reward.coins?' +'+a.reward.coins+' coins':'')+(a.reward.sp?' +'+a.reward.sp+' SP':''), true);
+    }
+  }
+}
+
+/* ============================== GATHER / COMBAT ============================== */
+function nodeDamageKind(type){
+  const cat = NODE_DEFS[type].category;
+  if(cat==='wood') return 'axe';
+  return 'pickaxe';
+}
+
+function tryInteractAt(px,py){
+  const {tx,ty} = worldToTile(px,py);
+  const node = resourceMap.get(tileKey(tx,ty));
+  if(node){ handleResourceInteract(node,tx,ty); return true; }
+  const enemy = findNearestEnemyToPoint(px,py,30);
+  if(enemy){ handleAttackEnemy(enemy); return true; }
+  return false;
+}
+
+function findNearestEnemyToPoint(px,py,radius){
+  let best=null, bd=radius;
+  for(const e of enemies){
+    const d = dist2(e.x,e.y,px,py);
+    if(d<bd){ bd=d; best=e; }
+  }
+  return best;
+}
+
+function handleResourceInteract(node,tx,ty){
+  const def = NODE_DEFS[node.type];
+  const cx = tx*TILE+TILE/2, cy = ty*TILE+TILE/2;
+  if(def.category==='instant'){
+    const now=performance.now()/1000;
+    if(now - node.lastCollected < def.cooldown) return;
+    node.lastCollected = now;
+    let amt = randi(def.yMin, def.yMax);
+    const added = addRes(def.drop, amt);
+    if(added>0){
+      addFloatText(cx, cy-18, '+'+added+' '+RES[def.drop].icon, '#bdf0bd');
+      addBurst(cx,cy,'#7fd47f',5);
+      gainXp(0.6);
+    }
+    return;
+  }
+  if(node.dead) return;
+  if(player.atkCooldown>0) return;
+  if(dist2(player.x,player.y,cx,cy) > REACH) return;
+
+  const kind = nodeDamageKind(node.type);
+  if(def.category==='ore' && player.tools.pickaxe < def.reqPick){
+    toast('Need a '+TIER_NAMES[def.reqPick]+' Pickaxe or better!');
+    player.atkCooldown = 0.25;
+    return;
+  }
+  const dmg = toolDmg(kind);
+  node.hp -= dmg;
+  player.atkCooldown = toolCooldown(kind);
+  player.swingT = 0.18; player.swingDir = player.dir;
+  addBurst(cx,cy, def.category==='wood'?'#8a6338':'#9a9a9a', 4);
+  shake(1.2,0.08);
+
+  if(node.hp<=0){
+    let amt = randi(def.yMin, def.yMax) + Math.floor(player.tools[kind]*0.4);
+    if(Math.random() < luckChance()) amt*=2;
+    const added = addRes(def.drop, amt);
+    addFloatText(cx,cy-18,'+'+added+' '+RES[def.drop].icon, '#ffe9a8');
+    addBurst(cx,cy, def.category==='wood'?'#8a6338':'#c9c9c9', 12);
+    node.dead=true;
+    node.respawnAt = performance.now()/1000 + def.respawn + rand(-3,5);
+    if(node.type==='tree') stats.treesChopped++;
+    else if(node.type==='rock') stats.rocksMined++;
+    else { stats.oreMined++; }
+    gainXp(def.category==='ore' ? 2+def.reqPick*1.5 : 1.2);
+    checkAchievements();
+  }
+}
+
+function handleAttackEnemy(enemy){
+  if(player.atkCooldown>0) return;
+  if(dist2(player.x,player.y,enemy.x,enemy.y) > REACH+enemy.def.r) return;
+  const dmg = toolDmg('sword');
+  enemy.hp -= dmg;
+  player.atkCooldown = toolCooldown('sword');
+  player.swingT=0.18; player.swingDir=player.dir;
+  const ang = Math.atan2(enemy.y-player.y, enemy.x-player.x);
+  enemy.x += Math.cos(ang)*10; enemy.y += Math.sin(ang)*10;
+  addFloatText(enemy.x, enemy.y-24, '-'+Math.ceil(dmg), '#ff8a7a');
+  addBurst(enemy.x,enemy.y,'#ff6a5a',8);
+  shake(2,0.1);
+  if(enemy.hp<=0) killEnemy(enemy);
+}
+
+function killEnemy(enemy){
+  const idx = enemies.indexOf(enemy);
+  if(idx>=0) enemies.splice(idx,1);
+  const coin = Math.ceil(randi(enemy.def.coin[0], enemy.def.coin[1]) * coinDropMul());
+  gainCoins(coin);
+  gainXp(enemy.def.xp);
+  stats.enemiesKilled++;
+  addFloatText(enemy.x, enemy.y-20, '+'+coin+' 🪙', '#ffd98a');
+  addBurst(enemy.x, enemy.y, enemy.def.color, 16);
+  shake(3,0.15);
+  if(enemy.def.rare && Math.random()<0.5){
+    const bonus = addRes('crystal', 1);
+    if(bonus) addFloatText(enemy.x, enemy.y-38, '+1 💎', '#c9a8ff');
+  }
+  checkAchievements();
+}
+
+/* ============================== CRAFTING ============================== */
+function nextToolTier(kind){ return player.tools[kind]+1; }
+function craftTool(kind){
+  const tier = nextToolTier(kind);
+  if(tier>5) return;
+  const cost = TIER_COST[tier];
+  if(!canAfford(cost)){ toast('Not enough materials.'); return; }
+  payCost(cost);
+  player.tools[kind]=tier;
+  stats.itemsCrafted++;
+  gainXp(5);
+  toast('Crafted '+TIER_NAMES[tier]+' '+TOOL_KINDS[kind].label+'!');
+  addBurst(player.x,player.y-10,'#e8c14b',14);
+  if(tier===5){ stats.crystalToolCrafted=1; checkAchievements(); }
+  checkAchievements();
+  renderActivePanel();
+}
+
+function buildingCost(type){
+  const def = BUILD_DEFS[type];
+  const owned = buildings.filter(b=>b.type===type).length;
+  const cost = {};
+  for(const k in def.baseCost){
+    cost[k] = Math.ceil(def.baseCost[k]*Math.pow(def.scale, owned));
+  }
+  return cost;
+}
+
+function enterBuildMode(type){
+  const def = BUILD_DEFS[type];
+  if(def.minLevel && player.level<def.minLevel){ toast('Requires level '+def.minLevel+'.'); return; }
+  const cost = buildingCost(type);
+  if(!canAfford(cost)){ toast('Not enough materials.'); return; }
+  buildMode = type;
+  document.getElementById('buildBanner').classList.add('show');
+  document.getElementById('buildBannerName').textContent = def.name;
+  closePanel();
+}
+function cancelBuildMode(){
+  buildMode=null;
+  document.getElementById('buildBanner').classList.remove('show');
+}
+function tryPlaceBuilding(px,py){
+  if(!buildMode) return;
+  const def = BUILD_DEFS[buildMode];
+  const cost = buildingCost(buildMode);
+  if(!canAfford(cost)){ toast('Not enough materials.'); cancelBuildMode(); return; }
+  const {tx,ty} = worldToTile(px,py);
+  if(isWater(tx,ty)){ toast("Can't build on water."); return; }
+  if(buildingMap.has(tileKey(tx,ty))){ toast('Something is already there.'); return; }
+  const node = resourceMap.get(tileKey(tx,ty));
+  if(node && !node.dead){ toast('Clear that resource first.'); return; }
+  if(dist2(player.x,player.y, tx*TILE+TILE/2, ty*TILE+TILE/2) > 150){ toast('Move closer to build there.'); return; }
+  payCost(cost);
+  const b = {type:buildMode, x:tx*TILE+TILE/2, y:ty*TILE+TILE/2, tx,ty, cooldown:0, prog:0};
+  buildings.push(b);
+  buildingMap.set(tileKey(tx,ty), b);
+  stats.buildingsPlaced++;
+  gainXp(8);
+  addBurst(b.x,b.y,'#e0972f',14);
+  toast('Built '+def.name+'!');
+  recomputeStats();
+  checkAchievements();
+  cancelBuildMode();
+}
+
+/* ============================== BUILDING UPDATE ============================== */
+function updateBuildings(dt){
+  const lumber = buildings.filter(b=>b.type==='lumberMill').length;
+  const quarry = buildings.filter(b=>b.type==='quarry').length;
+  const farm   = buildings.filter(b=>b.type==='farm').length;
+  const furnace= buildings.filter(b=>b.type==='furnace').length;
+  const totem  = buildings.filter(b=>b.type==='totem').length;
+  const bm = buildMul();
+
+  if(lumber>0) buildProdAcc.wood += lumber*BUILD_DEFS.lumberMill.produce.wood*bm*dt;
+  if(quarry>0) buildProdAcc.stone += quarry*BUILD_DEFS.quarry.produce.stone*bm*dt;
+  if(farm>0){
+    buildProdAcc.food += farm*BUILD_DEFS.farm.produce.food*bm*dt;
+    buildProdAcc.fiber += farm*BUILD_DEFS.farm.produce.fiber*bm*dt;
+  }
+  for(const k in buildProdAcc){
+    if(buildProdAcc[k]>=1){
+      const whole = Math.floor(buildProdAcc[k]);
+      buildProdAcc[k]-=whole;
+      addRes(k, whole);
+    }
+  }
+
+  if(furnace>0){
+    const rate = furnace*BUILD_DEFS.furnace.smelt*bm*dt;
+    const order = [['copperOre','copperBar'],['ironOre','ironBar'],['goldOre','goldBar']];
+    let budget = rate;
+    for(const [ore,bar] of order){
+      if(budget<=0) break;
+      furnaceAcc[ore] = (furnaceAcc[ore]||0) + Math.min(budget, inv[ore]);
+      const canProc = Math.min(furnaceAcc[ore], inv[ore]);
+      if(canProc>=1){
+        const whole = Math.floor(canProc);
+        inv[ore]-=whole;
+        addRes(bar, whole);
+        furnaceAcc[ore]-=whole;
+      }
+      budget -= Math.min(budget, Math.max(inv[ore],0)>0?budget:0);
+      budget = Math.max(0, budget - (inv[ore]>0?rate/order.length:0));
+    }
+  }
+
+  if(totem>0){
+    totemAcc += totem*dt;
+    const interval = BUILD_DEFS.totem.spInterval;
+    while(totemAcc >= interval){
+      totemAcc -= interval;
+      player.skillPoints++;
+      toast('Your Totem grants +1 skill point.');
+    }
+  }
+
+  // turrets
+  for(const b of buildings){
+    if(b.type!=='turret') continue;
+    b.cooldown -= dt;
+    if(b.cooldown>0) continue;
+    let target=null, bd=BUILD_DEFS.turret.range;
+    for(const e of enemies){
+      const d=dist2(b.x,b.y,e.x,e.y);
+      if(d<bd){ bd=d; target=e; }
+    }
+    if(target){
+      target.hp -= BUILD_DEFS.turret.dmg;
+      b.cooldown = 1/BUILD_DEFS.turret.atkSpeed;
+      particles.push({kind:'beam', x1:b.x,y1:b.y-14, x2:target.x,y2:target.y, life:0.12, maxLife:0.12});
+      addBurst(target.x,target.y,'#8ad4ff',4);
+      if(target.hp<=0) killEnemy(target);
+    }
+  }
+}
+
+/* ============================== RESOURCE RESPAWN ============================== */
+function updateResourceRespawns(){
+  const now = performance.now()/1000;
+  resourceMap.forEach((node)=>{
+    if(node.dead && now>=node.respawnAt){
+      node.dead=false; node.hp=node.maxHp;
+    }
+  });
+}
+
+/* ============================== ENEMIES ============================== */
+function pickEnemyType(dist){
+  const night = time.isNight;
+  const pool = [];
+  pool.push(['slime', night?45:65]);
+  pool.push(['spider', night?35:30]);
+  if(night) pool.push(['wraith', 30]);
+  if(player.level>=ENEMY_DEFS.golem.minLevel && dist>25) pool.push(['golem', 4]);
+  const total = pool.reduce((s,p)=>s+p[1],0);
+  let r = Math.random()*total;
+  for(const [t,w] of pool){ if(r<w) return t; r-=w; }
+  return 'slime';
+}
+
+function spawnEnemy(){
+  const maxEnemies = Math.min(10+player.level, 40);
+  if(enemies.length>=maxEnemies) return;
+  const angle = Math.random()*Math.PI*2;
+  const distTiles = rand(10,30);
+  const px = player.x + Math.cos(angle)*distTiles*TILE;
+  const py = player.y + Math.sin(angle)*distTiles*TILE;
+  const {tx,ty} = worldToTile(px,py);
+  if(isWater(tx,ty)) return;
+  const distFromCenter = Math.hypot(tx,ty);
+  const type = pickEnemyType(distFromCenter);
+  const def = ENEMY_DEFS[type];
+  const scale = 1 + distFromCenter/160;
+  enemies.push({
+    type, def, x:px, y:py, hp:def.hp*scale, maxHp:def.hp*scale, dmg:def.dmg*scale,
+    speed:def.speed, atkCd:0, wanderX:px, wanderY:py, wanderT:0, hitFlash:0,
+  });
+}
+
+function updateEnemies(dt){
+  for(let i=enemies.length-1;i>=0;i--){
+    const e = enemies[i];
+    e.hitFlash = Math.max(0, e.hitFlash-dt);
+    e.atkCd = Math.max(0, e.atkCd-dt);
+    const d = dist2(e.x,e.y,player.x,player.y);
+    let tx,ty;
+    if(d<240){
+      tx=player.x; ty=player.y;
+    } else {
+      e.wanderT-=dt;
+      if(e.wanderT<=0){
+        e.wanderX = e.x + rand(-120,120);
+        e.wanderY = e.y + rand(-120,120);
+        e.wanderT = rand(2,4);
+      }
+      tx=e.wanderX; ty=e.wanderY;
+    }
+    const ang = Math.atan2(ty-e.y, tx-e.x);
+    const nx = e.x + Math.cos(ang)*e.speed*dt;
+    const ny = e.y + Math.sin(ang)*e.speed*dt;
+    const {tx:ntx,ty:nty} = worldToTile(nx,ny);
+    if(!isWater(ntx,nty)){ e.x=nx; e.y=ny; }
+
+    if(d < e.def.r+player.r+6 && e.atkCd<=0 && player.invuln<=0){
+      player.hp -= e.dmg;
+      player.lastHitTime = performance.now()/1000;
+      player.invuln = 0.6;
+      e.atkCd = 1.0;
+      const ang2 = Math.atan2(player.y-e.y, player.x-e.x);
+      player.x += Math.cos(ang2)*14; player.y += Math.sin(ang2)*14;
+      flashHit();
+      shake(5,0.2);
+      addFloatText(player.x, player.y-24, '-'+Math.ceil(e.dmg), '#ff5a4a');
+      if(player.hp<=0) onPlayerDeath();
+    }
+  }
+}
+
+function flashHit(){
+  const el = document.getElementById('hitFlash');
+  el.style.background='radial-gradient(ellipse at center, rgba(193,68,58,0.0), rgba(120,10,10,0.35))';
+  setTimeout(()=>{ el.style.background='radial-gradient(ellipse at center, rgba(193,68,58,0.0), rgba(120,10,10,0.0))'; },150);
+}
+
+function onPlayerDeath(){
+  player.hp=0;
+  const loss = Math.floor(player.coins*0.1);
+  player.coins -= loss;
+  document.getElementById('deathSub').textContent = 'Washed back up near camp. Lost '+loss+' coins along the way.';
+  document.getElementById('deathOverlay').classList.add('show');
+}
+function respawnPlayer(){
+  player.hp = player.maxHp;
+  player.x = 0; player.y = 0;
+  player.invuln = 1.5;
+  document.getElementById('deathOverlay').classList.remove('show');
+}
+
+/* ============================== INPUT ============================== */
+function setupInput(){
+  window.addEventListener('keydown', e=>{
+    const k = e.key.toLowerCase();
+    if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault();
+    keys[k]=true;
+    if(k===' ') doSpaceAttack();
+    if(k==='c') toggleTab('craft');
+    if(k==='b') toggleTab('build');
+    if(k==='k') toggleTab('skills');
+    if(k==='m') toggleTab('market');
+    if(k==='u') toggleTab('achievements');
+    if(k==='escape'){ if(buildMode) cancelBuildMode(); else closePanel(); }
+  });
+  window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
+
+  canvas.addEventListener('mousemove', e=>{
+    mouse.x=e.clientX; mouse.y=e.clientY;
+    mouse.worldX = camera.x + (mouse.x - W/2);
+    mouse.worldY = camera.y + (mouse.y - H/2);
+  });
+  canvas.addEventListener('mousedown', e=>{
+    if(e.button!==0) return;
+    mouse.down=true;
+    if(buildMode){ tryPlaceBuilding(mouse.worldX, mouse.worldY); return; }
+    tryInteractAt(mouse.worldX, mouse.worldY);
+  });
+  canvas.addEventListener('mouseup', ()=>{ mouse.down=false; });
+  canvas.addEventListener('contextmenu', e=>{ e.preventDefault(); if(buildMode) cancelBuildMode(); });
+}
+
+function doSpaceAttack(){
+  let ox=0,oy=0;
+  if(player.dir==='up') oy=-TILE;
+  else if(player.dir==='down') oy=TILE;
+  else if(player.dir==='left') ox=-TILE;
+  else ox=TILE;
+  tryInteractAt(player.x+ox, player.y+oy);
+}
+
+/* ============================== PANELS ============================== */
+function toggleTab(tab){
+  if(activeTab===tab){ closePanel(); return; }
+  openPanel(tab);
+}
+function openPanel(tab){
+  activeTab=tab;
+  cancelBuildMode();
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('panelWrap').classList.add('open');
+  renderActivePanel();
+}
+function closePanel(){
+  activeTab=null;
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panelWrap').classList.remove('open');
+}
+function renderActivePanel(){
+  if(!activeTab) return;
+  if(activeTab==='craft') renderCraft();
+  else if(activeTab==='build') renderBuild();
+  else if(activeTab==='skills') renderSkills();
+  else if(activeTab==='market') renderMarket();
+  else if(activeTab==='achievements') renderAchievements();
+}
+
+function costHtml(cost){
+  let s='';
+  for(const k in cost){
+    const have = inv[k]||0;
+    const ok = have>=cost[k];
+    s += '<span class="'+(ok?'ok':'bad')+'">'+RES[k].icon+' '+cost[k]+'</span> ';
+  }
+  return s;
+}
+
+function renderCraft(){
+  let html = '<h3>🔨 Craft Tools</h3>';
+  for(const kind in TOOL_KINDS){
+    const tk = TOOL_KINDS[kind];
+    const tier = player.tools[kind];
+    html += '<div class="row"><div class="ic">'+tk.icon+'</div><div class="info">';
+    html += '<div class="name">'+tk.label+' — '+TIER_NAMES[tier]+' tier</div>';
+    if(tier<5){
+      const cost = TIER_COST[tier+1];
+      html += '<div class="desc">Used for '+tk.usedFor+'. Next: '+TIER_NAMES[tier+1]+'</div>';
+      html += '<div class="cost">'+costHtml(cost)+'</div>';
+      html += '</div><button class="btn buy" onclick="GAME.craftTool(\''+kind+'\')" '+(canAfford(cost)?'':'disabled')+'>Craft</button>';
+    } else {
+      html += '<div class="desc">Maximum tier reached.</div></div><span class="maxed">MAX ⭐</span>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function renderBuild(){
+  let html = '<h3>🏗 Build Structures</h3>';
+  for(const type of BUILD_ORDER){
+    const def = BUILD_DEFS[type];
+    const owned = buildings.filter(b=>b.type===type).length;
+    const cost = buildingCost(type);
+    const locked = def.minLevel && player.level<def.minLevel;
+    html += '<div class="row"><div class="ic">'+def.icon+'</div><div class="info">';
+    html += '<div class="name">'+def.name+' <span style="color:var(--parchment-dim);font-weight:normal;">(owned '+owned+')</span></div>';
+    html += '<div class="desc">'+def.desc+(locked?' — requires level '+def.minLevel:'')+'</div>';
+    html += '<div class="cost">'+costHtml(cost)+'</div></div>';
+    html += '<button class="btn buy" onclick="GAME.enterBuildMode(\''+type+'\')" '+((canAfford(cost)&&!locked)?'':'disabled')+'>Place</button>';
+    html += '</div>';
+  }
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function renderSkills(){
+  let html = '<div id="skillPtsLine">Skill Points: '+player.skillPoints+'</div>';
+  for(const s of SKILL_DEFS){
+    const lvl = skills[s.id];
+    const cost = lvl+1;
+    let dots='';
+    for(let i=0;i<SKILL_MAX;i++) dots += '<span class="'+(i<lvl?'filled':'')+'"></span>';
+    html += '<div class="row"><div class="ic">'+s.icon+'</div><div class="info">';
+    html += '<div class="name">'+s.name+'</div><div class="desc">'+s.desc+'</div>';
+    html += '<div class="lvl-dots">'+dots+'</div></div>';
+    if(lvl>=SKILL_MAX){
+      html += '<span class="maxed">MAX</span>';
+    } else {
+      html += '<button class="btn buy" onclick="GAME.buySkill(\''+s.id+'\')" '+((player.skillPoints>=cost)?'':'disabled')+'>+1 ('+cost+' SP)</button>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function renderMarket(){
+  let html = '<h3>💰 Market — sell your goods</h3>';
+  for(const k of RES_ORDER){
+    const have = inv[k]||0;
+    const price = Math.max(1, Math.round(RES[k].sell*sellMul()));
+    html += '<div class="row"><div class="ic">'+RES[k].icon+'</div><div class="info">';
+    html += '<div class="name">'+RES[k].name+' <span style="color:var(--parchment-dim);font-weight:normal;">x'+fmt(have)+'</span></div>';
+    html += '<div class="desc">Sells for '+price+' 🪙 each</div></div>';
+    html += '<div class="btn-group">';
+    html += '<button class="btn sell small" onclick="GAME.sell(\''+k+'\',1)" '+(have>=1?'':'disabled')+'>Sell 1</button>';
+    html += '<button class="btn sell small" onclick="GAME.sell(\''+k+'\',10)" '+(have>=10?'':'disabled')+'>Sell 10</button>';
+    html += '<button class="btn sell small" onclick="GAME.sell(\''+k+'\',9999)" '+(have>=1?'':'disabled')+'>Sell All</button>';
+    html += '</div></div>';
+  }
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function renderAchievements(){
+  let html = '<h3>🏆 Feats of the Isle</h3>';
+  for(const a of ACHIEVEMENTS){
+    const done = !!achDone[a.id];
+    const progress = Math.min(stats[a.stat]||0, a.target);
+    const pct = Math.floor(progress/a.target*100);
+    html += '<div class="row '+(done?'ach-done':'')+'"><div class="ic">'+(done?'<span class="ach-check">✔</span>':'🏆')+'</div><div class="info">';
+    html += '<div class="name">'+a.name+'</div><div class="desc">'+a.desc+'</div>';
+    if(!done){
+      html += '<div class="progress-outer"><div class="progress-inner" style="width:'+pct+'%"></div></div>';
+      html += '<div class="desc">'+fmt(progress)+' / '+fmt(a.target)+'</div>';
+    } else {
+      html += '<div class="desc">Reward claimed'+(a.reward.coins?': +'+a.reward.coins+' 🪙':'')+(a.reward.sp?' +'+a.reward.sp+' SP':'')+'</div>';
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function sellItem(key, qty){
+  const have = inv[key]||0;
+  const amt = Math.min(have, qty);
+  if(amt<=0) return;
+  const price = Math.max(1, Math.round(RES[key].sell*sellMul()));
+  const total = amt*price;
+  inv[key]-=amt;
+  gainCoins(total);
+  toast('Sold '+amt+' '+RES[key].name+' for '+total+' 🪙');
+  checkAchievements();
+  renderActivePanel();
+}
+function buySkill(id){
+  const lvl = skills[id];
+  if(lvl>=SKILL_MAX) return;
+  const cost = lvl+1;
+  if(player.skillPoints<cost) return;
+  player.skillPoints-=cost;
+  skills[id]++;
+  stats.skillPointsSpent = (stats.skillPointsSpent||0)+cost;
+  recomputeStats();
+  toast(SKILL_DEFS.find(s=>s.id===id).name+' upgraded!');
+  renderActivePanel();
+}
+
+window.GAME = { craftTool, enterBuildMode, buySkill, sell: sellItem };
+
+/* ============================== UI SYNC ============================== */
+let lastUISync=0;
+function syncHUD(){
+  document.getElementById('hpFill').style.width = clamp(player.hp/player.maxHp*100,0,100)+'%';
+  document.getElementById('hpText').textContent = Math.max(0,Math.ceil(player.hp))+'/'+Math.ceil(player.maxHp);
+  document.getElementById('xpFill').style.width = clamp(player.xp/player.xpNeed*100,0,100)+'%';
+  document.getElementById('xpText').textContent = Math.floor(player.xp)+'/'+player.xpNeed;
+  document.getElementById('lvlText').textContent = 'Lv'+player.level;
+  document.getElementById('coinText').textContent = fmt(player.coins);
+
+  const dn = document.getElementById('dayNight');
+  dn.classList.toggle('night', time.isNight);
+  document.getElementById('dayIcon').textContent = time.isNight? '🌙':'☀';
+  document.getElementById('dnLabel').textContent = time.isNight? 'Night':'Day '+time.dayCount;
+  const total = time.isNight? time.nightLen : time.dayLen;
+  const cur = time.isNight? (time.cycle-time.dayLen) : time.cycle;
+  document.getElementById('dnFill').style.width = clamp(cur/total*100,0,100)+'%';
+
+  // hotbar: show top resources with nonzero counts, plus always show first four
+  const hb = document.getElementById('hotbar');
+  let html='';
+  const shown = RES_ORDER.filter(k=>inv[k]>0);
+  const list = shown.length? shown : ['wood','stone','fiber','food'];
+  for(const k of list){
+    html += '<div class="hot-item"><div class="ic">'+RES[k].icon+'</div><div class="ct">'+fmt(inv[k])+'</div></div>';
+  }
+  hb.innerHTML = html;
+
+  document.querySelectorAll('.tabBtn').forEach(b=>{
+    if(b.dataset.tab==='skills' && player.skillPoints>0){
+      if(!b.querySelector('.badge')){
+        b.innerHTML += ' <span class="badge">'+player.skillPoints+'</span>';
+      } else {
+        b.querySelector('.badge').textContent = player.skillPoints;
+      }
+    } else if(b.dataset.tab==='skills'){
+      const badge=b.querySelector('.badge'); if(badge) badge.remove();
+    }
+  });
+}
+
+/* ============================== DAY/NIGHT ============================== */
+function updateTime(dt){
+  time.cycle += dt;
+  const total = time.dayLen+time.nightLen;
+  if(time.cycle>=total){
+    time.cycle -= total;
+    time.dayCount++;
+  }
+  const wasNight = time.isNight;
+  time.isNight = time.cycle >= time.dayLen;
+  if(!wasNight && time.isNight){
+    toast('Night falls... stay alert.');
+  }
+  if(wasNight && !time.isNight){
+    stats.nightsSurvived++;
+    checkAchievements();
+  }
+  const veil = document.getElementById('nightVeil');
+  const nightProgress = time.isNight ? clamp((time.cycle-time.dayLen)/time.nightLen,0,1) : 0;
+  const dayFade = !time.isNight ? clamp(1-time.cycle/20,0,1) : 0;
+  let alpha = time.isNight ? 0.15+0.32*Math.min(nightProgress*3,1) : dayFade*0.3;
+  veil.style.background = 'rgba(8,14,40,'+alpha.toFixed(2)+')';
+}
+
+/* ============================== FIREFLIES ============================== */
+function ensureFireflies(){
+  while(fireflies.length<26){
+    fireflies.push({x:player.x+rand(-400,400), y:player.y+rand(-300,300), t:rand(0,10), spd:rand(0.5,1.2)});
+  }
+}
+function updateFireflies(dt){
+  for(const f of fireflies){
+    f.t+=dt*f.spd;
+    if(dist2(f.x,f.y,player.x,player.y)>700){
+      f.x=player.x+rand(-400,400); f.y=player.y+rand(-300,300);
+    }
+  }
+}
+
+/* ============================== PLAYER MOVEMENT ============================== */
+function updatePlayer(dt){
+  if(player.invuln>0) player.invuln-=dt;
+  if(player.atkCooldown>0) player.atkCooldown-=dt;
+  if(player.swingT>0) player.swingT-=dt;
+
+  let dx=0,dy=0;
+  if(keys['w']||keys['arrowup']) dy-=1;
+  if(keys['s']||keys['arrowdown']) dy+=1;
+  if(keys['a']||keys['arrowleft']) dx-=1;
+  if(keys['d']||keys['arrowright']) dx+=1;
+
+  player.moving = dx!==0||dy!==0;
+  if(player.moving){
+    const len = Math.hypot(dx,dy);
+    dx/=len; dy/=len;
+    if(Math.abs(dx)>Math.abs(dy)) player.dir = dx>0?'right':'left';
+    else player.dir = dy>0?'down':'up';
+    const spd = moveSpeedMul();
+    const mx = dx*spd*dt, my = dy*spd*dt;
+    if(!collidesBox(player.x+mx, player.y, player.r)) player.x+=mx;
+    if(!collidesBox(player.x, player.y+my, player.r)) player.y+=my;
+    player.animT += dt*8;
+  }
+
+  // clamp to island (soft)
+  const d = Math.hypot(player.x/TILE, player.y/TILE);
+  if(d>WORLD_R-4){
+    const ang = Math.atan2(player.y,player.x);
+    player.x = Math.cos(ang)*(WORLD_R-4)*TILE;
+    player.y = Math.sin(ang)*(WORLD_R-4)*TILE;
+  }
+
+  const now = performance.now()/1000;
+  if(now-player.lastHitTime > 3.5 && player.hp<player.maxHp && player.hp>0){
+    player.hp = Math.min(player.maxHp, player.hp+regenRate()*dt);
+  }
+
+  const distTiles = Math.hypot(player.x/TILE, player.y/TILE);
+  if(distTiles>stats.maxDistance){ stats.maxDistance=distTiles; }
+}
+
+/* ============================== RENDER ============================== */
+function tileColor(tx,ty){
+  if(isWater(tx,ty)) return null;
+  if(isSand(tx,ty)) return null;
+  const h = hash(tx,ty);
+  const shade = 0.9 + h*0.22;
+  return shade;
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  let sx=0, sy=0;
+  if(camera.shakeTime>0){
+    sx = rand(-camera.shakeMag,camera.shakeMag);
+    sy = rand(-camera.shakeMag,camera.shakeMag);
+  }
+  ctx.translate(W/2 - camera.x + sx, H/2 - camera.y + sy);
+
+  const startTx = Math.floor((camera.x - W/2)/TILE)-1;
+  const endTx = Math.floor((camera.x + W/2)/TILE)+1;
+  const startTy = Math.floor((camera.y - H/2)/TILE)-1;
+  const endTy = Math.floor((camera.y + H/2)/TILE)+1;
+
+  // terrain
+  for(let tx=startTx; tx<=endTx; tx++){
+    for(let ty=startTy; ty<=endTy; ty++){
+      const px=tx*TILE, py=ty*TILE;
+      if(isWater(tx,ty)){
+        const shimmer = Math.sin((tx*3+ty*2+performance.now()/900))*4;
+        ctx.fillStyle = '#1f4c63';
+        ctx.fillRect(px,py,TILE+1,TILE+1);
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.fillRect(px, py+TILE/2+shimmer, TILE, 2);
+      } else if(isSand(tx,ty)){
+        const h=hash(tx,ty);
+        ctx.fillStyle = `hsl(42, ${45}%, ${58+h*8}%)`;
+        ctx.fillRect(px,py,TILE+1,TILE+1);
+      } else {
+        const h=hash(tx,ty);
+        const l = 26+h*8;
+        ctx.fillStyle = `hsl(100, ${32}%, ${l}%)`;
+        ctx.fillRect(px,py,TILE+1,TILE+1);
+        if(h>0.955){
+          ctx.fillStyle = ['#e08a9a','#e8d05a','#f0f0f0'][Math.floor(h*30)%3];
+          ctx.beginPath(); ctx.arc(px+TILE*0.5, py+TILE*0.5, 2, 0, 7); ctx.fill();
+        }
+      }
+    }
+  }
+
+  // home marker
+  drawHomeMarker();
+
+  // resource nodes
+  resourceMap.forEach((node,key)=>{
+    const [tx,ty] = key.split(',').map(Number);
+    if(tx<startTx-1||tx>endTx+1||ty<startTy-1||ty>endTy+1) return;
+    drawNode(node, tx*TILE+TILE/2, ty*TILE+TILE/2);
+  });
+
+  // buildings
+  for(const b of buildings){ drawBuilding(b); }
+
+  // build ghost
+  if(buildMode){
+    const {tx,ty} = worldToTile(mouse.worldX, mouse.worldY);
+    const cx=tx*TILE+TILE/2, cy=ty*TILE+TILE/2;
+    const valid = !isWater(tx,ty) && !buildingMap.has(tileKey(tx,ty)) &&
+      (!resourceMap.get(tileKey(tx,ty)) || resourceMap.get(tileKey(tx,ty)).dead);
+    ctx.globalAlpha=0.55;
+    ctx.fillStyle = valid? '#7fe0bd' : '#e07a6a';
+    ctx.fillRect(tx*TILE, ty*TILE, TILE, TILE);
+    ctx.globalAlpha=1;
+    ctx.font='20px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(BUILD_DEFS[buildMode].icon, cx, cy-4);
+  }
+
+  // fireflies (night only)
+  if(time.isNight){
+    for(const f of fireflies){
+      const gy = Math.sin(f.t*2)*8;
+      const alpha = 0.4+0.4*Math.sin(f.t*3);
+      ctx.fillStyle = `rgba(255,240,150,${alpha})`;
+      ctx.beginPath(); ctx.arc(f.x, f.y+gy, 2, 0, 7); ctx.fill();
+    }
+  }
+
+  // enemies
+  for(const e of enemies){ drawEnemy(e); }
+
+  // player
+  drawPlayer();
+
+  // particles
+  for(const p of particles){
+    if(p.kind==='text'){
+      ctx.globalAlpha = clamp(p.life/p.maxLife,0,1);
+      ctx.font='bold 13px Consolas, monospace';
+      ctx.fillStyle = p.color;
+      ctx.textAlign='center';
+      ctx.fillText(p.text, p.x, p.y);
+      ctx.globalAlpha=1;
+    } else if(p.kind==='burst'){
+      ctx.globalAlpha = clamp(p.life/p.maxLife,0,1);
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill();
+      ctx.globalAlpha=1;
+    } else if(p.kind==='beam'){
+      ctx.globalAlpha = clamp(p.life/p.maxLife,0,1);
+      ctx.strokeStyle='#9fe0ff'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(p.x1,p.y1); ctx.lineTo(p.x2,p.y2); ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+  }
+
+  ctx.restore();
+  drawMinimap();
+}
+
+function drawHomeMarker(){
+  ctx.save();
+  ctx.translate(0,0);
+  ctx.fillStyle='rgba(224,151,47,0.18)';
+  ctx.beginPath(); ctx.arc(0,0, SPAWN_CLEAR*TILE*0.9, 0, 7); ctx.fill();
+  // campfire
+  ctx.fillStyle='#5a3a20';
+  ctx.fillRect(-14,-6,28,10);
+  const flick = 10+Math.sin(performance.now()/150)*3;
+  const grad = ctx.createRadialGradient(0,-10,2,0,-10,flick);
+  grad.addColorStop(0,'#fff2b0'); grad.addColorStop(0.5,'#ff9d3a'); grad.addColorStop(1,'rgba(255,80,20,0)');
+  ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.arc(0,-10,flick,0,7); ctx.fill();
+  ctx.restore();
+}
+
+function drawNode(node, cx, cy){
+  const def = NODE_DEFS[node.type];
+  if(node.dead && def.category!=='instant'){
+    ctx.fillStyle='rgba(120,90,60,0.45)';
+    ctx.beginPath(); ctx.arc(cx,cy+8,8,0,7); ctx.fill();
+    return;
+  }
+  ctx.save();
+  ctx.translate(cx,cy);
+  switch(node.type){
+    case 'tree':{
+      ctx.fillStyle='#3f2a18'; ctx.fillRect(-4,4,8,12);
+      ctx.fillStyle='#2c4a20';
+      ctx.beginPath(); ctx.arc(-6,-4,11,0,7); ctx.arc(6,-4,11,0,7); ctx.arc(0,-12,12,0,7); ctx.fill();
+      ctx.fillStyle='#3f6a2c';
+      ctx.beginPath(); ctx.arc(-4,-8,8,0,7); ctx.fill();
+      break;
+    }
+    case 'rock':{
+      ctx.fillStyle='#6b6b6b';
+      ctx.beginPath(); ctx.moveTo(-12,8); ctx.lineTo(-8,-8); ctx.lineTo(2,-13); ctx.lineTo(12,-4); ctx.lineTo(10,9); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#8a8a8a';
+      ctx.beginPath(); ctx.moveTo(-8,-8); ctx.lineTo(2,-13); ctx.lineTo(4,-2); ctx.lineTo(-6,2); ctx.closePath(); ctx.fill();
+      break;
+    }
+    case 'copper': case 'iron': case 'gold': case 'crystal':{
+      const cmap = {copper:'#c97a3a', iron:'#8a8f9a', gold:'#e8c14b', crystal:'#9a6ff0'};
+      ctx.fillStyle='#5f5f5f';
+      ctx.beginPath(); ctx.moveTo(-12,8); ctx.lineTo(-8,-7); ctx.lineTo(3,-12); ctx.lineTo(12,-3); ctx.lineTo(10,9); ctx.closePath(); ctx.fill();
+      const glow = node.type==='crystal' ? 0.5+0.4*Math.sin(performance.now()/300) : 1;
+      ctx.fillStyle=cmap[node.type];
+      ctx.globalAlpha = node.type==='crystal'? glow : 1;
+      ctx.beginPath(); ctx.arc(-3,-2,3.4,0,7); ctx.arc(4,2,3,0,7); ctx.arc(1,-6,2.6,0,7); ctx.fill();
+      ctx.globalAlpha=1;
+      break;
+    }
+    case 'bush':{
+      ctx.fillStyle='#2f5c2a';
+      ctx.beginPath(); ctx.arc(0,2,10,0,7); ctx.fill();
+      ctx.fillStyle='#c1443a';
+      for(const [ox,oy] of [[-4,0],[3,-2],[1,4],[-2,5]]){ ctx.beginPath(); ctx.arc(ox,oy,1.7,0,7); ctx.fill(); }
+      break;
+    }
+    case 'fiberp':{
+      ctx.strokeStyle='#5c9c3f'; ctx.lineWidth=2;
+      for(const ox of [-6,-2,2,6]){
+        ctx.beginPath(); ctx.moveTo(ox,8); ctx.quadraticCurveTo(ox+3,-2, ox+ (ox<0?-3:3), -10); ctx.stroke();
+      }
+      break;
+    }
+  }
+  ctx.restore();
+
+  if(def.category!=='instant' && node.hp<node.maxHp){
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.fillRect(cx-12,cy-24,24,4);
+    ctx.fillStyle='#e08a3a';
+    ctx.fillRect(cx-12,cy-24,24*clamp(node.hp/node.maxHp,0,1),4);
+  }
+}
+
+function drawBuilding(b){
+  const def = BUILD_DEFS[b.type];
+  ctx.save();
+  ctx.translate(b.x,b.y);
+  ctx.fillStyle='rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(0,12,16,6,0,0,7); ctx.fill();
+  ctx.fillStyle='#5a4229';
+  ctx.fillRect(-15,-10,30,22);
+  ctx.fillStyle='#7a5c3a';
+  ctx.fillRect(-15,-16,30,8);
+  ctx.font='18px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(def.icon, 0,-2);
+  if(b.type==='turret'){
+    ctx.strokeStyle='rgba(159,224,255,0.15)';
+    ctx.beginPath(); ctx.arc(0,0,BUILD_DEFS.turret.range,0,7); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawEnemy(e){
+  ctx.save();
+  ctx.translate(e.x,e.y);
+  const bob = e.type==='wraith'? Math.sin(performance.now()/300)*3 : (Math.sin(performance.now()/120)* (player.moving?0:0));
+  ctx.translate(0, bob);
+  const flashCol = e.hitFlash>0 ? '#ffffff' : e.def.color;
+  ctx.fillStyle='rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(0, e.def.r*0.8, e.def.r*0.9, e.def.r*0.35, 0,0,7); ctx.fill();
+
+  if(e.type==='slime'){
+    const squash = 1+Math.sin(performance.now()/150)*0.08;
+    ctx.fillStyle=flashCol;
+    ctx.beginPath(); ctx.ellipse(0,0,e.def.r*squash, e.def.r/squash, 0,0,7); ctx.fill();
+    ctx.fillStyle=e.def.dark;
+    ctx.beginPath(); ctx.arc(-4,-2,1.6,0,7); ctx.arc(4,-2,1.6,0,7); ctx.fill();
+  } else if(e.type==='spider'){
+    ctx.strokeStyle=e.def.dark; ctx.lineWidth=1.6;
+    for(const a of [-1,-0.5,0.5,1]){
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*16, Math.sin(a)*6+8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-Math.cos(a)*16, Math.sin(a)*6+8); ctx.stroke();
+    }
+    ctx.fillStyle=flashCol;
+    ctx.beginPath(); ctx.arc(0,0,e.def.r,0,7); ctx.fill();
+    ctx.fillStyle='#ff5a5a';
+    ctx.beginPath(); ctx.arc(-3,-2,1.3,0,7); ctx.arc(3,-2,1.3,0,7); ctx.fill();
+  } else if(e.type==='wraith'){
+    ctx.globalAlpha=0.85;
+    ctx.fillStyle=flashCol;
+    ctx.beginPath();
+    ctx.moveTo(0,-e.def.r);
+    ctx.quadraticCurveTo(e.def.r,-2, e.def.r*0.7, e.def.r);
+    ctx.quadraticCurveTo(0, e.def.r-4, -e.def.r*0.7, e.def.r);
+    ctx.quadraticCurveTo(-e.def.r,-2, 0,-e.def.r);
+    ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#1a2a5a';
+    ctx.beginPath(); ctx.arc(-3,-2,1.6,0,7); ctx.arc(3,-2,1.6,0,7); ctx.fill();
+  } else if(e.type==='golem'){
+    ctx.fillStyle=flashCol;
+    ctx.fillRect(-e.def.r,-e.def.r*0.6, e.def.r*2, e.def.r*1.6);
+    ctx.fillStyle=e.def.dark;
+    ctx.fillRect(-e.def.r,-e.def.r*0.6, e.def.r*2, 6);
+    ctx.fillStyle='#ffd98a';
+    ctx.beginPath(); ctx.arc(-6,-e.def.r*0.2,2.2,0,7); ctx.arc(6,-e.def.r*0.2,2.2,0,7); ctx.fill();
+  }
+  ctx.restore();
+
+  if(e.hp<e.maxHp){
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.fillRect(e.x-16, e.y-e.def.r-14, 32,4);
+    ctx.fillStyle='#c1443a';
+    ctx.fillRect(e.x-16, e.y-e.def.r-14, 32*clamp(e.hp/e.maxHp,0,1),4);
+  }
+}
+
+function drawPlayer(){
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  const bob = player.moving ? Math.sin(player.animT)*2.5 : 0;
+  ctx.fillStyle='rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(0,player.r*0.8,player.r*0.9,player.r*0.35,0,0,7); ctx.fill();
+
+  ctx.translate(0,bob);
+  if(player.invuln>0 && Math.floor(performance.now()/100)%2===0){ ctx.globalAlpha=0.5; }
+
+  // legs
+  ctx.fillStyle='#3a2a1a';
+  ctx.fillRect(-7,6,5,7); ctx.fillRect(2,6,5,7);
+  // body
+  ctx.fillStyle='#3fae8a';
+  ctx.beginPath(); ctx.arc(0,0,player.r,0,7); ctx.fill();
+  ctx.fillStyle='#2f8a6c';
+  ctx.beginPath(); ctx.arc(0,3,player.r*0.9,0,3.14); ctx.fill();
+  // face direction indicator
+  let fx=0,fy=1;
+  if(player.dir==='up'){fx=0;fy=-1;} else if(player.dir==='down'){fx=0;fy=1;}
+  else if(player.dir==='left'){fx=-1;fy=0;} else {fx=1;fy=0;}
+  ctx.fillStyle='#1c2a20';
+  ctx.beginPath(); ctx.arc(fx*5, fy*5-2, 2.2,0,7); ctx.fill();
+
+  // swing animation
+  if(player.swingT>0){
+    ctx.save();
+    let ang = 0;
+    if(player.swingDir==='right') ang=0;
+    else if(player.swingDir==='left') ang=Math.PI;
+    else if(player.swingDir==='up') ang=-Math.PI/2;
+    else ang=Math.PI/2;
+    ctx.rotate(ang);
+    const t = 1-(player.swingT/0.18);
+    ctx.rotate((t-0.5)*1.4);
+    ctx.strokeStyle='rgba(255,255,255,0.75)';
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(0,0, player.r+16, -0.6,0.6); ctx.stroke();
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+function drawMinimap(){
+  mmCtx.clearRect(0,0,200,200);
+  mmCtx.fillStyle='#183a4a';
+  mmCtx.beginPath(); mmCtx.arc(100,100,100,0,7); mmCtx.fill();
+  const scale = 100/(WORLD_R*TILE);
+  mmCtx.save();
+  mmCtx.beginPath(); mmCtx.arc(100,100,100,0,7); mmCtx.clip();
+  mmCtx.fillStyle='#2f5c33';
+  mmCtx.beginPath(); mmCtx.arc(100+((-player.x)*scale)+ (player.x*scale), 100, (WORLD_R-3)*TILE*scale, 0,7);
+  mmCtx.arc(100 - player.x*scale + player.x*scale,100,(WORLD_R-3)*TILE*scale,0,7);
+  mmCtx.fill();
+  // simpler: draw island centered on world origin relative to player
+  mmCtx.fillStyle='#2f5c33';
+  mmCtx.beginPath();
+  mmCtx.arc(100 - player.x*scale, 100 - player.y*scale, (WORLD_R-3)*TILE*scale, 0, 7);
+  mmCtx.fill();
+  for(const b of buildings){
+    const mx = 100 + (b.x-player.x)*scale, my = 100 + (b.y-player.y)*scale;
+    if(mx<0||mx>200||my<0||my>200) continue;
+    mmCtx.fillStyle='#e0972f';
+    mmCtx.fillRect(mx-2,my-2,4,4);
+  }
+  for(const e of enemies){
+    const mx = 100 + (e.x-player.x)*scale, my = 100 + (e.y-player.y)*scale;
+    if(mx<0||mx>200||my<0||my>200) continue;
+    mmCtx.fillStyle='#e05a4a';
+    mmCtx.beginPath(); mmCtx.arc(mx,my,2,0,7); mmCtx.fill();
+  }
+  mmCtx.fillStyle='#3fae8a';
+  mmCtx.beginPath(); mmCtx.arc(100,100,3.5,0,7); mmCtx.fill();
+  mmCtx.strokeStyle='#fff'; mmCtx.lineWidth=1;
+  mmCtx.beginPath(); mmCtx.arc(100,100,3.5,0,7); mmCtx.stroke();
+  mmCtx.restore();
+}
+
+/* ============================== MAIN LOOP ============================== */
+function loop(ts){
+  requestAnimationFrame(loop);
+  if(!gameStarted) return;
+  const dt = Math.min((ts-last)/1000 || 0, 0.05);
+  last = ts;
+
+  if(camera.shakeTime>0) camera.shakeTime-=dt; else camera.shakeMag=Math.max(0,camera.shakeMag-dt*20);
+
+  updateTime(dt);
+  updatePlayer(dt);
+  camera.x = player.x; camera.y = player.y;
+  updateResourceRespawns();
+  updateBuildings(dt);
+  ensureFireflies();
+  updateFireflies(dt);
+
+  spawnTimer -= dt;
+  const spawnInterval = time.isNight ? 0.9 : 1.4;
+  if(spawnTimer<=0){ spawnEnemy(); spawnTimer=spawnInterval; }
+  updateEnemies(dt);
+  updateParticles(dt);
+
+  lastUISync += dt;
+  if(lastUISync>0.12){ syncHUD(); lastUISync=0; if(activeTab) {/* keep panel values fresh lightly */} }
+
+  draw();
+}
+
+/* ============================== SETUP ============================== */
+function resize(){
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+}
+
+function init(){
+  canvas = document.getElementById('game');
+  ctx = canvas.getContext('2d');
+  mmCanvas = document.getElementById('minimap');
+  mmCtx = mmCanvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+
+  generateWorld();
+  setupInput();
+  recomputeStats();
+
+  document.querySelectorAll('.tabBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>toggleTab(btn.dataset.tab));
+  });
+  document.getElementById('panelClose').addEventListener('click', closePanel);
+  document.getElementById('helpBtn').addEventListener('click', ()=>document.getElementById('helpModal').classList.add('show'));
+  document.getElementById('helpClose').addEventListener('click', ()=>document.getElementById('helpModal').classList.remove('show'));
+  document.getElementById('respawnBtn').addEventListener('click', respawnPlayer);
+
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    document.getElementById('startScreen').style.display='none';
+    document.getElementById('minimapWrap').classList.add('show');
+    gameStarted=true;
+    last=performance.now();
+    toast('Welcome to Tidewood Isle. Gather wood and stone to begin!');
+  });
+
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

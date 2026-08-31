@@ -1,0 +1,245 @@
+{
+  "courses": [
+    {
+      "slug": "javascript-essentials",
+      "title": "JavaScript Essentials",
+      "description": "Variables, functions, loops, closures, async, and modules — the core of modern JavaScript, learned by typing real, idiomatic code instead of watching someone else write it. Each lesson is a short snippet you have to reproduce, which means you leave with the syntax in your fingers, not just your notes.",
+      "tagline": "From variables to async — type the modern JS you write every day.",
+      "category": "language",
+      "icon": "js",
+      "estimated_minutes": 45,
+      "featured": 1,
+      "lessons": [
+        {
+          "title": "Variables & Scope",
+          "explanation": "## What is a variable?\n\nA variable is a named box for a value. In JavaScript you declare one with `let` or `const`, and the name you choose should tell the reader what the box holds — `count`, `userName`, `isActive` — not `x` or `data`.\n\n## const vs let\n\n`const` and `let` are both block-scoped: they exist only inside the nearest `{ }` block — a function body, an `if` block, or a loop. The older `var` ignores block boundaries and attaches itself to the whole function, which is a classic source of bugs you never see coming.\n\n- `const` means the binding may never be reassigned. Prefer it for everything by default.\n- `let` is for values that genuinely change over time (counters, accumulators, state).\n- `var` is function-scoped, pre-ES6, and rarely the right tool today.\n\n## What the snippet does\n\n`name` is a constant: nothing in this program ever replaces it. `count` is a `let` because `count += 1` needs to reassign it. Inside the function, `local` is a fresh constant that only the function can see — code outside can never read it, so it cannot accidentally collide with other names at the top level. That is the whole point of scope: it keeps unrelated parts of a program from stepping on each other.\n\nKey takeaways:\n- Use `const` unless the value must be reassigned\n- `let` and `const` respect block scope\n- Named variables are documentation\n- Keep scope as small as you can",
+          "snippet_language": "javascript",
+          "snippet_code": "const name = 'Ada';\nlet count = 0;\ncount += 1;\n\nfunction scoped() {\n  const local = 'hidden';\n  return local;\n}",
+          "min_accuracy": 95,
+          "xp_reward": 10
+        },
+        {
+          "title": "Functions",
+          "explanation": "## Why functions?\n\nFunctions package behavior so you can reuse it, name it, and reason about it. Every function has three parts: a name, a parameter list, and a body that produces a `return` value.\n\n## Arrow functions vs classic functions\n\nThe arrow function `(name = 'friend') => { ... }` is the modern workhorse. Its key property: it captures `this` from the surrounding scope, so inside a callback you keep the `this` you expect. Classic `function` declarations bind their own `this` based on how they are called, which is what you want for object methods and constructor functions.\n\nDefault parameters — `name = 'friend'` — kick in only when the argument is `undefined`, so `greet()` and `greet('Grace')` both work. That removes a whole class of 'undefined crashes'.\n\n## What the snippet shows\n\nBoth a default parameter and the differences in syntax are on display: arrows for short inline callbacks, classic functions for named reusable logic with `return`. Notice everything returns a value — functions that just read are easier to test and compose than functions that print.\n\nKey takeaways:\n- A function is a reusable, named unit of behavior\n- Arrows keep the surrounding `this`; classic functions bind their own\n- Default parameters make calls shorter and safer\n- Prefer returning values over side effects",
+          "snippet_language": "javascript",
+          "snippet_code": "const greet = (name = 'friend') => {\n  return `Hello, ${name}!`;\n};\n\nfunction add(a, b) {\n  return a + b;\n}",
+          "min_accuracy": 95,
+          "xp_reward": 10
+        },
+        {
+          "title": "Loops",
+          "explanation": "## Repetition without the off-by-one\n\nThe classic `for` loop needs three moving parts you can get wrong: an index, a condition, and an update. `for...of` removes two of them — it walks the values of anything iterable (arrays, strings, Sets, Maps) directly.\n\n- `for (const score of scores)` — read each value, no index math\n- `scores.forEach(callback)` — call a function once per element\n- `for (key in object)` — property names, rarely what you want\n\n## Accumulation pattern\n\n`let total = 0` before the loop, then `total += score` inside, is the single most common data pattern in programming. It builds one output value from many inputs. It is also exactly what `reduce` formalizes, which you will meet in the array-methods lesson.\n\nOne difference worth remembering: `forEach` cannot `break` or `return` early. If you need to stop mid-iteration, use `for...of`.\n\nKey takeaways:\n- `for...of` reads values of any iterable safely\n- `forEach` is concise but has no early exit\n- Accumulate state before the loop, update it inside\n- Prefer iterating over values, not indexes",
+          "snippet_language": "javascript",
+          "snippet_code": "const scores = [10, 20, 30];\nlet total = 0;\n\nfor (const score of scores) {\n  total += score;\n}\n\nscores.forEach((s) => console.log(s));",
+          "min_accuracy": 95,
+          "xp_reward": 12
+        },
+{
+          "title": "Array Methods",
+          "explanation": "## Thinking in transformations\n\n`map`, `filter`, and `reduce` replace most hand-written loops. Each returns a brand new array and never mutates the source — that purity is what makes pipelines safe to reason about.\n\n- `map(transform)` — apply a function to every element; length is preserved\n- `filter(predicate)` — keep only the elements where the test returns truthy; length can shrink\n- `reduce(combine, start)` — fold the whole array into a single accumulated value\n\n## Reading the snippet\n\n`nums.map((n) => n * 2)` reads as 'doubled'. `nums.filter((n) => n % 2 === 0)` reads as 'evens'. The reduce receives two arguments per step: the running total and the current number, starting from `0`. Chaining these — `arr.map(...).filter(...)` — reads like a pipeline instead of nested loops, and each stage stays independently testable.\n\nKey takeaways:\n- `map` transforms every element one-to-one\n- `filter` selects a subset\n- `reduce` folds to one accumulated value\n- Prefer chaining over nested loops for clarity",
+          "snippet_language": "javascript",
+          "snippet_code": "const nums = [1, 2, 3, 4, 5];\n\nconst doubled = nums.map((n) => n * 2);\nconst evens = nums.filter((n) => n % 2 === 0);\nconst sum = nums.reduce((acc, n) => acc + n, 0);",
+          "min_accuracy": 94,
+          "xp_reward": 14
+        },
+        {
+          "title": "Objects & Destructuring",
+          "explanation": "## Grouping data under names\n\nObjects map keys to values and are the backbone of real JavaScript data: a user, a config, an API response. Property names are strings; values can be anything, including functions and other objects.\n\n## Destructuring\n\nDestructuring unpacks an object into local variables in one line: `const { id, name } = user` reads the keys `id` and `name` off the object and binds them. Used in a function parameter, `{ name, role }` means 'I expect an object and only care about these two fields' — the function documents its own contract.\n\nThis pattern appears constantly in real code, especially when consuming API responses and React props.\n\nKey takeaways:\n- Objects group related data under named keys\n- Destructuring extracts exactly the fields you need\n- Parameter destructuring documents what a function expects\n- Use it to keep function signatures tidy",
+          "snippet_language": "javascript",
+          "snippet_code": "const user = { id: 7, name: 'Grace', role: 'admin' };\n\nconst { id, name } = user;\n\nfunction describe({ name, role }) {\n  return `${name} is a ${role}`;\n}",
+          "min_accuracy": 94,
+          "xp_reward": 12
+        },
+        {
+          "title": "Template Literals & Strings",
+          "explanation": "## Strings that interpolate\n\nBackticks create template literals, which interpolate any expression with `${...}` and can span multiple lines. Building `'Hello ' + name + '!'` goes away — you write `Hello ${name}!`, which reads exactly like what it produces.\n\n## Everyday string methods\n\n- `split(sep)` — cut into an array on a separator\n- `includes(sub)` — does this substring exist?\n- `trim()` — remove whitespace from both ends\n- `toLowerCase()` / `toUpperCase()` — normalize case for comparison\n\n## What the snippet does\n\n`Weekly ${title}` becomes the string `Weekly report`. `'a,b,c'.split(',')` becomes `['a', 'b', 'c']`, and `'  padded  '.trim()` becomes `'padded'`. Form inputs and file data almost always need this kind of cleanup, so these three methods will be your daily tools.\n\nKey takeaways:\n- Template literals interpolate and span lines\n- Split, trim, and includes cover most formatting chores\n- Normalize case before comparing user input",
+          "snippet_language": "javascript",
+          "snippet_code": "const title = 'report';\nconst heading = `Weekly ${title}`;\n\nconst words = 'a,b,c'.split(',');\nconst clean = '  padded  '.trim();",
+          "min_accuracy": 94,
+          "xp_reward": 14
+        },
+{
+          "title": "Closures",
+          "explanation": "## A function that remembers\n\nA closure is a function that keeps access to the variables from the scope where it was defined — even after that scope has finished running. That is the secret behind counters, private state, and most of functional JavaScript.\n\nIn the snippet, `makeCounter` runs once, creating `let count = 0`. It returns an arrow function that closes over `count`. Every call to `counter()` reads and increments the *same* `count` — even though `makeCounter` has long since returned. No other code can reach that variable: it is genuinely private.\n\nReal-world uses:\n- Module pattern for private state\n- Memoization and caching\n- Partial application and factory functions\n\nKey takeaways:\n- A closure captures the surrounding scope, permanently\n- It powers private state and counters\n- Each call to a factory gets its own fresh closure",
+          "snippet_language": "javascript",
+          "snippet_code": "function makeCounter() {\n  let count = 0;\n  return () => ++count;\n}\n\nconst counter = makeCounter();\ncounter();\ncounter();",
+          "min_accuracy": 94,
+          "xp_reward": 16
+        },
+        {
+          "title": "Async / Await",
+          "explanation": "## Work that finishes later\n\nJavaScript runs on a single thread, so slow work — HTTP requests, file reads, timers — must not block everything else. Promises represent work that is still in progress and will settle later.\n\n## async/await is sugar on top\n\nAn `async` function always returns a promise, and `await` pauses that function until the awaited promise settles. The result is straight-line code that reads like synchronous logic, instead of nested `.then` chains.\n\nAlways check the response: `fetch` only rejects on network failure, not on an HTTP error like 404. The snippet calls `res.ok` explicitly and throws otherwise — throw is the correct failure path, so a `try/catch` around the call site can handle it.\n\nKey takeaways:\n- `await` only works inside `async` functions\n- An `async` function always returns a promise\n- Check `res.ok` — fetch does not throw on HTTP errors\n- Pair awaited calls with `try/catch` for real error handling",
+          "snippet_language": "javascript",
+          "snippet_code": "async function loadUser(id) {\n  const res = await fetch(`/api/users/${id}`);\n  if (!res.ok) throw new Error('request failed');\n  return res.json();\n}",
+          "min_accuracy": 93,
+          "xp_reward": 18
+        },
+        {
+          "title": "Error Handling",
+          "explanation": "## Making failures explicit\n\n`throw` raises an error and unwinds the call stack until something catches it. `try/catch/finally` intercedes: the body runs, and if it throws, the `catch` block handles it. `finally` runs whether or not an error happened — the correct place for cleanup like closing a connection or clearing a timer.\n\n## What the snippet demonstrates\n\n`risky` validates its input and throws a `TypeError` when the contract is broken. The caller wraps it in `try/catch`, reads `err.message`, and `finally` always runs `cleanup()`, guaranteeing the resource is released even on the failure path.\n\nTyped errors matter: checking `err instanceof TypeError` lets one handler deal with different failure modes. And never throw bare strings — always throw an `Error` so the stack trace is preserved.\n\nKey takeaways:\n- `throw` raises, `try/catch` handles\n- `finally` always runs — use it for cleanup\n- Throw `Error` instances, not plain strings\n- Fail fast and early at the edges of your functions",
+          "snippet_language": "javascript",
+          "snippet_code": "function risky(input) {\n  if (typeof input !== 'number') {\n    throw new TypeError('expected a number');\n  }\n  return input * 2;\n}\n\ntry {\n  risky('oops');\n} catch (err) {\n  console.error(err.message);\n} finally {\n  cleanup();\n}",
+          "min_accuracy": 93,
+          "xp_reward": 18
+        },
+        {
+          "title": "Modules & Imports",
+          "explanation": "## Code that declares its dependencies\n\nES modules split a program into files that explicitly say what they import from and export to. That single decision — an explicit `import` statement — makes the dependency graph of a program visible instead of hidden in global variables.\n\n- `export` names what leaves this file\n- `import` names what this file needs\n- Named exports (`{ formatDate }`) are the default choice; use `export default` sparingly\n\nNode.js uses `node:fs` for built-in filesystem access, while `./utils.js` is a relative path to your own code. The prefix and the dot tell you where each dependency lives at a glance.\n\nNothing runs until something imports it: `saveLog` is available to any importer, and this file has no side effects on its own — the cleanest possible shape for a module.\n\nKey takeaways:\n- `import`/`export` make dependencies explicit\n- Relative paths (`./`) point at your own files\n- Node built-ins use the `node:` prefix\n- Module side-effects only run when imported",
+          "snippet_language": "javascript",
+          "snippet_code": "import { formatDate } from './utils.js';\nimport fs from 'node:fs';\n\nexport function saveLog(entry) {\n  const line = formatDate(new Date()) + ': ' + entry;\n  fs.appendFileSync('log.txt', line + '\\n');\n}",
+          "min_accuracy": 92,
+          "xp_reward": 20
+},
+        {
+          "title": "Truthiness & Equality",
+          "explanation": "## Six values are falsy\n\nJavaScript converts any value to a boolean whenever it appears in a condition. Exactly six values convert to `false`: `false`, `0`, `''`, `null`, `undefined`, and `NaN`. Everything else — including empty arrays `[]` and empty objects `{}` — is truthy.\n\n## The `||` default-value idiom\n\n`value || 100` evaluates to `value` if `value` is truthy, otherwise to `100`. That is the standard way to give a value a fallback. (For genuinely nullish-only defaults, `??` is the modern choice.)\n\n## `==` vs `===`\n\n`==` coerces types before comparing, so `5 == '5'` is `true`. `===` compares value and type, so `5 === '5'` is `false`. Real codebases default to `===` and `!==` everywhere because implicit coercion hides bugs.\n\nThe snippet guards with `if (value)`, which triggers the truthy path because `7` is truthy.\n\nKey takeaways:\n- Falsy means: false, 0, '', null, undefined, NaN\n- `||` returns the first truthy operand\n- `===` compares value and type; `==` coerces — avoid it\n- Guard inputs with truthiness checks",
+          "snippet_language": "javascript",
+          "snippet_code": "const value = 7;\nconst fallback = value || 100;\nconst strict = 5 === '5';\nconst loose = 5 == '5';\n\nif (value) {\n  console.log('truthy path');\n}",
+          "min_accuracy": 94,
+          "xp_reward": 12
+        },
+        {
+          "title": "Spread & Rest",
+          "explanation": "## Spreading into pieces\n\nThe spread operator `...` unpacks an iterable into individual elements. `const copy = [...arr]` clones an array, `{ ...obj }` clones an object, and `fn(...args)` forwards an array as positional arguments.\n\nSpreading creates shallow copies, which is usually exactly what you want when you want to treat data as immutable. In a function signature, the rest form `(...args)` gathers any number of arguments into a real array.\n\n## Why this matters\n\nJavaScript encourages treating data as immutable: you copy, then change the copy, instead of mutating shared state. Spread makes that one-liner. `greet(...names)` in the snippet is how you call a function with a variable-length list.\n\nKey takeaways:\n- `...arr` in a literal clones a collection\n- `...rest` in a signature gathers remaining arguments\n- Copy-then-change beats in-place mutation\n- Use it to merge configs and arrays safely",
+          "snippet_language": "javascript",
+          "snippet_code": "const base = [1, 2];\nconst combined = [...base, 3, 4];\n\nconst config = { theme: 'dark', sound: true };\nconst copy = { ...config, sound: false };\n\nfunction greet(...names) {\n  return names.map((n) => `Hi ${n}`);\n}",
+          "min_accuracy": 94,
+          "xp_reward": 14
+        },
+        {
+          "title": "DOM & Events",
+          "explanation": "## Interacting with the page\n\nThe Document Object Model is the bridge between JavaScript and the page. `document.querySelector` finds one element; `querySelectorAll` returns all matches. `textContent` reads or sets displayed text, and `classList` toggles classes for state changes.\n\n## Events drive interactivity\n\nAlmost everything a user does — clicking, typing, submitting — fires an event. `addEventListener` registers a handler, and the handler receives an event object you can inspect and `preventDefault()`.\n\nThe snippet wires a real button: on every click it increments a counter and updates the page. Delegation — attaching one listener to a container instead of many to children — is the scalable version of this pattern.\n\nKey takeaways:\n- `querySelector` returns one element; `querySelectorAll` a list\n- Events arrive via `addEventListener`, never inline `onclick`\n- `event.preventDefault()` stops default behavior\n- Update the DOM with `textContent` or `classList`",
+          "snippet_language": "javascript",
+          "snippet_code": "const button = document.querySelector('#vote');\nconst countEl = document.querySelector('#count');\n\nbutton.addEventListener('click', (event) => {\n  event.preventDefault();\n  const n = Number(countEl.textContent);\n  countEl.textContent = String(n + 1);\n});",
+          "min_accuracy": 93,
+          "xp_reward": 16
+        },
+        {
+          "title": "Promises & fetch",
+          "explanation": "## Chaining without nesting\n\n`fetch` is the browser's built-in HTTP client and it returns a promise. Instead of `await` (from the async lesson), you can chain `.then()` for success and `.catch()` for rejection — this is the style you will meet in older codebases and libraries.\n\nEach `.then` receives the previous step's return value, so `res.json()` hands the parsed body to the next step. Throwing inside a `.then` skips straight to `.catch`, which is how validation errors flow down the chain.\n\nThe snippet also shows the parallelism you get from `Promise.all`: `user` and `posts` requests start at the same time instead of waiting for each other.\n\nKey takeaways:\n- `fetch` returns a promise; `.then` handles success\n- `.catch` receives anything thrown in the chain\n- `Promise.all` runs requests concurrently\n- `await` and `.then` are equivalent styles — pick one per codebase",
+          "snippet_language": "javascript",
+          "snippet_code": "const userPromise = fetch('/api/user').then((res) => res.json());\nconst postsPromise = fetch('/api/posts').then((res) => res.json());\n\nPromise.all([userPromise, postsPromise])\n  .then(([user, posts]) => {\n    console.log(user.name, posts.length);\n  })\n  .catch((err) => console.error(err));",
+          "min_accuracy": 93,
+          "xp_reward": 18
+        },
+        {
+          "title": "Higher-Order Functions",
+          "explanation": "## Functions that take functions\n\nA higher-order function is one that accepts a function as an argument, returns one, or both. You have already used dozens of them — `map`, `filter`, `sort`, event listeners, `setTimeout`.\n\n`makeMultiplier` is a factory: it captures a factor in a closure and returns a function that multiplies by that factor. `double` and `triple` share no state, yet each remembers its own factor forever. That is composition in action — small, pure, combinable pieces instead of huge monolithic functions.\n\nIn the snippet `numbers.map(double)` passes `double` itself as the argument. Notice it is `double`, not `double()` — we hand over the function, not a call to it. That distinction is the whole trick behind callbacks.\n\nKey takeaways:\n- Higher-order functions accept or return functions\n- Factories create specialized functions via closures\n- Pass the function reference, not an invocation\n- Compose small functions into readable pipelines",
+          "snippet_language": "javascript",
+          "snippet_code": "function makeMultiplier(factor) {\n  return (value) => value * factor;\n}\n\nconst double = makeMultiplier(2);\nconst triple = makeMultiplier(3);\n\nconst numbers = [1, 2, 3, 4];\nconst doubled = numbers.map(double);",
+          "min_accuracy": 93,
+          "xp_reward": 18
+        }
+      ]
+    },
+    {
+      "slug": "python-for-beginners",
+      "title": "Python for Beginners",
+      "description": "Lists, dicts, comprehensions, context managers, and clean error handling — typed as real Python, not toy fragments. You practice the exact shapes you will actually write: f-strings, `with` blocks, and list comprehensions that read like a sentence.",
+      "tagline": "From types to OOP — type idiomatic Python, not toy fragments.",
+      "category": "language",
+      "icon": "py",
+      "estimated_minutes": 45,
+      "featured": 1,
+      "lessons": [
+        {
+          "title": "Variables & Types",
+          "explanation": "## Variables are just names\n\nIn Python a variable is a name that points at a value. Unlike `const`/`let` in JavaScript, Python variables are untyped — the same name can hold an int, a string, or a list — and you never declare a type. That is a feature, but it is why your names matter so much.\n\n## Common built-in types\n\n- `int` — whole numbers like `10`\n- `float` — decimals like `3.14`\n- `str` — text like `'hello'`\n- `bool` — `True` / `False`\n\nPython values are objects, so even simple values carry methods: `'ada'.upper()` returns `'ADA'`. The `type()` built-in tells you what any value is, which is invaluable while debugging.\n\n## What the snippet shows\n\n`name` is a string and `age` an integer; `is_active` is a boolean. Python uses `snake_case` for variable names by convention (lowercase with underscores). The beauty is how readable it is: `is_active = True` reads exactly the way you would say it out loud.\n\nKey takeaways:\n- Variables are untyped names pointing at objects\n- Use `snake_case` for variable names\n- `type()` reveals the type of any value\n- `True` and `False` must be capitalized",
+          "snippet_language": "python",
+          "snippet_code": "name = 'Ada'\nage = 36\nis_active = True\n\nprint(name, age, is_active)",
+          "min_accuracy": 95,
+          "xp_reward": 10
+        },
+        {
+          "title": "Conditionals",
+          "explanation": "## Decisions with if / elif / else\n\n`if`, `elif`, and `else` control which block of indented code runs. Python has no braces or `end` — the indentation itself is the syntax. That is why consistent indentation is non-negotiable: get it wrong and the program either errors or silently means something else.\n\n## Comparison operators\n\n- `==` equals, `!=` not equal\n- `<`, `>`, `<=`, `>=` ordering\n- `and`, `or`, `not` for combining conditions\n\nUnlike JavaScript, there is no `===`: Python's `==` compares values and it 'just works' for the types you expect. `and` / `or` are plain English words rather than symbols.\n\nThe snippet uses `elif` for the middle branch — short for 'else if' — and the final `else` catches everything remaining.\n\nKey takeaways:\n- Indentation defines code blocks, not braces\n- `elif` chains more than two branches\n- `==` compares values, `=` assigns\n- Use `and`/`or`/`not` as plain words",
+          "snippet_language": "python",
+          "snippet_code": "score = 85\n\nif score >= 90:\n    grade = 'A'\nelif score >= 80:\n    grade = 'B'\nelse:\n    grade = 'C'\n\nprint(grade)",
+          "min_accuracy": 95,
+          "xp_reward": 10
+        },
+        {
+          "title": "Loops & range",
+          "explanation": "## Repeating with for and while\n\n`for` loops in Python iterate over anything iterable — lists, strings, ranges, dicts. Python's philosophy is to iterate over the values directly rather than index variables, which is both clearer and less error-prone.\n\n`range(n)` produces `0` through `n - 1`. It is a lazy sequence, perfect for looping a fixed number of times. `for fruit in fruits` reads as spoken English: 'for each fruit in fruits'.\n\n- `for value in collection` — iterate values directly\n- `range(5)` — numbers `0..4`\n- `range(2, 8, 2)` — start, stop, step\n\nThe snippet shows two styles: counting with `range`, and walking a list. Adding to `total` inside the loop is the accumulation pattern, identical to what you saw in JavaScript but with cleaner syntax.\n\nKey takeaways:\n- Prefer `for item in collection` over index math\n- `range` generates number sequences lazily\n- `break` exits early; `continue` skips ahead\n- Accumulate state before the loop, update inside",
+          "snippet_language": "python",
+          "snippet_code": "total = 0\nfor i in range(5):\n    total += i\n\nfruits = ['apple', 'banana', 'cherry']\nfor fruit in fruits:\n    print(fruit)",
+          "min_accuracy": 95,
+          "xp_reward": 12
+        },
+        {
+          "title": "Lists & Tuples",
+          "explanation": "## Ordered collections\n\nLists are ordered, mutable collections — you can append, remove, and change elements. Tuples are ordered and immutable, which makes them the right choice for fixed data like coordinates or (x, y) pairs that must not change.\n\n- `list.append(item)` — add to the end\n- `list[0]` — indexed from zero\n- `len(list)` — how many items\n- `tuple` is declared with parentheses\n\nBecause tuples cannot change, they can be used as dictionary keys and returned from functions where you want an unchanging bundle of values. Lists are everywhere in practical Python — reading files, building results, shuffling data.\n\nThe snippet builds a list dynamically with `append`, reads it by index, and fixes a tuple in place. Notice `len()` is a built-in function, not a method — a common Python detail.\n\nKey takeaways:\n- Lists are mutable; tuples are immutable\n- `append` grows a list in place\n- `len()` works on lists, tuples, strings, and more\n- Use tuples for fixed, unchanging bundles",
+          "snippet_language": "python",
+          "snippet_code": "colors = ['red', 'green']\ncolors.append('blue')\n\npoint = (3, 4)\n\nprint(colors[0], len(colors))\nprint(point)",
+          "min_accuracy": 94,
+          "xp_reward": 12
+        }
+,
+        {
+          "title": "Dictionaries",
+          "explanation": "## Key-value lookup\n\nDictionaries map keys to values, like a real-world index. They give near-instant lookup by key, which is why they show up everywhere: config, counts, API responses, and memoization.\n\n- `d[key]` reads (and throws if missing)\n- `d.get(key, default)` reads safely\n- `d.keys()` / `d.values()` / `d.items()` iterate\n- `d[key] = value` sets or adds\n\n## What the snippet does\n\n`user['name']` reads the value, `user['email'] = ...` adds a new key, and `for key, value in user.items()` walks both together — the idiomatic way to inspect a dict.\n\n`get()` is the safer read: it returns the default instead of raising when a key is absent, which removes a whole class of KeyError crashes.\n\nKey takeaways:\n- Dicts are fast key-value lookups\n- Use `.get()` for reads that may miss\n- `.items()` yields key/value pairs\n- Keys must be immutable (strings, numbers, tuples)",
+          "snippet_language": "python",
+          "snippet_code": "user = {'name': 'Ada', 'role': 'admin'}\n\nprint(user['name'])\nuser['email'] = 'ada@example.com'\n\nfor key, value in user.items():\n    print(key, value)",
+          "min_accuracy": 95,
+          "xp_reward": 14
+        },
+        {
+          "title": "Sets & Membership",
+          "explanation": "## Uniqueness in one type\n\nA set is an unordered collection with no duplicates. It is mathematically a set — membership, union, intersection are all built in — and membership checks are effectively instant, unlike scanning a list.\n\n- `set(items)` builds from any iterable\n- `s.add(item)` deduplicates automatically\n- `item in s` is the fast membership test\n- `a & b` intersection, `a | b` union\n\n## Why sets matter\n\nRemoving duplicates from a list is literally `list(set(items))`. Testing membership against a big set is fast because sets hash their contents. The snippet shows both: deduplicating a list and testing presence.\n\nThe `in` operator works on lists and strings too, but on a set it is O(1) rather than O(n) — the difference matters once collections grow.\n\nKey takeaways:\n- Sets never hold duplicates\n- `item in set` membership is O(1)\n- Deduplicate with `list(set(items))`\n- Use sets for membership checks over big data",
+          "snippet_language": "python",
+          "snippet_code": "ids = [3, 1, 3, 2, 1]\nunique = set(ids)\n\nprint(2 in unique)\nprint(unique)",
+          "min_accuracy": 94,
+          "xp_reward": 14
+        },
+        {
+          "title": "Functions & Defaults",
+          "explanation": "## Reusable logic with parameters\n\n`def` declares a function; parameters define its inputs and `return` produces its output. Python functions shine because defaults make calls terse and safe: `name='friend'` only applies when the argument is omitted.\n\n## Returning, not printing\n\nA function that returns a value can be stored, passed, and composed. `greet()` returns a string; `double(n)` returns a number. Keeping functions pure — no printing, no global mutation — makes them predictable and testable.\n\nThe snippet demonstrates a default parameter in action: `greet()` and `greet('Grace')` both work. That one-line default replaces an entire `if` block checking for missing input.\n\nKey takeaways:\n- `def name(params)` then `return value`\n- Default parameters remove undefined-crash code\n- Prefer returning values over printing\n- Call a function by its name followed by parentheses",
+          "snippet_language": "python",
+          "snippet_code": "def greet(name='friend'):\n    return f'Hello, {name}!'\n\n\ndef double(n):\n    return n * 2\n\nprint(greet())",
+          "min_accuracy": 95,
+          "xp_reward": 12
+        },
+{
+          "title": "Strings & f-strings",
+          "explanation": "## Text that formats itself\n\nStrings are everywhere, and Python gives you a clean way to embed values: f-strings. An `f` before the opening quote means anything inside `{ }` is evaluated and inserted. `f'Hello, {name}!'` becomes `Hello, Ada!` — no concatenation needed.\n\n## Everyday string methods\n\n- `split(sep)` — cut into a list on a separator\n- `strip()` — remove surrounding whitespace\n- `lower()` / `upper()` — normalize case\n- `len(s)` — character count\n\n## Number formatting\n\nf-strings can also format values: `f'{price:.2f}'` rounds to two decimals. That single feature replaces a lot of manual rounding and padding code.\n\nThe snippet shows both basic interpolation and decimal formatting. This is the exact style you will write when producing reports, messages, and tool output.\n\nKey takeaways:\n- Prefix with `f` then use `{var}` inside\n- `.2f` format numbers inside braces\n- `split`, `strip`, and `lower` handle cleanup\n- f-strings read like the output they produce",
+          "snippet_language": "python",
+          "snippet_code": "name = 'Ada'\nprint(f'Hello, {name}!')\n\nprice = 19.991\nprint(f'Total: {price:.2f}')",
+          "min_accuracy": 95,
+          "xp_reward": 14
+        },
+        {
+          "title": "Comprehensions",
+          "explanation": "## Build a list in one line\n\nA list comprehension builds a list by transforming each item of a source in a single expression: `[x * 2 for x in nums]`. It reads like set-builder math, and it replaces the verbose loop-plus-append pattern.\n\n- `[expr for item in iterable]` — transform every item\n- `[expr for item in iterable if condition]` — only matching items\n- `{k: v for ...}` builds a dict, `{x for ...}` a set\n\n## Readability is the point\n\n`squares = [n * n for n in nums]` and `evens = [n for n in nums if n % 2 == 0]` each say in one line what a four-line loop says in four. Comprehension abuse exists, but for straightforward transforms they are the idiomatic choice.\n\nThe snippet contrasts the loop form with the comprehension form — both produce the same `squares` list.\n\nKey takeaways:\n- Comprehension = transform + optional filter in one line\n- Dict and set comprehensions share the same shape\n- Keep them simple; nested comprehensions get unreadable\n- Prefer them over loop-and-append for simple cases",
+          "snippet_language": "python",
+          "snippet_code": "nums = [1, 2, 3, 4]\n\nsquares = [n * n for n in nums]\nevens = [n for n in nums if n % 2 == 0]\n\nprint(squares)",
+          "min_accuracy": 94,
+          "xp_reward": 16
+        },
+{
+          "title": "Error Handling",
+          "explanation": "## Handling what can go wrong\n\nPython signals problems by raising exceptions. `try` / `except` lets you catch and respond to them: validate, log, retry, or convert to a friendly message — instead of the program crashing.\n\n- `except ValueError` — catch one specific type\n- `else` — runs only if no error\n- `finally` — always runs, for cleanup\n\n## Using the error object\n\nThe `as err` gives you the exception instance so you can read `err`. Catching specific types is important: the broad `except:` hides real bugs and is never the right default.\n\nThis is exactly how real code handles bad input, missing files, and failed requests: assume it can fail, wrap it, and give the caller a pathway.\n\nKey takeaways:\n- Wrap risky calls in `try` / `except`\n- Catch specific exception types, never bare `except:`\n- `as err` lets you inspect the exception\n- `finally` always runs even on error",
+          "snippet_language": "python",
+          "snippet_code": "try:\n    number = int(input('Enter a number: '))\nexcept ValueError as err:\n    print('That was not a number:', err)\nelse:\n    print('You entered', number)",
+          "min_accuracy": 94,
+          "xp_reward": 16
+        },
+        {
+          "title": "Context Managers",
+          "explanation": "## Resources that clean up themselves\n\nThe `with` statement guarantees cleanup even when an error occurs. `with open(...) as f:` opens a file, gives it to you as `f`, and closes it automatically when the block ends — no manual `f.close()` that could be skipped.\n\n## Why this matters\n\nForgetting to close a file can hold locks, waste memory, and leave handles behind. `with` makes correct cleanup automatic and the intent obvious. It is the idiomatic way to work with files, database connections, and sockets.\n\nThe snippet reads the entire file into a list of lines and prints one. Compare that to a manual open/read/close — `with` removes the last two steps entirely.\n\nKey takeaways:\n- `with ... as resource:` guarantees cleanup\n- Files auto-close whether or not the body fails\n- It is the standard way to handle resources\n- Prefer it over manual open and close",
+          "snippet_language": "python",
+          "snippet_code": "with open('notes.txt', 'r') as f:\n    lines = f.readlines()\n\nprint(lines[0])",
+          "min_accuracy": 94,
+          "xp_reward": 16
+        },
+        {
+          "title": "Classes & OOP",
+          "explanation": "## Data plus behavior together\n\nA class bundles data (attributes) with behavior (methods). `__init__` is the constructor that runs when you create an instance, and `self` refers to the instance itself — the receiver of the method call.\n\n## The dunder methods\n\nMethods wrapped in double underscores are protocol hooks. `__init__` sets up the object; `__str__` defines how it prints; there are many more (`__len__`, `__eq__`, `__repr__`). They let your objects behave like built-ins.\n\nThe snippet defines a `Counter` with an attribute `self.count` and a method that increments that single counter. Each instance has its own independent state, which is the core idea of OOP: state travels with the object.\n\nKey takeaways:\n- `self` is the current instance\n- `__init__` is the constructor\n- `__str__` controls how an object prints\n- Each instance holds its own attributes",
+          "snippet_language": "python",
+          "snippet_code": "class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        self.count += 1\n\nc = Counter()\nc.increment()\nprint(c.count)",
+          "min_accuracy": 93,
+          "xp_reward": 18
+        }
+      ]
+    }
+  ]
+}

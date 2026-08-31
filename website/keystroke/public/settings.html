@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Keystroke</title>
+  <meta name="description" content="Customize your Keystroke typing experience.">
+
+  <!-- Theme before first paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body class="page-settings">
+
+  <!-- Navigation -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo" aria-label="Keystroke home">
+        <span class="logo-icon" aria-hidden="true">&gt;_</span>
+        <span class="logo-text">keystroke</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/type.html">Type</a>
+        <a href="/learning.html">Learning</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/settings.html" class="active" aria-current="page">Settings</a>
+        <div id="nav-auth-links"></div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="settings-container container">
+    <h1>Settings</h1>
+
+    <!-- Profile section -->
+    <section class="settings-section" aria-labelledby="profile-heading">
+      <h2 id="profile-heading" class="settings-section__title">Profile</h2>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label" for="account-username">Username</label>
+        <span id="account-username" class="account-detail">—</span>
+        <p class="settings-hint">Usernames are permanent and cannot be changed.</p>
+      </div>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label" for="account-email">Email</label>
+        <input type="email" id="account-email" class="input input--text" autocomplete="email" placeholder="you@example.com">
+        <p class="settings-hint" id="email-message" role="alert"></p>
+      </div>
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label">Member since</label>
+        <span id="account-created" class="account-detail">—</span>
+      </div>
+    </section>
+
+    <!-- Appearance section -->
+    <section class="settings-section" aria-labelledby="appearance-heading">
+      <h2 id="appearance-heading" class="settings-section__title">Appearance</h2>
+
+      <div class="settings-row">
+        <label class="settings-label" for="theme-toggle">Dark Mode</label>
+        <p class="settings-hint">Toggle between dark and light theme. Your preference is saved locally and synced to your account.</p>
+        <div class="toggle-switch">
+          <input type="checkbox" id="theme-toggle" role="switch" aria-checked="true">
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label" id="accent-heading">Accent Color</span>
+        <p class="settings-hint">Choose the accent color used across the app. Changes apply immediately.</p>
+        <div class="accent-group" role="radiogroup" data-accent-group aria-labelledby="accent-heading">
+          <button type="button" class="accent-swatch" data-accent="amber" role="radio" aria-checked="false" aria-label="Amber" title="Amber"></button>
+          <button type="button" class="accent-swatch" data-accent="cyan" role="radio" aria-checked="false" aria-label="Cyan" title="Cyan"></button>
+          <button type="button" class="accent-swatch" data-accent="violet" role="radio" aria-checked="false" aria-label="Violet" title="Violet"></button>
+          <button type="button" class="accent-swatch" data-accent="rose" role="radio" aria-checked="false" aria-label="Rose" title="Rose"></button>
+          <button type="button" class="accent-swatch" data-accent="mono" role="radio" aria-checked="false" aria-label="Mono" title="Mono"></button>
+        </div>
+      </div>
+
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label" for="font-selector">Font Family</label>
+        <select id="font-selector" class="input input--select" aria-describedby="font-desc">
+          <option value="jetbrains-mono">JetBrains Mono</option>
+          <option value="fira-code">Fira Code</option>
+          <option value="cascadia-code">Cascadia Code</option>
+          <option value="ibm-plex-mono">IBM Plex Mono</option>
+          <option value="source-code-pro">Source Code Pro</option>
+        </select>
+        <p id="font-desc" class="settings-hint">Preview:</p>
+        <div id="font-preview-text" class="font-preview" aria-live="polite"></div>
+      </div>
+
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label" id="motion-heading">Reduce Motion</span>
+        <p class="settings-hint">Follow your system setting, or force animations on or off.</p>
+        <div class="segmented-control" role="radiogroup" data-motion-group aria-labelledby="motion-heading">
+          <button type="button" class="segmented-btn" data-motion-pref="system" role="radio" aria-checked="false">System</button>
+          <button type="button" class="segmented-btn" data-motion-pref="on" role="radio" aria-checked="false">On</button>
+          <button type="button" class="segmented-btn" data-motion-pref="off" role="radio" aria-checked="false">Off</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Learning section -->
+    <section class="settings-section" aria-labelledby="learning-heading">
+      <h2 id="learning-heading" class="settings-section__title">Learning</h2>
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label" id="learning-mode-heading">Lesson Mode</span>
+        <p class="settings-hint">How lessons open by default: type the snippet to pass, or read it to mark complete.</p>
+        <div class="segmented-control" role="radiogroup" data-learning-mode-group aria-labelledby="learning-mode-heading">
+          <button type="button" class="segmented-btn" data-learning-mode="type" role="radio" aria-checked="false">Type it</button>
+          <button type="button" class="segmented-btn" data-learning-mode="read" role="radio" aria-checked="false">Read only</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typing preferences section -->
+    <section class="settings-section" aria-labelledby="experience-heading">
+      <h2 id="experience-heading" class="settings-section__title">Comfort &amp; focus</h2>
+
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label" id="density-heading">Layout Density</span>
+        <p class="settings-hint">Choose a more spacious or more compact workspace while you practice.</p>
+        <div class="segmented-control" role="radiogroup" data-density-group aria-labelledby="density-heading">
+          <button type="button" class="segmented-btn" data-density-pref="comfortable" role="radio" aria-checked="true">Comfortable</button>
+          <button type="button" class="segmented-btn" data-density-pref="compact" role="radio" aria-checked="false">Compact</button>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <label class="settings-label" for="focus-mode-toggle">Focus Mode</label>
+        <p class="settings-hint">Reduce clutter by softening extra chrome while you type and read lessons.</p>
+        <div class="toggle-switch">
+          <input type="checkbox" id="focus-mode-toggle" role="switch" aria-checked="false">
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="typing-heading">
+      <h2 id="typing-heading" class="settings-section__title">Typing preferences</h2>
+
+      <div class="settings-row settings-row--stacked">
+        <label class="settings-label" for="indent-width">Indent Width</label>
+        <p class="settings-hint">Spaces inserted when you press Tab while typing code.</p>
+        <select id="indent-width" class="input input--select">
+          <option value="2">2 spaces</option>
+          <option value="4">4 spaces</option>
+          <option value="8">8 spaces</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <label class="settings-label" for="sound-enabled">Keyboard Sounds</label>
+        <p class="settings-hint">Play a subtle click when you press a key.</p>
+        <div class="toggle-switch">
+          <input type="checkbox" id="sound-enabled" role="switch" aria-checked="false">
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label" id="os-pref-heading">Shortcut Keys</span>
+        <p class="settings-hint">Which shortcut set to show in software shortcut lessons. Auto detects your OS.</p>
+        <div class="segmented-control" role="radiogroup" data-os-pref-group aria-labelledby="os-pref-heading">
+          <button type="button" class="segmented-btn" data-os-pref="auto" role="radio" aria-checked="true">Auto</button>
+          <button type="button" class="segmented-btn" data-os-pref="win" role="radio" aria-checked="false">Windows</button>
+          <button type="button" class="segmented-btn" data-os-pref="mac" role="radio" aria-checked="false">macOS</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Account & security section -->
+    <section class="settings-section" aria-labelledby="security-heading">
+      <h2 id="security-heading" class="settings-section__title">Account &amp; security</h2>
+
+      <form id="change-password-form" class="settings-form" novalidate>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="current-password">Current Password</label>
+          <input type="password" id="current-password" class="input input--text" placeholder="Enter current password" required minlength="1" autocomplete="current-password">
+        </div>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="new-password">New Password</label>
+          <input type="password" id="new-password" class="input input--text" placeholder="Enter new password" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="settings-row settings-row--stacked">
+          <label class="settings-label" for="confirm-new-password">Confirm New Password</label>
+          <input type="password" id="confirm-new-password" class="input input--text" placeholder="Re-enter new password" required minlength="6" autocomplete="new-password">
+        </div>
+        <p id="password-message" class="settings-message" role="alert"></p>
+        <button type="submit" class="btn btn--primary">Update Password</button>
+      </form>
+
+      <div class="settings-row settings-row--stacked">
+        <span class="settings-label">Export Data</span>
+        <p class="settings-hint">Download all of your typing results and learning progress as a JSON file.</p>
+        <button id="export-btn" class="btn btn--secondary">Download JSON Export</button>
+      </div>
+    </section>
+
+    <!-- Danger zone section -->
+    <section class="settings-section settings-section--danger" aria-labelledby="delete-heading">
+      <h2 id="delete-heading" class="settings-section__title">Danger Zone</h2>
+      <div class="settings-row">
+        <p class="settings-hint">Once deleted, your account and all results cannot be recovered.</p>
+        <button id="delete-account-btn" class="btn btn--danger">Delete My Account</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <div class="modal__content">
+      <h2 id="modal-title">Confirm Deletion</h2>
+      <p id="modal-desc">Type <strong>DELETE</strong> to confirm you want to permanently delete your account.</p>
+      <input type="text" id="delete-confirm-input" class="input input--text modal__input" placeholder='Type "DELETE"' autocomplete="off">
+      <div class="modal__actions">
+        <button id="delete-cancel-btn" class="btn btn--secondary">Cancel</button>
+        <button id="delete-confirm-btn" class="btn btn--danger">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2025 Keystroke. Type code faster.</p>
+    </div>
+  </footer>
+
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/settings.js"></script>
+</body>
+</html>

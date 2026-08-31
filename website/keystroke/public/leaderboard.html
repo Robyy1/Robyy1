@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard — Keystroke</title>
+
+  <!-- Theme before first paint -->
+  <script>
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/" class="navbar-brand" aria-label="Keystroke home">⌨ Keystroke</a>
+    <ul class="navbar-links">
+      <li><a href="/type.html" class="navbar-link">Type</a></li>
+      <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
+      <li><a href="/leaderboard.html" class="navbar-link active">Leaderboard</a>
+        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
+    </ul>
+    <div id="nav-guest-area" style="display: none;" class="navbar-user">
+      <a href="/login.html" class="btn btn-ghost">Log in</a>
+      <a href="/signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+    <div id="nav-user-area" style="display: none;" class="navbar-user">
+      <span id="nav-username" class="navbar-avatar"></span>
+      <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="page-container">
+    <div id="leaderboard-loading" class="loading-spinner" style="display: none;">
+      <div class="spinner"></div>
+      <p>Loading leaderboard...</p>
+    </div>
+
+    <div id="leaderboard-error" class="error-message" style="display: none;" role="alert"></div>
+
+    <div id="leaderboard-empty" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">🏆</div>
+      <p class="empty-state-text">No results yet for this filter. Complete a test to appear on the leaderboard!</p>
+      <a href="/type.html" class="btn btn-primary">Start a Test</a>
+    </div>
+
+    <!-- Leaderboard content (hidden until loaded) -->
+    <div id="leaderboard-content" style="display: none;">
+      <header class="page-header">
+        <h1>Leaderboard</h1>
+        <p class="page-subtitle">Global top scores. Compete across modes, languages, and time periods.</p>
+      </header>
+
+      <!-- Filter bar -->
+      <section aria-label="Leaderboard filters" class="card" style="margin-bottom: var(--space-6);">
+        <div class="filter-bar">
+          <div class="config-group">
+            <label for="lb-mode-filter">Mode</label>
+            <select id="lb-mode-filter" class="form-select">
+              <option value="code">Code Mode</option>
+              <option value="general">General Text</option>
+              <option value="dictionary">Dictionary</option>
+            </select>
+          </div>
+
+          <div class="config-group" id="language-filter-group">
+            <label for="lb-language-filter">Language</label>
+            <select id="lb-language-filter" class="form-select">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="config-group">
+            <label for="lb-period-filter">Time Period</label>
+            <select id="lb-period-filter" class="form-select">
+              <option value="all">All Time</option>
+              <option value="week">This Week</option>
+              <option value="today">Today</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chart -->
+      <section aria-label="Top scores visualization" style="margin-bottom: var(--space-6);">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Top Scorers</h2>
+            <span class="badge badge-accent">Visual</span>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">The highest WPM scores for the selected filters.</p>
+          <div id="leaderboard-chart" class="chart-container"></div>
+        </div>
+      </section>
+
+      <!-- Entries table -->
+      <section aria-label="Leaderboard entries">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">All Entries</h2>
+            <span class="badge badge-muted" id="leaderboard-count"></span>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">Ranked by WPM. Higher is better.</p>
+          <div class="table-wrapper">
+            <table class="data-table" role="table" aria-label="Leaderboard entries">
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">User</th>
+                  <th scope="col">WPM</th>
+                  <th scope="col">Accuracy</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-entries-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick actions -->
+      <section aria-label="Quick actions" style="margin-top: var(--space-6); text-align: center;">
+        <a href="/type.html" class="btn btn-primary btn-lg">Take a Test</a>
+      </section>
+    </div>
+  </main>
+
+  <!-- Theme toggle -->
+  <button id="theme-toggle-float" class="theme-toggle-float" aria-label="Toggle theme"></button>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/stats.js"></script>
+  <script src="/js/leaderboard.js"></script>
+</body>
+</html>

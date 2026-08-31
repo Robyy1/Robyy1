@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Keystroke</title>
+
+  <!-- Theme before first paint -->
+  <script>
+            (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/" class="navbar-brand" aria-label="Keystroke home">⌨ Keystroke</a>
+    <ul class="navbar-links">
+      <li><a href="/type.html" class="navbar-link">Type</a></li>
+      <li><a href="/dashboard.html" class="navbar-link active">Dashboard</a></li>
+      <li><a href="/learning.html" class="navbar-link">Learning</a></li>
+      <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+    </ul>
+    <div id="nav-guest-area" style="display: none;" class="navbar-user">
+      <a href="/login.html" class="btn btn-ghost">Log in</a>
+      <a href="/signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+    <div id="nav-user-area" style="display: none;" class="navbar-user">
+      <span id="nav-username" class="navbar-avatar"></span>
+      <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="page-container">
+    <div id="dashboard-loading" class="loading-spinner" style="display: none;">
+      <div class="spinner"></div>
+      <p>Loading your stats...</p>
+    </div>
+
+    <div id="dashboard-error" class="error-message" style="display: none;" role="alert"></div>
+
+    <div id="dashboard-empty" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">📊</div>
+      <p class="empty-state-text">No data yet. Complete a typing test to see your stats here.</p>
+      <a href="/type.html" class="btn btn-primary">Start a Test</a>
+    </div>
+
+    <!-- Dashboard content (hidden until loaded) -->
+    <div id="dashboard-content" style="display: none;">
+      <header class="page-header">
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Your typing stats, progress, and recent activity.</p>
+      </header>
+
+      <!-- Overall stats -->
+      <section aria-label="Overall statistics">
+        <div id="overall-stats-grid" class="stat-grid"></div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Learning progress widget -->
+      <section aria-label="Learning progress">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Learning</h2>
+            <a href="/learning.html" class="badge badge-accent" style="text-decoration:none;">Open Learning &rarr;</a>
+          </div>
+          <div id="dashboard-learning" class="learning-widget">
+            <p style="font-size: var(--font-size-sm); color: var(--text-muted);">Loading progress…</p>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- WPM Timeline Chart -->
+      <section aria-label="WPM progress over time">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">WPM Progress</h2>
+            <span class="badge badge-muted">Over Time</span>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">Track your typing speed improvement across all tests.</p>
+          <div id="dashboard-wpm-chart" class="chart-container"></div>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Personal Bests -->
+      <section aria-label="Personal bests by mode and language">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Personal Bests</h2>
+            <span class="badge badge-accent">Top Scores</span>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">Your highest WPM in each mode and language combination.</p>
+          <div id="dashboard-personal-bests" class="chart-container"></div>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Activity Streak -->
+      <section aria-label="Activity streak">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Activity</h2>
+            <span class="badge badge-muted">Last 35 Days</span>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">How often you've been practicing. Consistency builds speed.</p>
+          <div id="dashboard-streak-chart" class="chart-container"></div>
+        </div>
+      </section>
+
+      <hr class="divider">
+
+      <!-- Recent Results -->
+      <section aria-label="Recent test results">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Tests</h2>
+            <button id="dashboard-refresh" class="btn btn-ghost" aria-label="Refresh data">↻ Refresh</button>
+          </div>
+          <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--space-4);">Your most recent typing test results.</p>
+          <div class="table-wrapper">
+            <table class="data-table" role="table" aria-label="Recent test results">
+              <thead>
+                <tr>
+                  <th scope="col">Mode</th>
+                  <th scope="col">Difficulty</th>
+                  <th scope="col">WPM</th>
+                  <th scope="col">Accuracy</th>
+                  <th scope="col">Duration</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-results-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick actions -->
+      <section aria-label="Quick actions" style="margin-top: var(--space-6); text-align: center;">
+        <a href="/type.html" class="btn btn-primary btn-lg btn-3d">Start a New Test</a>
+      </section>
+    </div>
+  </main>
+
+  <!-- Theme toggle -->
+  <button id="theme-toggle-float" class="theme-toggle-float" aria-label="Toggle theme"></button>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/stats.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

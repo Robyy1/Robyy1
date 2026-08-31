@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keystroke — Type JavaScript &amp; Python Faster</title>
+  <meta name="description" content="Practice typing real JavaScript and Python code. Build muscle memory for real syntax while learning variables, functions, loops, async/await, comprehensions and more — with live speed, accuracy and consistency stats.">
+
+  <!-- Theme before first paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('keystroke-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      var a = localStorage.getItem('keystroke-accent');
+      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
+      var m = localStorage.getItem('keystroke-motion');
+      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-accent', a);
+      document.documentElement.setAttribute('data-motion', m);
+    })();
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+</head>
+<body class="landing">
+
+  <!-- Navbar -->
+  <nav class="navbar" aria-label="Main navigation">
+    <a href="/" class="navbar-brand" aria-label="Keystroke home">
+      <span class="logo-icon" aria-hidden="true">&gt;_</span>
+      <span class="logo-text">keystroke</span>
+    </a>
+    <div id="nav-guest-area" style="display:flex;">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+    </div>
+    <div id="nav-user-area" style="display:none;" class="navbar-user">
+      <ul class="navbar-links">
+        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
+        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
+        <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
+        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
+      </ul>
+      <span id="nav-username" style="font-size:var(--font-size-sm);color:var(--text-muted);margin-right:var(--space-2);"></span>
+      <button type="button" class="btn btn-ghost btn-sm logout-btn">Logout</button>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero" data-reveal>
+    <div class="hero-scanline" aria-hidden="true"></div>
+    <div class="hero-grid-pulse" aria-hidden="true"></div>
+    <div class="hero-content">
+      <span class="hero-kicker" aria-hidden="true">Typing &times; Programming &middot; JavaScript + Python</span>
+      <h1 class="hero-title">Type <span class="accent">code</span>, not paragraphs.</h1>
+      <p class="hero-subtitle">Keystroke turns the way you type into the way you learn. Drill real JavaScript and Python syntax — variables, functions, loops, async/await, comprehensions — until it lives in your fingers, not just your notes.</p>
+
+      <div class="hero-cta-group">
+        <a href="/type.html" class="btn btn-primary btn-lg btn-3d">Start typing free</a>
+        <a href="/learning.html" class="btn btn-secondary btn-lg btn-3d">Browse courses</a>
+      </div>
+
+      <!-- Live mini demo -->
+      <div class="hero-demo">
+        <div class="hero-demo-header">
+          <span class="hero-demo-dot"></span>
+          <span class="hero-demo-dot"></span>
+          <span class="hero-demo-dot"></span>
+          <span class="hero-demo-title">learn-js.js</span>
+        </div>
+        <div class="hero-demo-body" id="hero-demo-body">
+          <pre class="hero-demo-text" id="hero-demo-text" aria-live="polite"></pre>
+          <input type="text" class="hero-demo-input" id="hero-demo-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type the demo text here">
+        </div>
+      </div>
+
+      <!-- Real aggregate stats, loaded from the API (no fabricated numbers) -->
+      <div class="stats-bar" id="statsBar" data-reveal="stagger">
+        <div class="card stat-tile">
+          <span class="stat-tile-value" id="statTotalTests">—</span>
+          <span class="stat-tile-label">tests taken</span>
+        </div>
+        <div class="card stat-tile">
+          <span class="stat-tile-value" id="statTotalLessons">—</span>
+          <span class="stat-tile-label">lessons completed</span>
+        </div>
+        <div class="card stat-tile">
+          <span class="stat-tile-value" id="statTotalUsers">—</span>
+          <span class="stat-tile-label">typists</span>
+        </div>
+        <div class="card stat-tile">
+          <span class="stat-tile-value" id="statWeeklyAccuracy">—</span>
+          <span class="stat-tile-label">avg accuracy this week</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ================= TWO LANGUAGES ================= -->
+  <section class="landing-section language-focus" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">Start with JavaScript or Python</h2>
+      <p class="landing-section-sub">Two complete, sequential tracks. Every lesson builds on the last — read the concept, type the real syntax, apply it. No skipping ahead, no toy fragments.</p>
+    </div>
+    <div class="language-showcase-grid">
+      <article class="card language-showcase js-showcase" data-reveal="stagger">
+        <div class="language-badge js">JavaScript</div>
+        <h3 class="language-title">Modern JavaScript</h3>
+        <p class="language-desc">The language of the web, kept modern. You'll type the real shapes you write every day and build up to genuinely useful async patterns.</p>
+        <ul class="language-highlights">
+          <li>Variables, scoping &amp; equality</li>
+          <li>Functions, arrows &amp; array methods</li>
+          <li>Objects, destructuring &amp; template literals</li>
+          <li>Closures, async/await &amp; error handling</li>
+          <li>DOM events, promises &amp; higher-order functions</li>
+        </ul>
+        <a href="/learning.html" class="btn btn-primary btn-block">Start JavaScript Track</a>
+      </article>
+      <article class="card language-showcase py-showcase" data-reveal="stagger">
+        <div class="language-badge py">Python</div>
+        <h3 class="language-title">Python Fundamentals</h3>
+        <p class="language-desc">The most-wanted language, mastered by typing idiomatic — not toy — Python: clean indentation, comprehensions, and the standard library.</p>
+        <ul class="language-highlights">
+          <li>Variables, types &amp; f-strings</li>
+          <li>Lists, tuples, dicts &amp; sets</li>
+          <li>Conditionals, loops &amp; iteration patterns</li>
+          <li>Functions, comprehensions &amp; context managers</li>
+          <li>Error handling, classes &amp; OOP</li>
+        </ul>
+        <a href="/learning.html" class="btn btn-primary btn-block">Start Python Track</a>
+      </article>
+    </div>
+  </section>
+
+<!-- ================= LIVE FROM THE INTERNET ================= -->
+  <section class="landing-section popularity-section" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">Live from the internet</h2>
+      <p class="landing-section-sub">Public code repositories per language, pulled live from the GitHub Search API. A real sample of what developers ship today.</p>
+    </div>
+    <ol class="popularity-list" id="popularityList" aria-label="GitHub repository counts by language">
+      <li class="loading-text">Loading live popularity...</li>
+    </ol>
+    <p class="source-note" id="popularityNote"></p>
+  </section>
+
+  <!-- ================= DATA / FACTS ================= -->
+  <section class="landing-section facts-section" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">Why these two? The data is clear.</h2>
+      <p class="landing-section-sub">A few well-known, widely cited facts about the languages you'll be learning.</p>
+    </div>
+    <div class="facts-grid">
+      <article class="card fact-card" data-reveal="stagger">
+        <span class="fact-icon" aria-hidden="true">&#127760;</span>
+        <h3 class="fact-title">JavaScript runs the web</h3>
+        <p class="fact-text">JavaScript is the native programming language of the browser. According to MDN Web Docs, nearly every web page executes JavaScript — and it now also powers servers, mobile, and desktop apps.</p>
+        <a class="fact-source" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noopener">MDN Web Docs</a>
+      </article>
+      <article class="card fact-card" data-reveal="stagger">
+        <span class="fact-icon" aria-hidden="true">&#128013;</span>
+        <h3 class="fact-title">Python reads like English</h3>
+        <p class="fact-text">Python's design philosophy favors readability and simplicity — indentation defines structure, and almost everything else reads like a sentence. That's why it's the most popular first language, and leads in data science and AI.</p>
+        <a class="fact-source" href="https://docs.python.org/3/tutorial/" target="_blank" rel="noopener">Python Documentation</a>
+      </article>
+      <article class="card fact-card" data-reveal="stagger">
+        <span class="fact-icon" aria-hidden="true">&numero;</span>
+        <h3 class="fact-title">#1 most-used, every year</h3>
+        <p class="fact-text">In the Stack Overflow Developer Survey, JavaScript has been the most commonly used programming language every single year for over a decade — the survey's longest-running number one.</p>
+        <a class="fact-source" href="https://survey.stackoverflow.co/2024/" target="_blank" rel="noopener">Stack Overflow Survey 2024</a>
+      </article>
+      <article class="card fact-card" data-reveal="stagger">
+        <span class="fact-icon" aria-hidden="true">&#127920;</span>
+        <h3 class="fact-title">Python is "most wanted"</h3>
+        <p class="fact-text">That same survey consistently ranks Python as the language developers most want to learn — driven by its leading role in automation, data science, and AI tooling.</p>
+        <a class="fact-source" href="https://survey.stackoverflow.co/2024/technology#most-popular-technologies-language" target="_blank" rel="noopener">Stack Overflow Survey</a>
+      </article>
+    </div>
+<!-- ================= WHY KEYSTROKE ================= -->
+  <section class="landing-section why-keystroke" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">Why practice by typing?</h2>
+      <p class="landing-section-sub">Typing prose trains your fingers. Typing code trains your fingers, your syntax, and your concepts — all at once.</p>
+    </div>
+    <div class="why-grid">
+      <article class="card why-card" data-reveal="stagger">
+        <div class="why-icon" aria-hidden="true">&#127919;</div>
+        <h3 class="why-title">Syntax-Aware Drills</h3>
+        <p class="why-desc">Every keystroke is scored against real syntax rules — brackets, indentation, semicolons, colons — not just WPM. Watch your per-symbol fluency grow.</p>
+      </article>
+      <article class="card why-card" data-reveal="stagger">
+        <div class="why-icon" aria-hidden="true">&#129504;</div>
+        <h3 class="why-title">Learn While You Type</h3>
+        <p class="why-desc">Each lesson teaches a concept <em>through</em> typing — closures, async/await, comprehensions, context managers. Muscle memory plus real understanding.</p>
+      </article>
+      <article class="card why-card" data-reveal="stagger">
+        <div class="why-icon" aria-hidden="true">&#128202;</div>
+        <h3 class="why-title">Spaced Repetition</h3>
+        <p class="why-desc">The engine schedules review based on your error patterns. You practice what you're weak at — not what you already know.</p>
+      </article>
+      <article class="card why-card" data-reveal="stagger">
+        <div class="why-icon" aria-hidden="true">&#9889;</div>
+        <h3 class="why-title">Privacy First</h3>
+        <p class="why-desc">Open source, self-hostable, no tracking, no ads. Your typing and learning history stay yours.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= COURSES ================= -->
+  <section class="landing-section" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">Available Courses</h2>
+      <p class="landing-section-sub">Structured lessons that unlock in order. Finish one to unlock the next — typed, understood, and applied.</p>
+    </div>
+    <div class="course-grid" id="landingCourseGrid">
+      <p class="loading-text">Loading courses...</p>
+    </div>
+    <div style="text-align:center;margin-top:var(--space-6);">
+      <a href="/learning.html" class="btn btn-ghost">View all courses &rarr;</a>
+    </div>
+  </section>
+
+  <!-- ================= HOW A LESSON WORKS ================= -->
+  <section class="landing-section how-it-works" data-reveal>
+    <div class="landing-section-head">
+      <h2 class="landing-section-title">How a Lesson Works</h2>
+      <p class="landing-section-sub">Five stages — each designed to move you from seeing, to doing, to mastering.</p>
+    </div>
+    <div class="steps-grid">
+      <article class="step-card" data-reveal="stagger">
+        <span class="step-number">1</span>
+        <h3 class="step-title">Explainer</h3>
+        <p class="step-desc">Read the concept — along with annotated code — before you type a thing.</p>
+      </article>
+      <article class="step-card" data-reveal="stagger">
+        <span class="step-number">2</span>
+        <h3 class="step-title">Live Demo</h3>
+        <p class="step-desc">Watch the snippet execute line by line, so the output is never a surprise.</p>
+      </article>
+      <article class="step-card" data-reveal="stagger">
+        <span class="step-number">3</span>
+        <h3 class="step-title">Guided Type-Along</h3>
+        <p class="step-desc">Type the exact snippet with instant feedback — wrong brackets, missing colons, bad indentation all get caught.</p>
+      </article>
+      <article class="step-card" data-reveal="stagger">
+        <span class="step-number">4</span>
+        <h3 class="step-title">Sandbox Challenge</h3>
+        <p class="step-desc">Blank editor, no template. Produce working output to pass — typing fast alone never finishes a lesson.</p>
+      </article>
+      <article class="step-card" data-reveal="stagger">
+        <span class="step-number">5</span>
+        <h3 class="step-title">Micro-Quiz</h3>
+        <p class="step-desc">Predict the output, spot the bug, pick the right method. Confirms it stuck before you move on.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="landing-cta" data-reveal>
+    <h2 class="landing-section-title">Ready to type faster?</h2>
+    <p class="landing-section-sub">Take a 60-second test or jump straight into a course. No account needed to start.</p>
+    <div class="hero-cta-group">
+      <a href="/type.html" class="btn btn-primary btn-lg btn-3d">Start typing</a>
+      <a href="/signup.html" class="btn btn-secondary btn-lg btn-3d">Create a free account</a>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <p>&copy; 2024 Keystroke &middot; Open source &middot; No tracking &middot; No ads</p>
+      <p class="footer-sources">
+        Sources: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noopener">MDN Web Docs</a> &middot;
+        <a href="https://docs.python.org/3/" target="_blank" rel="noopener">Python Docs</a> &middot;
+        <a href="https://survey.stackoverflow.co/2024/" target="_blank" rel="noopener">Stack Overflow Survey</a> &middot;
+        <a href="https://docs.github.com/en/rest/search" target="_blank" rel="noopener">GitHub API</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/theme.js"></script>
+  <script src="/js/auth-client.js"></script>
+  <script src="/js/typing-engine.js"></script>
+  <script src="/js/scroll-reveal.js"></script>
+  <script src="/js/landing.js"></script>
+
+</body>
+</html>

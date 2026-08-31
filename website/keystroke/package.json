@@ -1,0 +1,17 @@
+{
+  "name": "keystroke",
+  "version": "1.0.0",
+  "description": "A production-ready typing speed website focused on typing real code",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node db/seed.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.7.0",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
