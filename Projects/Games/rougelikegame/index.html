@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vampire Bird: Roguelike Adventure</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="ui-container">
+            <div id="health-bar-container">
+                <div id="health-bar"></div>
+            </div>
+            
+            <div id="stats-panel">
+                <div id="score-display">SCORE: 0</div>
+                <div class="stat-row">
+                    <span class="stat-label">LEVEL:</span>
+                    <span class="stat-value" id="level-display-ui">1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">WAVE:</span>
+                    <span class="stat-value" id="wave-display-ui">1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">KILLS:</span>
+                    <span class="stat-value" id="kills-display">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">DAMAGE:</span>
+                    <span class="stat-value" id="damage-display">15</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FIRE RATE:</span>
+                    <span class="stat-value" id="firerate-display">1.0x</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">PROJECTILES:</span>
+                    <span class="stat-value" id="projectiles-display">1</span>
+                </div>
+            </div>
+            
+            <div id="wave-display">WAVE 1</div>
+            <div id="level-display">LEVEL 1</div>
+            <div id="experience-bar-container">
+                <div id="experience-bar"></div>
+            </div>
+            
+            <div id="boss-health-container">
+                <div id="boss-health-bar"></div>
+            </div>
+        </div>
+        
+        <div id="start-screen" class="menu-screen">
+            <h1 class="menu-title">VAMPIRE BIRD</h1>
+            <p class="menu-subtitle">
+                Choose your bloodline and survive the endless waves of darkness.<br>
+                Each class offers unique strengths and weaknesses - choose wisely!
+            </p>
+            <div id="character-select">
+                <div class="character-card selected" data-class="balanced">
+                    <div class="character-name">BALANCED</div>
+                    <div style="font-size: 50px; margin: 10px 0;">🐦</div>
+                    <div class="character-stats">
+                        <div class="stat-good">✓ Balanced stats</div>
+                        <div class="stat-good">✓ Reliable damage</div>
+                        <div class="stat-good">✓ Good mobility</div>
+                        <div class="stat-bad">✗ No special advantages</div>
+                    </div>
+                </div>
+                <div class="character-card" data-class="scout">
+                    <div class="character-name">SCOUT</div>
+                    <div style="font-size: 50px; margin: 10px 0;">🦅</div>
+                    <div class="character-stats">
+                        <div class="stat-good">✓ 40% faster movement</div>
+                        <div class="stat-good">✓ 30% faster firing</div>
+                        <div class="stat-bad">✗ 30% less health</div>
+                        <div class="stat-bad">✗ 15% less damage</div>
+                    </div>
+                </div>
+                <div class="character-card" data-class="tank">
+                    <div class="character-name">TANK</div>
+                    <div style="font-size: 50px; margin: 10px 0;">🦉</div>
+                    <div class="character-stats">
+                        <div class="stat-good">✓ 60% more health</div>
+                        <div class="stat-good">✓ 25% more damage</div>
+                        <div class="stat-bad">✗ 25% slower movement</div>
+                        <div class="stat-bad">✗ 20% slower firing</div>
+                    </div>
+                </div>
+                <div class="character-card" data-class="smg">
+                    <div class="character-name">GUNNER</div>
+                    <div style="font-size: 50px; margin: 10px 0;">🦆</div>
+                    <div class="character-stats">
+                        <div class="stat-good">✓ 50% faster firing</div>
+                        <div class="stat-good">✓ Starts with 3 projectiles</div>
+                        <div class="stat-bad">✗ 25% less health</div>
+                        <div class="stat-bad">✗ 20% less damage per shot</div>
+                    </div>
+                </div>
+            </div>
+            <button class="menu-btn" id="start-button">BEGIN BLOODLINE</button>
+        </div>
+        
+        <div id="upgrade-screen" class="menu-screen hidden">
+            <h1 id="upgrade-title">BLOOD UPGRADE</h1>
+            <p id="upgrade-subtitle">Choose a mutation to enhance your vampiric powers</p>
+            <div class="upgrade-grid" id="upgrade-grid">
+                <!-- Upgrades will be generated here dynamically -->
+            </div>
+        </div>
+        
+        <div id="shop-screen" class="menu-screen hidden">
+            <h1 id="shop-title">BLOOD SHOP</h1>
+            <div id="shop-coins">BLOOD COINS: <span id="coins-display">0</span></div>
+            <div class="shop-grid" id="shop-grid">
+                <!-- Shop items will be generated here dynamically -->
+            </div>
+            <button class="menu-btn gold" id="continue-button" style="margin-top: 30px;">CONTINUE HUNT</button>
+        </div>
+        
+        <div id="game-over-screen" class="menu-screen hidden">
+            <h1 class="menu-title">BLOODLINE ENDED</h1>
+            <p class="menu-subtitle">
+                Your vampire bird has been consumed by the darkness...<br>
+                But your legend will inspire future bloodlines!
+            </p>
+            <div style="font-size: 42px; margin: 25px 0; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);">
+                FINAL SCORE: <span id="final-score">0</span>
+            </div>
+            <div style="font-size: 26px; margin-bottom: 25px;">
+                WAVES SURVIVED: <span id="waves-survived">0</span><br>
+                ENEMIES SLAIN: <span id="enemies-slain">0</span><br>
+                BLOOD COINS EARNED: <span id="coins-earned">0</span>
+            </div>
+            <button class="menu-btn" id="restart-button">NEW BLOODLINE</button>
+            <button class="menu-btn" id="main-menu-button-gameover">MAIN MENU</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+
+</body>
+</html>
+

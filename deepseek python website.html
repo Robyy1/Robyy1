@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Python Mastery | Code Like a Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom CSS for Layout and Navbar */
+        .site-container {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            grid-template-columns: 280px auto;
+            height: 100vh;
+            grid-template-areas:
+                'navbar navbar'
+                'sidebar main';
+        }
+
+        .topnav {
+            grid-area: navbar;
+            background-color: #1e293b; /* slate-800 */
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f1f5f9; /* slate-100 */
+            text-align: center;
+            padding: 18px 20px;
+            text-decoration: none;
+            font-size: 17px;
+            transition: background-color 0.3s;
+        }
+        .topnav a:hover {
+            background-color: #475569; /* slate-600 */
+            color: white;
+        }
+        .topnav a.active {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+            font-weight: bold;
+        }
+        .topnav .icon {
+            display: none;
+            color: white;
+            padding: 18px 20px;
+        }
+        @media screen and (max-width: 768px) {
+            .site-container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    'navbar'
+                    'main';
+            }
+            .course-sidebar {
+                display: none;
+            }
+            .topnav a:not(:first-child) {display: none;}
+            .topnav a.icon {
+                float: right;
+                display: block;
+            }
+            .topnav.responsive {
+                position: relative;
+            }
+            .topnav.responsive a.icon {
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            .topnav.responsive a {
+                float: none;
+                display: block;
+                text-align: left;
+            }
+        }
+
+        .course-sidebar {
+            grid-area: sidebar;
+            background-color: #f8fafc; /* slate-50 */
+            border-right: 1px solid #e2e8f0; /* slate-200 */
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .course-main {
+            grid-area: main;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .module {
+            margin-bottom: 2rem;
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+            padding-left: 1rem;
+        }
+        .lesson-item {
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lesson-item:hover {
+            background-color: #e0f2fe; /* sky-100 */
+        }
+        .lesson-item.active {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+            font-weight: 600;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            margin: 1.5rem 0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background-color: #0f172a; /* slate-900 */
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-800">
+    <div class="site-container">
+        <!-- Top Navigation Bar [citation:4] -->
+        <nav class="topnav" id="myTopnav">
+            <a href="#home" class="active"><i class="fas fa-home mr-2"></i>Home</a>
+            <a href="#courses"><i class="fas fa-graduation-cap mr-2"></i>All Courses</a>
+            <a href="#projects"><i class="fas fa-code mr-2"></i>Projects</a>
+            <a href="#community"><i class="fas fa-users mr-2"></i>Community</a>
+            <a href="javascript:void(0);" class="icon" onclick="toggleNav()">
+                <i class="fa fa-bars"></i>
+            </a>
+        </nav>
+
+        <!-- Course Sidebar -->
+        <aside class="course-sidebar">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2 flex items-center">
+                <i class="fas fa-book-open mr-3 text-sky-500"></i>Python Pro
+            </h2>
+            <p class="text-sm text-slate-500 mb-6">Everything you need to program in Python in one course (includes 3 real-world projects)[citation:3].</p>
+
+            <div class="module">
+                <h3 class="font-bold text-lg text-slate-700 mb-3"><i class="fas fa-play-circle mr-2 text-sky-500"></i>Getting Started</h3>
+                <div class="lesson-item active" onclick="loadLesson(1)">1. Welcome & Course Overview</div>
+                <div class="lesson-item" onclick="loadLesson(2)">2. Setting Up Your Python Environment</div>
+                <div class="lesson-item" onclick="loadLesson(3)">3. Your First Python Program</div>
+            </div>
+
+            <div class="module">
+                <h3 class="font-bold text-lg text-slate-700 mb-3"><i class="fas fa-cube mr-2 text-sky-500"></i>Python Fundamentals</h3>
+                <div class="lesson-item" onclick="loadLesson(4)">4. Variables and Data Types</div>
+                <div class="lesson-item" onclick="loadLesson(5)">5. Control Flow: If/Else & Loops</div>
+                <div class="lesson-item" onclick="loadLesson(6)">6. Data Structures: Lists, Tuples, Sets</div>
+                <div class="lesson-item" onclick="loadLesson(7)">7. Dictionaries and Comprehensions</div>
+            </div>
+
+            <div class="module">
+                <h3 class="font-bold text-lg text-slate-700 mb-3"><i class="fas fa-cogs mr-2 text-sky-500"></i>Intermediate Concepts</h3>
+                <div class="lesson-item" onclick="loadLesson(8)">8. Functions Deep Dive</div>
+                <div class="lesson-item" onclick="loadLesson(9)">9. Modules, Packages, and PIP</div>
+                <div class="lesson-item" onclick="loadLesson(10)">10. Error Handling & Exceptions</div>
+            </div>
+
+            <div class="mt-8 p-4 bg-sky-50 border border-sky-200 rounded-xl">
+                <h4 class="font-bold text-slate-800 mb-2"><i class="fas fa-project-diagram mr-2"></i>Real-World Projects</h4>
+                <p class="text-sm text-slate-600">Apply your skills by building a web scraper, data analyzer, and automation script[citation:3].</p>
+                <button class="mt-3 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                    <i class="fas fa-download mr-2"></i>Download Project Files
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="course-main">
+            <div class="max-w-4xl">
+                <!-- Hero Section -->
+                <header class="mb-10">
+                    <span class="inline-block px-4 py-1 bg-sky-100 text-sky-700 rounded-full text-sm font-semibold mb-4">Beginner to Pro</span>
+                    <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Master Python Programming<span class="text-sky-500">.</span></h1>
+                    <p class="text-xl text-slate-600 mb-6">A structured, no-fluff course designed to build your skills step-by-step and help you think like a professional software engineer[citation:5].</p>
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <div class="flex items-center text-slate-700">
+                            <i class="fas fa-play-circle text-sky-500 text-lg mr-2"></i>
+                            <span>52+ Lessons</span>
+                        </div>
+                        <div class="flex items-center text-slate-700">
+                            <i class="fas fa-clock text-sky-500 text-lg mr-2"></i>
+                            <span>18+ Hours</span>
+                        </div>
+                        <div class="flex items-center text-slate-700">
+                            <i class="fas fa-certificate text-sky-500 text-lg mr-2"></i>
+                            <span>Certificate of Completion</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Current Lesson Content -->
+                <article id="lesson-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 id="lesson-title" class="text-3xl font-bold text-slate-900">Welcome & Course Overview</h2>
+                        <span id="lesson-number" class="px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-mono font-bold">Lesson 1</span>
+                    </div>
+
+                    <div class="video-container">
+                        <!-- Placeholder for a video. Replace src with your own video embed URL. -->
+                        <div class="w-full h-full flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <i class="fas fa-play-circle text-6xl opacity-50 mb-4"></i>
+                                <p class="text-xl">Course Introduction Video</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="lead text-lg text-slate-700">Welcome to your journey to becoming a proficient Python developer! This course is built on a clear, logical path designed to build your skills step-by-step[citation:5].</p>
+
+                        <h3 class="text-2xl font-bold mt-8 mb-4 text-slate-800">What You'll Learn</h3>
+                        <ul class="list-disc pl-5 space-y-2 mb-6">
+                            <li>Core Python syntax and fundamentals from the ground up.</li>
+                            <li>How to build <strong>3 real-world projects</strong> to solidify your skills[citation:3].</li>
+                            <li>Best practices used by professional developers.</li>
+                            <li>Problem-solving techniques to tackle any coding challenge.</li>
+                        </ul>
+
+                        <div class="p-6 bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200 rounded-xl my-8">
+                            <h4 class="font-bold text-slate-800 text-xl mb-2 flex items-center"><i class="fas fa-lightbulb mr-3 text-yellow-500"></i>Pro Tip</h4>
+                            <p class="text-slate-700">Don't just watch the videos. <strong>Code along with every lesson</strong>. The hands-on experience is where the real learning happens.</p>
+                        </div>
+
+                        <h3 class="text-2xl font-bold mt-8 mb-4 text-slate-800">Resources for This Lesson</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <a href="#" class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition duration-200 flex items-center">
+                                <i class="fas fa-file-code text-sky-500 text-2xl mr-4"></i>
+                                <div>
+                                    <div class="font-semibold">starter_code.py</div>
+                                    <div class="text-sm text-slate-500">Downloadable code file</div>
+                                </div>
+                            </a>
+                            <a href="#" class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition duration-200 flex items-center">
+                                <i class="fas fa-file-alt text-sky-500 text-2xl mr-4"></i>
+                                <div>
+                                    <div class="font-semibold">Lesson Slides</div>
+                                    <div class="text-sm text-slate-500">PDF presentation</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Lesson Navigation -->
+                    <div class="mt-12 pt-8 border-t border-slate-200 flex justify-between">
+                        <button class="px-5 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition duration-200">
+                            <i class="fas fa-arrow-left mr-2"></i>Previous Lesson
+                        </button>
+                        <button class="px-5 py-3 bg-sky-500 text-white rounded-lg font-medium hover:bg-sky-600 transition duration-200">
+                            Mark Complete & Continue <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Function to toggle mobile navigation menu[citation:4]
+        function toggleNav() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        // Simple function to simulate loading a new lesson
+        function loadLesson(lessonNumber) {
+            const lessonTitles = [
+                "", // Index 0 not used
+                "Welcome & Course Overview",
+                "Setting Up Your Python Environment",
+                "Your First Python Program",
+                "Variables and Data Types",
+                "Control Flow: If/Else & Loops",
+                "Data Structures: Lists, Tuples, Sets",
+                "Dictionaries and Comprehensions",
+                "Functions Deep Dive",
+                "Modules, Packages, and PIP",
+                "Error Handling & Exceptions"
+            ];
+
+            // Update active state in sidebar
+            document.querySelectorAll('.lesson-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update main content
+            document.getElementById('lesson-title').textContent = lessonTitles[lessonNumber];
+            document.getElementById('lesson-number').textContent = `Lesson ${lessonNumber}`;
+
+            // In a real application, you would fetch new content here via AJAX or update more elements.
+            console.log(`Loading lesson ${lessonNumber}: ${lessonTitles[lessonNumber]}`);
+        }
+
+        // Initialize the first lesson as active
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Python course website loaded successfully.");
+        });
+    </script>
+</body>
+</html>
