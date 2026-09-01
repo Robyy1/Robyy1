@@ -35,8 +35,10 @@ Required variables in `.env`:
 | Variable | Description | Default |
 |---|---|---|
 | `PORT` | HTTP server port | `3000` |
-| `JWT_SECRET` | Secret key for signing JWT tokens (use a long random string) | `keystroke-secret-change-me` |
-| `NODE_ENV` | Environment (`development` or `production`) | `development` |
+| `NODE_ENV` | Environment (`development`, `production`, or `test`) | `development` |
+| `JWT_SECRET` | Secret key for signing JWT tokens (must be at least 32 characters) | required |
+| `DB_PATH` | SQLite database path | `./data/keystroke.db` |
+| `BCRYPT_COST` | bcrypt cost factor | `12` |
 
 ### Running Locally
 
@@ -49,6 +51,30 @@ The server starts on the port specified in `.env` (default: 3000). Open `http://
 On first run, the database is initialized automatically from `db/schema.sql` and populated with sample data from `data/quotes.json` and `data/code-snippets.json`. Course data is seeded from `data/courses.json` when the `courses` table is empty.
 
 > **Upgrading an existing database:** `db/db.js` runs a lightweight migration system on every boot (tracked with SQLite's `PRAGMA user_version`). It is non-destructive: existing rows are kept, new columns are added, and new tables (`courses`, `lessons`, `user_lesson_progress`) are created automatically. If you need to re-seed course data, run `npm run seed`.
+
+## Database migrations
+
+Migrations live in the `migrations/` directory and follow numeric, one-way ordering. For a fresh app, the app boot path is already idempotent. For a production upgrade, run the migration sequence in order:
+
+```bash
+npm run migrate
+```
+
+If a migration file is missing or the database is already up to date, the runner exits cleanly.
+
+## Database backups and integrity checks
+
+Create a backup:
+
+```bash
+npm run backup-db
+```
+
+Check DB integrity:
+
+```bash
+npm run check-db-integrity
+```
 
 ## Project Structure
 
@@ -63,6 +89,12 @@ keystroke/
 │   ├── schema.sql            # Database schema (tables, indexes)
 │   ├── db.js                 # SQLite connection + migration runner
 │   └── seed.js               # Seeds database on first run
+├── migrations/
+│   └── 001_initial_schema.sql
+├── scripts/
+│   ├── backup-db.js          # Backup script for cron jobs
+│   ├── check-db-integrity.js # Integrity check
+│   └── run-migrations.js     # Migration runner
 ├── data/
 │   ├── quotes.json           # 70 general-text passages
 │   ├── code-snippets.json    # 96 real code snippets across 8 languages

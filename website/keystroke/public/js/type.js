@@ -2,46 +2,64 @@
 // Orchestrates the typing engine, config bar, live stats, and results panel.
 
 (function () {
-  'use strict';
+  "use strict";
 
   // --- DOM references ---
-  var configForm = document.getElementById('configForm');
-  var modeBtns = document.querySelectorAll('.mode-btn');
-  var lengthBtns = document.querySelectorAll('.length-btn');
-  var codeOptions = document.getElementById('codeOptions');
-  var languageSelect = document.getElementById('languageSelect');
-  var difficultySelect = document.getElementById('difficultySelect');
-  var startBtn = document.getElementById('startBtn');
-  var randomBtn = document.getElementById('randomBtn');
-  var typingSection = document.getElementById('typingSection');
-  var liveStats = document.getElementById('liveStats');
-  var editorPane = document.getElementById('editorPane');
-  var editorTitle = document.getElementById('editorTitle');
-  var lineNumbers = document.getElementById('lineNumbers');
-  var typingContainer = document.getElementById('typingContainer');
-  var typingText = document.getElementById('typingText');
-  var caret = document.getElementById('caret');
-  var hiddenInput = document.getElementById('hiddenInput');
-  var countdownOverlay = document.getElementById('countdownOverlay');
-  var countdownText = document.getElementById('countdownText');
-  var resultsSection = document.getElementById('resultsSection');
-  var resultsGrid = document.getElementById('resultsGrid');
-  var resultsChartContainer = document.getElementById('resultsChartContainer');
-  var resultsChart = document.getElementById('resultsChart');
-  var restartBtn = document.getElementById('restartBtn');
-  var nextTestBtn = document.getElementById('nextTestBtn');
-  var errorMessage = document.getElementById('errorMessage');
+  var configForm = document.getElementById("configForm");
+  var modeBtns = document.querySelectorAll("[data-mode]");
+  var codeOptions = document.getElementById("codeOptions");
+  var languageSelect = document.getElementById("languageSelect");
+  var difficultySelect = document.getElementById("difficultySelect");
+  var durationInput = document.getElementById("durationInput");
+  var durationMinus = document.getElementById("durationMinus");
+  var durationPlus = document.getElementById("durationPlus");
+  var noLimitToggle = document.getElementById("noLimitToggle");
+  var startBtn = document.getElementById("startBtn");
+  var randomBtn = document.getElementById("randomBtn");
+  var typingSection = document.getElementById("typingSection");
+  var liveStats = document.getElementById("liveStats");
+  var editorPane = document.getElementById("editorPane");
+  var editorTitle = document.getElementById("editorTitle");
+  var lineNumbers = document.getElementById("lineNumbers");
+  var typingContainer = document.getElementById("typingContainer");
+  var typingText = document.getElementById("typingText");
+  var caret = document.getElementById("caret");
+  var hiddenInput = document.getElementById("hiddenInput");
+  var countdownOverlay = document.getElementById("countdownOverlay");
+  var countdownText = document.getElementById("countdownText");
+  var resultsSection = document.getElementById("resultsSection");
+  var resultsWpm = document.getElementById("resultsWpm");
+  var resultsAccuracy = document.getElementById("resultsAccuracy");
+  var resultsStats = document.getElementById("resultsStats");
+  var resultsChart = document.getElementById("resultsChart");
+  var restartBtn = document.getElementById("restartBtn");
+  var nextTestBtn = document.getElementById("nextTestBtn");
+  var errorMessage = document.getElementById("errorMessage");
+  var playbackSection = document.getElementById("playbackSection");
+  var playbackBtn = document.getElementById("playbackBtn");
+  var playbackContainer = document.getElementById("playbackContainer");
+  var playbackPlayPause = document.getElementById("playbackPlayPause");
+  var playbackProgress = document.getElementById("playbackProgress");
+  var playbackTime = document.getElementById("playbackTime");
 
   // Live stat elements
-  var liveWpm = document.getElementById('liveWpm');
-  var liveAccuracy = document.getElementById('liveAccuracy');
-  var liveTimer = document.getElementById('liveTimer');
-  var liveErrors = document.getElementById('liveErrors');
+  var liveWpm = document.getElementById("liveWpm");
+  var liveAccuracy = document.getElementById("liveAccuracy");
+  var liveTimer = document.getElementById("liveTimer");
+  var liveErrors = document.getElementById("liveErrors");
 
   // --- State ---
-  var currentConfig = { mode: 'code', language: 'javascript', difficulty: 'intermediate', length: '60s', indentWidthPref: 2 };
+  var currentConfig = {
+    mode: "code",
+    language: "javascript",
+    difficulty: "intermediate",
+    length: "60s",
+    customSeconds: 60,
+    noLimit: false,
+    indentWidthPref: 2,
+  };
   var engine = null;
-  var testText = '';
+  var testText = "";
   var timerInterval = null;
   var remainingSeconds = 0;
   var isTestRunning = false;
@@ -54,25 +72,27 @@
     setupThemeToggleFloat();
     checkAuthState();
     updateIndicators();
-    window.addEventListener('load', updateIndicators);
-    window.addEventListener('resize', debounce(updateIndicators, 150));
+    window.addEventListener("load", updateIndicators);
+    window.addEventListener("resize", debounce(updateIndicators, 150));
   }
 
   function renderNav() {
-    var navActions = document.getElementById('navActions');
+    var navActions = document.getElementById("navActions");
     if (!navActions) return;
     // Check auth state first via auth-client
     if (window.auth && window.auth.isLoggedIn()) {
-      navActions.innerHTML = '<a href="/settings.html" class="btn btn-ghost btn-sm">Settings</a>' +
+      navActions.innerHTML =
+        '<a href="/settings.html" class="btn btn-ghost btn-sm">Settings</a>' +
         '<button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Logout</button>';
-      var logoutBtn = document.getElementById('logoutBtn');
+      var logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
+        logoutBtn.addEventListener("click", function () {
           window.auth.logout();
         });
       }
     } else {
-      navActions.innerHTML = '<a href="/login.html" class="btn btn-ghost btn-sm">Login</a>' +
+      navActions.innerHTML =
+        '<a href="/login.html" class="btn btn-ghost btn-sm">Login</a>' +
         '<a href="/signup.html" class="btn btn-accent btn-sm">Sign Up</a>';
     }
   }
@@ -87,20 +107,25 @@
 
   function loadSavedConfig() {
     var saved = typingEngine.loadConfig();
-    currentConfig.mode = saved.mode || 'code';
-    currentConfig.language = saved.language || 'javascript';
-    currentConfig.difficulty = saved.difficulty || 'intermediate';
-    currentConfig.length = normalizeLength(saved.length || '60s');
+    currentConfig.mode = saved.mode || "code";
+    currentConfig.language = saved.language || "javascript";
+    currentConfig.difficulty = saved.difficulty || "intermediate";
+    currentConfig.noLimit = Boolean(saved.noLimit);
+    currentConfig.customSeconds = clampDuration(
+      saved.customSeconds || saved.length || 60,
+    );
+    currentConfig.length = currentConfig.noLimit
+      ? "full"
+      : currentConfig.customSeconds + "s";
     currentConfig.indentWidthPref = saved.indentWidthPref || 2;
 
-    // Update UI to match loaded config
     updateModeButtons();
-    updateLengthButtons();
+    syncDurationControls();
     if (isTimedLength(currentConfig.length)) {
       remainingSeconds = parseInt(currentConfig.length, 10) || 60;
       updateTimerDisplay();
     } else {
-      liveTimer.textContent = '--';
+      liveTimer.textContent = "--";
     }
     languageSelect.value = currentConfig.language;
     difficultySelect.value = currentConfig.difficulty;
@@ -110,57 +135,85 @@
   function setupEventListeners() {
     // Mode toggle buttons
     for (var i = 0; i < modeBtns.length; i++) {
-      modeBtns[i].addEventListener('click', handleModeChange);
+      modeBtns[i].addEventListener("click", handleModeChange);
     }
 
-    // Length toggle buttons
-    for (var j = 0; j < lengthBtns.length; j++) {
-      lengthBtns[j].addEventListener('click', handleLengthChange);
+    // Duration controls
+    if (durationMinus) {
+      durationMinus.addEventListener("click", function () {
+        changeDuration(-5);
+      });
+    }
+    if (durationPlus) {
+      durationPlus.addEventListener("click", function () {
+        changeDuration(5);
+      });
+    }
+    if (noLimitToggle) {
+      noLimitToggle.addEventListener("click", toggleNoLimit);
+    }
+    if (durationInput) {
+      durationInput.addEventListener("input", handleDurationInput);
+      durationInput.addEventListener("change", handleDurationInput);
     }
 
     // Language/difficulty change
-    languageSelect.addEventListener('change', function () {
+    languageSelect.addEventListener("change", function () {
       currentConfig.language = this.value;
       typingEngine.saveConfig(currentConfig);
     });
 
-    difficultySelect.addEventListener('change', function () {
+    difficultySelect.addEventListener("change", function () {
       currentConfig.difficulty = this.value;
       typingEngine.saveConfig(currentConfig);
     });
 
     // Start test form submission
-    configForm.addEventListener('submit', handleStartTest);
+    configForm.addEventListener("submit", handleStartTest);
 
     // Random test button
-    randomBtn.addEventListener('click', handleRandomTest);
+    randomBtn.addEventListener("click", handleRandomTest);
 
     // Restart and next test buttons
-    restartBtn.addEventListener('click', handleRestart);
-    nextTestBtn.addEventListener('click', handleNextTest);
+    restartBtn.addEventListener("click", handleRestart);
+    nextTestBtn.addEventListener("click", handleNextTest);
 
     // Hidden input for keystroke capture
-    hiddenInput.addEventListener('input', handleTextInput);
-    hiddenInput.addEventListener('keydown', handleKeyDown);
+    hiddenInput.addEventListener("input", handleTextInput);
+    hiddenInput.addEventListener("keydown", handleKeyDown);
 
     // Prevent paste in hidden input
-    hiddenInput.addEventListener('paste', function (e) { e.preventDefault(); });
+    hiddenInput.addEventListener("paste", function (e) {
+      e.preventDefault();
+    });
 
     // Keep focus on hidden input during test
-    document.addEventListener('click', function (e) {
-      if (isTestRunning && e.target !== hiddenInput && !e.target.closest('.results-card')) {
+    document.addEventListener("click", function (e) {
+      if (
+        isTestRunning &&
+        e.target !== hiddenInput &&
+        !e.target.closest(".results-card")
+      ) {
         hiddenInput.focus();
       }
     });
 
     // Handle window resize for editor layout
-    window.addEventListener('resize', debounce(function () {
-      if (engine) renderCurrentState();
-    }, 200));
+    window.addEventListener(
+      "resize",
+      debounce(function () {
+        if (engine) renderCurrentState();
+      }, 200),
+    );
 
     // Keyboard shortcut: Escape to restart when idle
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !isTestRunning && engine && engine.state !== typingEngine.STATE.RUNNING) {
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        !isTestRunning &&
+        engine &&
+        engine.state !== typingEngine.STATE.RUNNING
+      ) {
         handleRestart();
       }
     });
@@ -169,15 +222,17 @@
   // --- Sliding segmented indicator ---
   function positionIndicator(toggle, indicator) {
     if (!toggle || !indicator) return;
-    var active = toggle.querySelector('.mode-btn-active, .length-btn-active');
+    var active = toggle.querySelector(".mode-btn-active, .length-btn-active");
     if (!active) return;
-    indicator.style.left = (active.offsetLeft - toggle.clientLeft) + 'px';
-    indicator.style.width = active.offsetWidth + 'px';
+    indicator.style.left = active.offsetLeft - toggle.clientLeft + "px";
+    indicator.style.width = active.offsetWidth + "px";
   }
 
   function updateIndicators() {
-    positionIndicator(document.getElementById('modeToggle'), document.getElementById('modeIndicator'));
-    positionIndicator(document.getElementById('lengthToggle'), document.getElementById('lengthIndicator'));
+    positionIndicator(
+      document.getElementById("modeToggle"),
+      document.getElementById("modeIndicator"),
+    );
   }
 
   // --- Mode selection ---
@@ -195,58 +250,100 @@
     for (var i = 0; i < modeBtns.length; i++) {
       var btn = modeBtns[i];
       if (btn.dataset.mode === currentConfig.mode) {
-        btn.classList.add('mode-btn-active');
-        btn.setAttribute('aria-checked', 'true');
+        btn.classList.add("is-active");
+        btn.setAttribute("aria-checked", "true");
       } else {
-        btn.classList.remove('mode-btn-active');
-        btn.setAttribute('aria-checked', 'false');
+        btn.classList.remove("is-active");
+        btn.setAttribute("aria-checked", "false");
       }
     }
-    updateIndicators();
   }
 
   function toggleCodeOptions() {
-    if (currentConfig.mode === 'code') {
-      codeOptions.classList.remove('config-fieldset-hidden');
+    if (currentConfig.mode === "code") {
+      codeOptions.classList.remove("config-group-hidden");
     } else {
-      codeOptions.classList.add('config-fieldset-hidden');
+      codeOptions.classList.add("config-group-hidden");
     }
   }
 
-  // --- Length selection ---
+  // --- Duration controls ---
+  function clampDuration(value) {
+    var parsed = parseInt(value, 10);
+    if (isNaN(parsed)) return 60;
+    var clamped = Math.max(5, Math.min(600, parsed));
+    return Math.round(clamped / 5) * 5;
+  }
+
   function normalizeLength(raw) {
-    // Turns a length value into its canonical form: '15s' | '30s' | '60s' | '120s' | 'full'
-    var trimmed = String(raw || '').replace(/s$/, '');
-    if (trimmed === 'full' || trimmed === 'none' || trimmed === '') return 'full';
+    var trimmed = String(raw || "").replace(/s$/, "");
+    if (trimmed === "full" || trimmed === "none" || trimmed === "")
+      return "full";
     var num = parseInt(trimmed, 10);
-    return isNaN(num) ? 'full' : num + 's';
+    return isNaN(num) ? "full" : num + "s";
   }
 
   function isTimedLength(length) {
-    return length && length !== 'full';
+    return !!length && length !== "full";
   }
 
-  function handleLengthChange(e) {
-    var length = e.target.dataset.length;
-    if (!length) return;
-    currentConfig.length = normalizeLength(length);
-    typingEngine.saveConfig(currentConfig);
-    updateLengthButtons();
-  }
-
-  function updateLengthButtons() {
-    for (var j = 0; j < lengthBtns.length; j++) {
-      var btn = lengthBtns[j];
-      var val = normalizeLength(btn.dataset.length);
-      if (val === currentConfig.length) {
-        btn.classList.add('length-btn-active');
-        btn.setAttribute('aria-checked', 'true');
-      } else {
-        btn.classList.remove('length-btn-active');
-        btn.removeAttribute('aria-checked');
-      }
+  function syncDurationControls() {
+    if (!durationInput) return;
+    durationInput.value = currentConfig.noLimit
+      ? 60
+      : currentConfig.customSeconds;
+    durationInput.disabled = currentConfig.noLimit;
+    durationInput.setAttribute("aria-disabled", String(currentConfig.noLimit));
+    if (noLimitToggle) {
+      noLimitToggle.classList.toggle("is-active", currentConfig.noLimit);
+      noLimitToggle.setAttribute("aria-pressed", String(currentConfig.noLimit));
+      noLimitToggle.textContent = currentConfig.noLimit
+        ? "No limit on"
+        : "No limit";
     }
-    updateIndicators();
+  }
+
+  function changeDuration(delta) {
+    var target = currentConfig.noLimit ? 60 : currentConfig.customSeconds;
+    currentConfig.customSeconds = clampDuration(target + delta);
+    currentConfig.noLimit = false;
+    currentConfig.length = currentConfig.customSeconds + "s";
+    typingEngine.saveConfig(currentConfig);
+    syncDurationControls();
+    remainingSeconds = currentConfig.customSeconds;
+    updateTimerDisplay();
+  }
+
+  function toggleNoLimit() {
+    currentConfig.noLimit = !currentConfig.noLimit;
+    if (currentConfig.noLimit) {
+      currentConfig.length = "full";
+    } else {
+      currentConfig.customSeconds = clampDuration(
+        currentConfig.customSeconds || 60,
+      );
+      currentConfig.length = currentConfig.customSeconds + "s";
+    }
+    typingEngine.saveConfig(currentConfig);
+    syncDurationControls();
+    if (!currentConfig.noLimit) {
+      remainingSeconds = currentConfig.customSeconds;
+      updateTimerDisplay();
+    } else {
+      liveTimer.textContent = "∞";
+    }
+  }
+
+  function handleDurationInput() {
+    if (!durationInput) return;
+    var parsed = clampDuration(durationInput.value);
+    currentConfig.customSeconds = parsed;
+    currentConfig.noLimit = false;
+    currentConfig.length = currentConfig.customSeconds + "s";
+    typingEngine.saveConfig(currentConfig);
+    syncDurationControls();
+    remainingSeconds = currentConfig.customSeconds;
+    updateTimerDisplay();
   }
 
   // --- Start test ---
@@ -256,20 +353,37 @@
   }
 
   function handleRandomTest() {
-    currentConfig.mode = Math.random() > 0.5 ? 'general' : 'code';
-    if (currentConfig.mode === 'code') {
-      var langs = ['javascript', 'python', 'java', 'cpp', 'go', 'rust', 'typescript', 'sql'];
+    currentConfig.mode = Math.random() > 0.5 ? "general" : "code";
+    if (currentConfig.mode === "code") {
+      var langs = [
+        "javascript",
+        "python",
+        "java",
+        "cpp",
+        "go",
+        "rust",
+        "typescript",
+        "sql",
+      ];
       currentConfig.language = langs[Math.floor(Math.random() * langs.length)];
-      var diffs = ['beginner', 'intermediate', 'advanced'];
-      currentConfig.difficulty = diffs[Math.floor(Math.random() * diffs.length)];
+      var diffs = ["beginner", "intermediate", "advanced"];
+      currentConfig.difficulty =
+        diffs[Math.floor(Math.random() * diffs.length)];
+    }
+
+    currentConfig.noLimit = Math.random() > 0.5;
+    if (currentConfig.noLimit) {
+      currentConfig.length = "full";
     } else {
-      // General mode: random length (occasionally no time limit)
-      var lengths = ['15s', '30s', '60s', '120s', 'full'];
-      currentConfig.length = lengths[Math.floor(Math.random() * lengths.length)];
+      var custom = [20, 30, 45, 60, 90, 120, 180][
+        Math.floor(Math.random() * 7)
+      ];
+      currentConfig.customSeconds = custom;
+      currentConfig.length = custom + "s";
     }
     typingEngine.saveConfig(currentConfig);
     updateModeButtons();
-    updateLengthButtons();
+    syncDurationControls();
     languageSelect.value = currentConfig.language;
     difficultySelect.value = currentConfig.difficulty;
     toggleCodeOptions();
@@ -280,44 +394,46 @@
   function startTest() {
     // Reset state
     hideError();
-    resultsSection.classList.add('hidden');
-    typingSection.classList.remove('hidden');
-    liveStats.classList.remove('hidden');
+    resultsSection.classList.add("hidden");
+    typingSection.classList.remove("hidden");
+    liveStats.classList.remove("hidden");
 
     var config = currentConfig;
 
     // Fetch test text
-    fetchRandomText(config.mode, config.language, config.difficulty, config.length)
+    fetchRandomText(
+      config.mode,
+      config.language,
+      config.difficulty,
+      config.length,
+    )
       .then(function (data) {
-        if (!data || !data.text) throw new Error('No text received');
+        if (!data || !data.text) throw new Error("No text received");
         testText = data.text;
         initEngine(testText);
         startCountdown();
       })
       .catch(function (err) {
-        showError('Failed to load test text. Please try again.');
+        showError("Failed to load test text. Please try again.");
         console.error(err);
       });
   }
 
   function fetchRandomText(mode, language, difficulty, length) {
     var params = new URLSearchParams();
-    params.set('mode', mode);
-    if (mode === 'code') {
-      params.set('language', language || '');
-      params.set('difficulty', difficulty || '');
+    params.set("mode", mode);
+    if (mode === "code") {
+      params.set("language", language || "");
+      params.set("difficulty", difficulty || "");
+    } else if (mode === "dictionary") {
+      params.set("length", "medium");
     } else {
-      // For general/dictionary modes, map time-based lengths to a medium length for API
-      var apiLength = 'medium';
-      if (length === '15s' || length === '30s') apiLength = 'short';
-      if (mode === 'dictionary') apiLength = length || '60s';
-      params.set('length', apiLength);
+      params.set("length", "medium");
     }
-    return fetch('/api/texts/random?' + params.toString())
-      .then(function (res) {
-        if (!res.ok) throw new Error('Failed to load text: ' + res.status);
-        return res.json();
-      });
+    return fetch("/api/texts/random?" + params.toString()).then(function (res) {
+      if (!res.ok) throw new Error("Failed to load text: " + res.status);
+      return res.json();
+    });
   }
 
   function initEngine(text) {
@@ -330,7 +446,7 @@
       onUpdate: handleUpdate,
       onFinish: handleFinish,
       renderChar: renderCharacter,
-      renderAll: renderAllCharacters
+      renderAll: renderAllCharacters,
     };
 
     engine = new typingEngine.TypingEngine(options);
@@ -341,7 +457,7 @@
   }
 
   function startCountdown() {
-    countdownOverlay.classList.remove('hidden');
+    countdownOverlay.classList.remove("hidden");
     var count = 3;
     countdownText.textContent = count;
 
@@ -351,7 +467,7 @@
         countdownText.textContent = count;
       } else {
         clearInterval(countInterval);
-        countdownOverlay.classList.add('hidden');
+        countdownOverlay.classList.add("hidden");
         beginTest();
       }
     }, 600);
@@ -363,16 +479,21 @@
     hiddenInput.focus();
 
     // Set remaining time for timed modes; no-limit mode counts up instead.
-    if (isTimedLength(currentConfig.length)) {
-      remainingSeconds = parseInt(currentConfig.length, 10) || 60;
+    if (!currentConfig.noLimit && isTimedLength(currentConfig.length)) {
+      remainingSeconds =
+        currentConfig.customSeconds || parseInt(currentConfig.length, 10) || 60;
       startTimer();
     } else {
-      liveTimer.textContent = '0s';
+      liveTimer.textContent = "0s";
       startElapsedTimer();
     }
 
-    editorTitle.textContent = currentConfig.mode === 'code' ?
-      (languageSelect.value + ' — ' + difficultySelect.value) : (currentConfig.mode === 'dictionary' ? 'Dictionary' : 'General Text');
+    editorTitle.textContent =
+      currentConfig.mode === "code"
+        ? languageSelect.value + " — " + difficultySelect.value
+        : currentConfig.mode === "dictionary"
+          ? "Dictionary"
+          : "General Text";
   }
 
   // No-limit mode: show elapsed time counting up from zero.
@@ -385,7 +506,7 @@
         return;
       }
       var elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
-      liveTimer.textContent = elapsed + 's';
+      liveTimer.textContent = elapsed + "s";
     }, 500);
   }
 
@@ -405,7 +526,7 @@
   }
 
   function updateTimerDisplay() {
-    liveTimer.textContent = Math.max(0, remainingSeconds) + 's';
+    liveTimer.textContent = Math.max(0, remainingSeconds) + "s";
   }
 
   // --- Keystroke handling ---
@@ -419,21 +540,23 @@
     var ch = inputValue[inputValue.length - 1];
 
     // Handle special characters
-    if (ch === '\n' || ch === '\r') {
-      ch = '\n';
-    } else if (ch === '\t') {
+    if (ch === "\n" || ch === "\r") {
+      ch = "\n";
+    } else if (ch === "\t") {
       // Convert tab to configured indent width spaces, feeding each one.
-      var indent = new Array((currentConfig.indentWidthPref || 2) + 1).join(' ');
+      var indent = new Array((currentConfig.indentWidthPref || 2) + 1).join(
+        " ",
+      );
       for (var ti = 0; ti < indent.length; ti++) {
         engine.handleInput(indent[ti]);
       }
-      hiddenInput.value = '';
+      hiddenInput.value = "";
       renderCurrentState();
       return;
     }
 
     engine.handleInput(ch);
-    hiddenInput.value = ''; // Clear input for next keystroke
+    hiddenInput.value = ""; // Clear input for next keystroke
 
     renderCurrentState();
   }
@@ -442,9 +565,9 @@
     if (!isTestRunning || !engine) return;
 
     // Handle backspace separately (input event doesn't fire reliably for it)
-    if (e.key === 'Backspace') {
+    if (e.key === "Backspace") {
       e.preventDefault();
-      var handled = engine.handleInput('\b');
+      var handled = engine.handleInput("\b");
       if (handled) renderCurrentState();
       return;
     }
@@ -454,20 +577,20 @@
 
     // Handle Enter first — it must not be swallowed by the printable-char
     // guard below (which only matches single-char keys).
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
-      engine.handleInput('\n');
+      engine.handleInput("\n");
       renderCurrentState();
       return;
     }
 
     // Tab expands to the configured indent width so code indentation can be
     // typed naturally. Feed each space through the engine individually.
-    if (e.key === 'Tab') {
+    if (e.key === "Tab") {
       e.preventDefault();
-      var indent = (currentConfig.indentWidthPref || 2);
+      var indent = currentConfig.indentWidthPref || 2;
       for (var t = 0; t < indent; t++) {
-        engine.handleInput(' ');
+        engine.handleInput(" ");
       }
       renderCurrentState();
       return;
@@ -475,8 +598,12 @@
 
     if (e.key.length > 1) return; // modifier or special key
 
-    // Prevent default for most keys during test to avoid browser shortcuts
-    if (!e.key.match(/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};:'",.<>\/?\\|`~]$/)) {
+    // Allow standard letters, numbers, spaces, and common punctuation used in
+    // code and prose, including hyphens and apostrophes. Some browsers emit the
+    // Unicode dash form (–, —), so accept those too.
+    if (
+      !/^[A-Za-z0-9\s!@#$%^&*()_+\-=\[\]{};:'",.<>\/?\\|`~–—’]$/.test(e.key)
+    ) {
       e.preventDefault();
       return;
     }
@@ -492,14 +619,16 @@
   // --- Rendering ---
   function renderCharacter(ch, state) {
     switch (state) {
-      case 'correct':
-        return '<span class="char char-correct">' + escapeHtml(ch) + '</span>';
-      case 'incorrect':
-        return '<span class="char char-incorrect">' + escapeHtml(ch) + '</span>';
-      case 'current':
-        return '<span class="char char-current">' + escapeHtml(ch) + '</span>';
+      case "correct":
+        return '<span class="char char-correct">' + escapeHtml(ch) + "</span>";
+      case "incorrect":
+        return (
+          '<span class="char char-incorrect">' + escapeHtml(ch) + "</span>"
+        );
+      case "current":
+        return '<span class="char char-current">' + escapeHtml(ch) + "</span>";
       default:
-        return '<span class="char char-untyped">' + escapeHtml(ch) + '</span>';
+        return '<span class="char char-untyped">' + escapeHtml(ch) + "</span>";
     }
   }
 
@@ -507,9 +636,14 @@
     if (!engine || !testText) return;
 
     // Build the full HTML for all characters
-    var html = '';
+    var html = "";
     for (var i = 0; i < testText.length; i++) {
-      html += '<span class="char char-untyped" data-index="' + i + '">' + escapeHtml(testText[i]) + '</span>';
+      html +=
+        '<span class="char char-untyped" data-index="' +
+        i +
+        '">' +
+        escapeHtml(testText[i]) +
+        "</span>";
     }
     typingText.innerHTML = html;
 
@@ -520,7 +654,7 @@
   function renderCurrentState() {
     if (!engine || !testText) return;
 
-    var chars = typingText.querySelectorAll('.char');
+    var chars = typingText.querySelectorAll(".char");
     for (var i = 0; i < chars.length; i++) {
       var charEl = chars[i];
       if (i < engine.currentIndex) {
@@ -528,16 +662,16 @@
         // render as char-incorrect instead of all being green.
         var charState = engine.charStates[i];
         if (charState === false) {
-          charEl.className = 'char char-incorrect';
+          charEl.className = "char char-incorrect";
         } else if (charState === true) {
-          charEl.className = 'char char-correct';
+          charEl.className = "char char-correct";
         } else {
-          charEl.className = 'char char-untyped';
+          charEl.className = "char char-untyped";
         }
       } else if (i === engine.currentIndex) {
-        charEl.className = 'char char-current';
+        charEl.className = "char char-current";
       } else {
-        charEl.className = 'char char-untyped';
+        charEl.className = "char char-untyped";
       }
     }
 
@@ -549,10 +683,10 @@
   }
 
   function buildLineNumbers() {
-    var lines = testText.split('\n');
-    var html = '';
+    var lines = testText.split("\n");
+    var html = "";
     for (var i = 0; i < lines.length; i++) {
-      html += '<div class="line-number">' + (i + 1) + '</div>';
+      html += '<div class="line-number">' + (i + 1) + "</div>";
     }
     lineNumbers.innerHTML = html;
   }
@@ -560,7 +694,7 @@
   function updateCaretPosition() {
     if (!engine || !typingText) return;
 
-    var chars = typingText.querySelectorAll('.char');
+    var chars = typingText.querySelectorAll(".char");
     var currentCharEl = null;
 
     for (var i = 0; i < chars.length; i++) {
@@ -573,22 +707,22 @@
     if (currentCharEl) {
       var rect = currentCharEl.getBoundingClientRect();
       var containerRect = typingContainer.getBoundingClientRect();
-      caret.style.left = (rect.left - containerRect.left) + 'px';
-      caret.style.top = (rect.top - containerRect.top) + 'px';
-      caret.style.height = rect.height + 'px';
-      caret.classList.remove('hidden');
+      caret.style.left = rect.left - containerRect.left + "px";
+      caret.style.top = rect.top - containerRect.top + "px";
+      caret.style.height = rect.height + "px";
+      caret.classList.remove("hidden");
     } else if (engine.currentIndex >= testText.length) {
       // Caret at end of text
       var lastChar = chars[chars.length - 1];
       if (lastChar) {
         var rect = lastChar.getBoundingClientRect();
         var containerRect = typingContainer.getBoundingClientRect();
-        caret.style.left = (rect.right - containerRect.left) + 'px';
-        caret.style.top = (rect.top - containerRect.top) + 'px';
-        caret.style.height = rect.height + 'px';
+        caret.style.left = rect.right - containerRect.left + "px";
+        caret.style.top = rect.top - containerRect.top + "px";
+        caret.style.height = rect.height + "px";
       }
     } else {
-      caret.classList.add('hidden');
+      caret.classList.add("hidden");
     }
   }
 
@@ -600,11 +734,11 @@
   // --- State change handler ---
   function handleStateChange(state) {
     switch (state) {
-      case 'running':
-        liveStats.classList.remove('hidden');
-        countdownOverlay.classList.add('hidden');
+      case "running":
+        liveStats.classList.remove("hidden");
+        countdownOverlay.classList.add("hidden");
         break;
-      case 'finished':
+      case "finished":
         isTestRunning = false;
         if (timerInterval) clearInterval(timerInterval);
         hiddenInput.blur();
@@ -620,11 +754,11 @@
 
     // Color coding for accuracy
     if (data.accuracy < 80) {
-      liveAccuracy.style.color = 'var(--error)';
+      liveAccuracy.style.color = "var(--error)";
     } else if (data.accuracy < 95) {
-      liveAccuracy.style.color = 'var(--text-muted)';
+      liveAccuracy.style.color = "var(--text-muted)";
     } else {
-      liveAccuracy.style.color = 'var(--success)';
+      liveAccuracy.style.color = "var(--success)";
     }
   }
 
@@ -659,7 +793,7 @@
       engine.errorCount,
       engine.keystrokes,
       engine.startTime,
-      elapsedMs
+      elapsedMs,
     );
     engine.metrics = metrics;
 
@@ -668,72 +802,60 @@
   }
 
   function showResults(metrics) {
-    typingSection.classList.add('hidden');
-    resultsSection.classList.remove('hidden');
+    typingSection.classList.add("hidden");
+    resultsSection.classList.remove("hidden");
 
-    // Headline: big WPM + accuracy so the score is instantly readable.
-    var accuracy = metrics.accuracy || 0;
-    var headline =
-      '<div class="results-headline">' +
-      '<div class="results-headline-main">' +
-      '<span class="results-headline-value">' + (metrics.wpm || 0) + '</span>' +
-      '<span class="results-headline-label">WPM</span>' +
-      '</div>' +
-      '<div class="results-headline-main">' +
-      '<span class="results-headline-value results-headline-value-' + (accuracy >= 95 ? 'good' : (accuracy < 80 ? 'bad' : 'mid')) + '">' + accuracy.toFixed(1) + '%</span>' +
-      '<span class="results-headline-label">Accuracy</span>' +
-      '</div>' +
-      '</div>';
+    // Update headline WPM and accuracy
+    resultsWpm.textContent = metrics.wpm || 0;
+    resultsAccuracy.textContent = (metrics.accuracy || 0).toFixed(1) + "%";
 
-    // Render stat cards
-    var statsHtml = '';
-    var statItems = [
-      { label: 'Raw WPM', value: metrics.rawWpm || 0, color: '' },
-      { label: 'Consistency', value: (metrics.consistency || 0).toFixed(1) + '%', color: (metrics.consistency || 0) >= 80 ? 'success' : 'error' },
-      { label: 'Errors', value: metrics.errorCount || 0, color: 'error' },
-      { label: 'Characters', value: testText ? testText.length : 0, color: '' },
-      { label: 'Duration', value: formatDuration((Date.now() - (engine && engine.startTime ? engine.startTime : Date.now()))), color: '' }
-    ];
+    // Update detailed stats
+    var statValues = {
+      resultsRawWpm: metrics.rawWpm || 0,
+      resultsChars: testText ? testText.length : 0,
+      resultsErrors: metrics.errorCount || 0,
+      resultsTime: formatDuration(
+        engine && engine.startTime ? Date.now() - engine.startTime : 0,
+      ),
+      resultsConsistency: (metrics.consistency || 0).toFixed(1) + "%",
+    };
 
-    for (var i = 0; i < statItems.length; i++) {
-      var item = statItems[i];
-      statsHtml += '<div class="stat-card">';
-      statsHtml += '<span class="stat-card-label">' + item.label + '</span>';
-      if (item.color) {
-        statsHtml += '<span class="stat-card-value stat-card-value-' + item.color + '">' + item.value + '</span>';
-      } else {
-        statsHtml += '<span class="stat-card-value">' + item.value + '</span>';
-      }
-      statsHtml += '</div>';
+    for (var id in statValues) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = statValues[id];
     }
-
-    resultsGrid.innerHTML = headline + statsHtml;
 
     // Show chart if we have enough data points
     if (engine && engine.wpmHistory && engine.wpmHistory.length > 2) {
-      resultsChartContainer.classList.remove('hidden');
+      resultsChart.classList.remove("hidden");
       renderResultsChart();
     } else {
-      resultsChartContainer.classList.add('hidden');
+      resultsChart.classList.add("hidden");
+    }
+
+    // Show playback section
+    if (engine && engine.keystrokes && engine.keystrokes.length > 0) {
+      playbackSection.classList.remove("hidden");
+      initPlayback();
     }
 
     // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    resultsSection.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function formatDuration(ms) {
-    if (ms <= 0) return '0s';
+    if (ms <= 0) return "0s";
     var seconds = Math.floor(ms / 1000);
-    if (seconds < 60) return seconds + 's';
+    if (seconds < 60) return seconds + "s";
     var minutes = Math.floor(seconds / 60);
     var secs = seconds % 60;
-    return minutes + 'm ' + secs + 's';
+    return minutes + "m " + secs + "s";
   }
 
   function renderResultsChart() {
     if (!engine || !engine.wpmHistory || engine.wpmHistory.length < 2) return;
 
-    resultsChart.innerHTML = '';
+    resultsChart.innerHTML = "";
 
     // wpmHistory holds chars-per-second buckets; * 12 converts to WPM (60/5).
     var dataPoints = [];
@@ -743,12 +865,12 @@
 
     if (dataPoints.length < 2) return;
 
-    if (window.stats && typeof window.stats.createLineChart === 'function') {
+    if (window.stats && typeof window.stats.createLineChart === "function") {
       window.stats.createLineChart(resultsChart, dataPoints, {
-        lineColor: 'var(--accent)',
+        lineColor: "var(--accent)",
         height: 220,
-        dotRadius: '3',
-        title: 'WPM Over Time'
+        dotRadius: "3",
+        title: "WPM Over Time",
       });
     }
   }
@@ -757,7 +879,11 @@
     if (!window.auth || !window.auth.isLoggedIn()) return;
 
     var lengthVal = parseInt(currentConfig.length, 10);
-    var durationSeconds = engine ? (Date.now() - engine.startTime) / 1000 : (lengthVal || 60);
+    var durationSeconds = engine
+      ? (Date.now() - engine.startTime) / 1000
+      : currentConfig.noLimit
+        ? 0
+        : currentConfig.customSeconds || lengthVal || 60;
 
     var body = {
       mode: currentConfig.mode,
@@ -767,66 +893,70 @@
       consistency: metrics.consistency || 0,
       errorCount: metrics.errorCount || 0,
       durationSeconds: durationSeconds,
-      charCount: testText ? testText.length : 0
+      charCount: testText ? testText.length : 0,
     };
 
-    if (currentConfig.mode === 'code') {
+    if (currentConfig.mode === "code") {
       body.language = currentConfig.language;
       body.difficulty = currentConfig.difficulty;
     } else {
       // Map length to a general difficulty label
       if (!isTimedLength(currentConfig.length)) {
-        body.difficulty = 'intermediate';
-      } else if (lengthVal <= 30) body.difficulty = 'beginner';
-      else if (lengthVal <= 60) body.difficulty = 'intermediate';
-      else body.difficulty = 'advanced';
+        body.difficulty = "intermediate";
+      } else if (lengthVal <= 30) body.difficulty = "beginner";
+      else if (lengthVal <= 60) body.difficulty = "intermediate";
+      else body.difficulty = "advanced";
     }
-    fetch('/api/results', {
-      method: 'POST',
-      credentials: 'include',
+    fetch("/api/results", {
+      method: "POST",
+      credentials: "include",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     }).catch(function (err) {
-      console.error('Failed to save result:', err);
+      console.error("Failed to save result:", err);
     });
   }
 
   // --- Restart / Next test ---
   function handleRestart() {
-    resultsSection.classList.add('hidden');
-    typingSection.classList.remove('hidden');
-    liveStats.classList.remove('hidden');
+    resultsSection.classList.add("hidden");
+    typingSection.classList.remove("hidden");
+    liveStats.classList.remove("hidden");
 
     if (engine) {
       engine.reset();
     }
 
     renderAllCharacters();
-    hiddenInput.value = '';
+    hiddenInput.value = "";
     hiddenInput.focus();
 
     // Reset live stats
-    liveWpm.textContent = '0';
-    liveAccuracy.textContent = '100.0';
-    liveErrors.textContent = '0';
-    liveTimer.style.color = '';
+    liveWpm.textContent = "0";
+    liveAccuracy.textContent = "100.0";
+    liveErrors.textContent = "0";
+    liveTimer.style.color = "";
 
     var lengthVal = parseInt(currentConfig.length, 10);
-    if (isTimedLength(currentConfig.length) && !isNaN(lengthVal)) {
-      remainingSeconds = lengthVal;
+    if (
+      !currentConfig.noLimit &&
+      isTimedLength(currentConfig.length) &&
+      !isNaN(lengthVal)
+    ) {
+      remainingSeconds = currentConfig.customSeconds || lengthVal;
       updateTimerDisplay();
     } else {
-      liveTimer.textContent = '0s';
+      liveTimer.textContent = "0s";
     }
 
     startCountdown();
   }
 
   function handleNextTest() {
-    resultsSection.classList.add('hidden');
-    typingSection.classList.remove('hidden');
+    resultsSection.classList.add("hidden");
+    typingSection.classList.remove("hidden");
     // Start a new random test
     handleRandomTest();
   }
@@ -834,22 +964,25 @@
   // --- Error display ---
   function showError(msg) {
     errorMessage.textContent = msg;
-    errorMessage.classList.remove('hidden');
+    errorMessage.classList.remove("hidden");
   }
 
   function hideError() {
-    errorMessage.classList.add('hidden');
-    errorMessage.textContent = '';
+    errorMessage.classList.add("hidden");
+    errorMessage.textContent = "";
   }
 
   // --- Theme toggle (floating button) ---
   // Bound centrally in theme.js; kept as a safe no-op so init() is unchanged.
   function setupThemeToggleFloat() {
-    var themeToggleFloat = document.getElementById('themeToggleFloat');
+    var themeToggleFloat = document.getElementById("themeToggleFloat");
     if (!themeToggleFloat) return;
-    if (themeToggleFloat.getAttribute('data-theme-bound') !== '1' && window.theme) {
-      themeToggleFloat.setAttribute('data-theme-bound', '1');
-      themeToggleFloat.addEventListener('click', function () {
+    if (
+      themeToggleFloat.getAttribute("data-theme-bound") !== "1" &&
+      window.theme
+    ) {
+      themeToggleFloat.setAttribute("data-theme-bound", "1");
+      themeToggleFloat.addEventListener("click", function () {
         window.theme.toggleTheme();
       });
     }
@@ -860,13 +993,18 @@
     var timer = null;
     return function () {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(function () { fn.apply(this, arguments); }.bind(this), delay);
+      timer = setTimeout(
+        function () {
+          fn.apply(this, arguments);
+        }.bind(this),
+        delay,
+      );
     };
   }
 
   // --- Utility: escape HTML ---
   function escapeHtml(str) {
-    var div = document.createElement('div');
+    var div = document.createElement("div");
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
@@ -875,14 +1013,13 @@
   window.typePage = {
     init: init,
     startTest: startTest,
-    handleRestart: handleRestart
+    handleRestart: handleRestart,
   };
 
   // Auto-init when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
-
 })();

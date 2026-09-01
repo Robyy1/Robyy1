@@ -1,102 +1,163 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign up — Keystroke</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up — Keystroke</title>
 
-  <script>
-            (function() {
-      var t = localStorage.getItem('keystroke-theme');
-      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      var a = localStorage.getItem('keystroke-accent');
-      if (!a || ['amber','cyan','violet','rose','mono'].indexOf(a) === -1) a = 'amber';
-      var m = localStorage.getItem('keystroke-motion');
-      if (!m || ['system','on','off'].indexOf(m) === -1) m = 'system';
-      document.documentElement.setAttribute('data-theme', t);
-      document.documentElement.setAttribute('data-accent', a);
-      document.documentElement.setAttribute('data-motion', m);
-    })();
-  </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/pages.css">
-</head>
-<body>
-
-  <!-- Navbar -->
-  <nav class="navbar" aria-label="Main navigation">
-    <a href="/" class="navbar-brand" aria-label="Keystroke home">&lt;keystroke/&gt;</a>
-    <div id="nav-guest-area" style="display:flex;">
-      <ul class="navbar-links">
-        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
-        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a>
-        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
-      </ul>
-    </div>
-    <div id="nav-user-area" style="display:none;" class="navbar-user">
-      <ul class="navbar-links">
-        <li><a href="/type.html" class="navbar-link">Type Test</a></li>
-        <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
-        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <!-- Auth card -->
-  <main class="auth-page">
-    <div class="card auth-card">
-      <h1 class="auth-title">Create an account</h1>
-      <p class="auth-subtitle">Free forever. Save results, track progress, compete on leaderboards.</p>
-
-      <div id="signup-form-msg" class="alert" role="alert" style="display:none;"></div>
-
-      <form id="signup-form" novalidate>
-        <div class="form-group">
-          <label class="form-label" for="signup-username">Username</label>
-          <input type="text" id="signup-username" class="form-input" placeholder="codemonkey42" required autocomplete="username" minlength="3" maxlength="20">
-          <span id="signup-username-error" class="form-error" role="alert"></span>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="/" class="navbar-brand" aria-label="Keystroke home">
+          <span class="logo-icon" aria-hidden="true">&gt;_</span>
+          <span class="logo-text">keystroke</span>
+        </a>
+        <ul class="navbar-links">
+          <li><a href="/type.html" class="navbar-link">Type</a></li>
+          <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
+          <li><a href="/learning.html" class="navbar-link">Learning</a></li>
+          <li>
+            <a href="/leaderboard.html" class="navbar-link">Leaderboard</a>
+          </li>
+        </ul>
+        <div class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
         </div>
+      </div>
+    </nav>
 
-        <div class="form-group">
-          <label class="form-label" for="signup-email">Email</label>
-          <input type="email" id="signup-email" class="form-input" placeholder="you@example.com" required autocomplete="email">
-          <span id="signup-email-error" class="form-error" role="alert"></span>
-        </div>
+    <!-- Auth card -->
+    <main class="auth-page">
+      <div class="card auth-card">
+        <h1 class="auth-title">Create an account</h1>
+        <p class="auth-subtitle">
+          Free forever. Save results, track progress, compete on leaderboards.
+        </p>
 
-        <div class="form-group">
-          <label class="form-label" for="signup-password">Password</label>
-          <div class="form-password-wrapper">
-            <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required autocomplete="new-password" minlength="6" style="padding-right:48px;">
-            <button type="button" id="signup-pass-toggle" class="form-password-toggle" aria-label="Toggle password visibility">&#128065;</button>
+        <div
+          id="signup-form-msg"
+          class="alert"
+          role="alert"
+          style="display: none"
+        ></div>
+
+        <form id="signup-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="signup-username">Username</label>
+            <input
+              type="text"
+              id="signup-username"
+              class="form-input"
+              placeholder="codemonkey42"
+              required
+              autocomplete="username"
+              minlength="3"
+              maxlength="20"
+            />
+            <span
+              id="signup-username-error"
+              class="form-error"
+              role="alert"
+            ></span>
           </div>
-          <span id="signup-password-error" class="form-error" role="alert"></span>
-          <span class="form-hint">At least 6 characters</span>
-        </div>
 
-        <div class="form-group">
-          <label class="form-label" for="signup-confirm">Confirm password</label>
-          <input type="password" id="signup-confirm" class="form-input" placeholder="••••••••" required autocomplete="new-password">
-          <span id="signup-confirm-error" class="form-error" role="alert"></span>
-        </div>
+          <div class="form-group">
+            <label class="form-label" for="signup-email">Email</label>
+            <input
+              type="email"
+              id="signup-email"
+              class="form-input"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+            />
+            <span
+              id="signup-email-error"
+              class="form-error"
+              role="alert"
+            ></span>
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Create account</button>
-      </form>
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
+            <div class="form-password-wrapper">
+              <input
+                type="password"
+                id="signup-password"
+                class="form-input"
+                placeholder="••••••••"
+                required
+                autocomplete="new-password"
+                minlength="6"
+                style="padding-right: 48px"
+              />
+              <button
+                type="button"
+                id="signup-pass-toggle"
+                class="form-password-toggle"
+                aria-label="Toggle password visibility"
+              >
+                &#128065;
+              </button>
+            </div>
+            <span
+              id="signup-password-error"
+              class="form-error"
+              role="alert"
+            ></span>
+            <span class="form-hint">At least 6 characters</span>
+          </div>
 
-      <p class="auth-footer">Already have an account? <a href="/login.html">Sign in</a></p>
-    </div>
-  </main>
+          <div class="form-group">
+            <label class="form-label" for="signup-confirm"
+              >Confirm password</label
+            >
+            <input
+              type="password"
+              id="signup-confirm"
+              class="form-input"
+              placeholder="••••••••"
+              required
+              autocomplete="new-password"
+            />
+            <span
+              id="signup-confirm-error"
+              class="form-error"
+              role="alert"
+            ></span>
+          </div>
 
-  <!-- Scripts -->
-  <script src="/js/theme.js" type="module"></script>
-  <script src="/js/auth-client.js" type="module"></script>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            Create account
+          </button>
+        </form>
 
-</body>
+        <p class="auth-footer">
+          Already have an account? <a href="/login.html">Sign in</a>
+        </p>
+      </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/js/theme.js"></script>
+    <script src="/js/auth-client.js"></script>
+  </body>
 </html>

@@ -5,13 +5,19 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node db/seed.js"
+    "seed": "node db/seed.js",
+    "migrate": "node scripts/run-migrations.js",
+    "backup-db": "node scripts/backup-db.js",
+    "check-db-integrity": "node scripts/check-db-integrity.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "better-sqlite3": "^11.7.0",
     "cookie-parser": "^1.4.6",
+    "dotenv": "^17.4.2",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2"
   }
 }

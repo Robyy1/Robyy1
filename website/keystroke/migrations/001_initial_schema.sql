@@ -1,12 +1,10 @@
+-- Initial schema baseline for Keystroke.
+-- This file is intentionally idempotent and intended to be used as a migration reference.
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  email_verified INTEGER DEFAULT 0,
-  email_verification_token TEXT,
-  reset_token TEXT,
-  reset_token_expires_at DATETIME,
   theme TEXT DEFAULT 'dark',
   font_pref TEXT DEFAULT 'jetbrains-mono',
   accent_pref TEXT DEFAULT 'amber',
