@@ -421,6 +421,92 @@
     tooltipGroup.appendChild(tooltipText);
 
     svg.appendChild(tooltipGroup);
+
+    // --- Playback scrubber (bubble that moves with replay) ---
+    var scrubberGroup = document.createElementNS(svgNS, 'g');
+    scrubberGroup.setAttribute('class', 'chart-scrubber');
+    scrubberGroup.style.display = 'none';
+    scrubberGroup.style.pointerEvents = 'none';
+
+    var scrubberLine = document.createElementNS(svgNS, 'line');
+    scrubberLine.setAttribute('class', 'chart-scrubber-line');
+    scrubberLine.setAttribute('stroke', '#c8b98a');
+    scrubberLine.setAttribute('stroke-width', '1.5');
+    scrubberLine.setAttribute('stroke-dasharray', '5,4');
+    scrubberLine.setAttribute('y1', CHART_PADDING.top);
+    scrubberLine.setAttribute('y2', CHART_PADDING.top + chartHeight);
+
+    var scrubberDot = document.createElementNS(svgNS, 'circle');
+    scrubberDot.setAttribute('class', 'chart-scrubber-dot');
+    scrubberDot.setAttribute('r', '5');
+    scrubberDot.setAttribute('fill', '#c8b98a');
+    scrubberDot.setAttribute('stroke', 'var(--surface)');
+    scrubberDot.setAttribute('stroke-width', '2');
+
+    var scrubberBubble = document.createElementNS(svgNS, 'g');
+    scrubberBubble.setAttribute('class', 'chart-scrubber-bubble');
+    var bubbleRect = document.createElementNS(svgNS, 'rect');
+    bubbleRect.setAttribute('rx', '8');
+    bubbleRect.setAttribute('ry', '8');
+    bubbleRect.setAttribute('width', '64');
+    bubbleRect.setAttribute('height', '20');
+    bubbleRect.setAttribute('fill', 'var(--surface-raised)');
+    bubbleRect.setAttribute('stroke', 'var(--border)');
+    var bubbleText = document.createElementNS(svgNS, 'text');
+    bubbleText.setAttribute('text-anchor', 'middle');
+    bubbleText.setAttribute('dominant-baseline', 'middle');
+    bubbleText.setAttribute('fill', 'var(--text)');
+    bubbleText.setAttribute('font-size', '11');
+    bubbleText.setAttribute('font-family', 'monospace');
+    bubbleText.setAttribute('font-weight', '600');
+    scrubberBubble.appendChild(bubbleRect);
+    scrubberBubble.appendChild(bubbleText);
+
+    scrubberGroup.appendChild(scrubberLine);
+    scrubberGroup.appendChild(scrubberDot);
+    scrubberGroup.appendChild(scrubberBubble);
+    svg.appendChild(scrubberGroup);
+
+    function getInterpolatedWpm(xSec) {
+      if (!dataPoints || dataPoints.length === 0) return 0;
+      if (xSec <= dataPoints[0].x) return dataPoints[0].wpm;
+      if (xSec >= dataPoints[dataPoints.length - 1].x) return dataPoints[dataPoints.length - 1].wpm;
+      for (var ii = 1; ii < dataPoints.length; ii++) {
+        if (xSec <= dataPoints[ii].x) {
+          var p0 = dataPoints[ii - 1], p1 = dataPoints[ii];
+          var t = (xSec - p0.x) / (p1.x - p0.x);
+          return p0.wpm + t * (p1.wpm - p0.wpm);
+        }
+      }
+      return dataPoints[dataPoints.length - 1].wpm;
+    }
+
+    function setScrubber(elapsedSec) {
+      if (typeof elapsedSec !== 'number' || isNaN(elapsedSec)) return;
+      var clamped = Math.max(0, Math.min(xMax, elapsedSec));
+      var xPos = scaleX(clamped);
+      var wpmVal = getInterpolatedWpm(clamped);
+      var yPos = scaleY(Math.max(0, wpmVal));
+      scrubberGroup.style.display = '';
+      scrubberLine.setAttribute('x1', xPos);
+      scrubberLine.setAttribute('x2', xPos);
+      scrubberDot.setAttribute('cx', xPos);
+      scrubberDot.setAttribute('cy', yPos);
+      var bw = 64, bh = 20;
+      var bx = xPos - bw / 2;
+      var by = yPos - 30;
+      if (bx < CHART_PADDING.left) bx = CHART_PADDING.left;
+      if (bx + bw > CHART_PADDING.left + chartWidth) bx = CHART_PADDING.left + chartWidth - bw;
+      if (by < CHART_PADDING.top) by = yPos + 10;
+      bubbleRect.setAttribute('x', bx);
+      bubbleRect.setAttribute('y', by);
+      bubbleText.setAttribute('x', bx + bw / 2);
+      bubbleText.setAttribute('y', by + bh / 2);
+      bubbleText.textContent = Math.round(wpmVal) + ' WPM';
+    }
+
+    function hideScrubber() { scrubberGroup.style.display = 'none'; }
+
     container.appendChild(svg);
 
     // --- Animation ---
@@ -488,7 +574,7 @@
       tooltipGroup.style.display = 'none';
     });
 
-    return { svg: svg, points: points };
+    return { svg: svg, points: points, setScrubber: setScrubber, hideScrubber: hideScrubber, xMax: xMax, yMax: yMax };
   }
 
   // --- Bar chart for personal bests by mode/language ---

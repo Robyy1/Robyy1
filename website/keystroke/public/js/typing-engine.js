@@ -63,6 +63,8 @@
     this.lastTick = Date.now();
     this.lastRecordedSecond = 0;
     this.keystrokes = []; // [{char, timestamp, correct}]
+    // Full input history for faithful replay (includes backspaces with real timing)
+    this.playbackEvents = []; // [{type:'input'|'backspace', char, correct, t, timestamp}]
     // Per-position correctness so the renderer can show wrong chars as incorrect.
     // Indexed by the position that was typed; value is a boolean.
     this.charStates = [];
@@ -117,6 +119,11 @@
     var isBackspace = (typeof data === 'string' && data === '\b') || data === null;
 
     if (isBackspace) {
+      // Record backspace for faithful replay before mutating state
+      var bsTime = Date.now();
+      var bsT = this.startTime ? bsTime - this.startTime : 0;
+      if (bsT < 0) bsT = 0;
+      this.playbackEvents.push({ type: 'backspace', t: bsT, timestamp: bsTime });
       var handledBackspace = this.handleBackspace();
       // Keep live stats current after a correction.
       if (handledBackspace) this.publishInstant();
@@ -136,10 +143,20 @@
     this.charStates[this.currentIndex] = isCorrect;
 
     // Record keystroke
+    var now = Date.now();
+    var t = this.startTime ? now - this.startTime : 0;
+    if (t < 0) t = 0;
     this.keystrokes.push({
       char: ch,
-      timestamp: Date.now(),
+      timestamp: now,
       correct: isCorrect
+    });
+    this.playbackEvents.push({
+      type: 'input',
+      char: ch,
+      correct: isCorrect,
+      t: t,
+      timestamp: now
     });
 
     this.totalTyped++;
@@ -194,23 +211,29 @@
     this.elapsedMs = now - this.startTime;
     var elapsedMin = this.elapsedMs / 60000;
 
-    // Avoid the first-keystroke WPM spike by waiting until a full second has passed.
-    if (this.elapsedMs >= 1000 && elapsedMin > 0 && this.correctChars > 0) {
-      this.runningWpm = Math.round((this.correctChars / 5) / elapsedMin);
-    } else {
-      this.runningWpm = 0;
-    }
-
     if (this.totalTyped > 0) {
       this.runningAccuracy = Math.round((this.correctChars / this.totalTyped) * 100);
     } else {
       this.runningAccuracy = 100;
     }
 
+    // Anti-fraud: below 40% accuracy WPM is meaningless — show 0 so mashing does not inflate graph.
+    // Between 40-70% heavily penalize instead of pure correct/5.
+    var rawWpmVal = elapsedMin > 0 ? (Math.round((this.totalTyped / 5) / elapsedMin) || 0) : 0;
+    if (this.elapsedMs >= 1000 && elapsedMin > 0 && this.correctChars > 0) {
+      var baseWpm = Math.round((this.correctChars / 5) / elapsedMin);
+      if (this.runningAccuracy < 40) baseWpm = 0;
+      else if (this.runningAccuracy < 70) baseWpm = Math.round(baseWpm * (this.runningAccuracy / 70));
+      this.runningWpm = baseWpm;
+      if (this.runningAccuracy < 40) rawWpmVal = 0;
+    } else {
+      this.runningWpm = 0;
+    }
+
     var consistency = calculateConsistency(this.wpmHistory);
     this.onUpdate({
       wpm: this.runningWpm,
-      rawWpm: elapsedMin > 0 ? (Math.round((this.totalTyped / 5) / elapsedMin) || 0) : 0,
+      rawWpm: rawWpmVal,
       accuracy: this.runningAccuracy,
       errors: this.errorsThisTest,
       elapsedSeconds: Math.floor(this.elapsedMs / 1000),
@@ -244,29 +267,39 @@
   // --- Metrics calculation ---
   function calculateMetrics(correctChars, totalTyped, errorCount, keystrokes, startTime, elapsedMs) {
     var elapsedMin = elapsedMs / 60000;
+    var accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 0;
     if (elapsedMin <= 0 || correctChars === 0) {
-      return { wpm: 0, rawWpm: 0, accuracy: totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 0, consistency: 100, errorCount: errorCount };
+      return { wpm: 0, rawWpm: 0, accuracy: accuracy, consistency: 100, errorCount: errorCount };
     }
 
     var wpm = Math.round((correctChars / 5) / elapsedMin);
     var rawWpm = Math.round((totalTyped / 5) / elapsedMin);
-    var accuracy = Math.round((correctChars / totalTyped) * 100);
     var consistency = calculateConsistencyFromKeystrokes(keystrokes, startTime, elapsedMs);
+
+    // Anti-fraud gate: heavy errors must not yield a leaderboard WPM.
+    // Below 40% accuracy the test is not a valid typing sample.
+    if (accuracy < 40) { wpm = 0; rawWpm = 0; consistency = 0; }
+    else if (accuracy < 70) {
+      wpm = Math.round(wpm * (accuracy / 70));
+      rawWpm = Math.round(rawWpm * (accuracy / 70));
+    }
 
     return { wpm: wpm, rawWpm: rawWpm, accuracy: accuracy, consistency: consistency, errorCount: errorCount };
   }
 
-  // Counts keystrokes that landed inside the 1-second window [startTime+(second-1)s, startTime+second s).
+  // Counts *correct* keystrokes that landed inside the 1-second window [startTime+(second-1)s, startTime+second s).
+  // Incorrect spam is ignored so mashing random keys cannot inflate WPM/graph (fix for 300+ raw WPM at 1% accuracy).
   function calculateInstantWpm(keystrokes, startTime, second) {
     var count = 0;
     var winStart = startTime + (second - 1) * 1000;
     var winEnd = startTime + second * 1000;
     for (var i = 0; i < keystrokes.length; i++) {
+      if (!keystrokes[i].correct) continue;
       if (keystrokes[i].timestamp >= winStart && keystrokes[i].timestamp < winEnd) {
         count++;
       }
     }
-    return count; // chars typed in that second, converted to WPM later
+    return count; // correct chars typed in that second, converted to WPM later
   }
 
   function calculateConsistency(wpmHistory) {
@@ -292,6 +325,7 @@
       var winEnd = startTime + s * 1000;
       var count = 0;
       for (var i = 0; i < keystrokes.length; i++) {
+        if (!keystrokes[i].correct) continue;
         if (keystrokes[i].timestamp >= winStart && keystrokes[i].timestamp < winEnd) {
           count++;
         }

@@ -33,62 +33,73 @@
     return osReduced;
   }
 
-  // --- Live hero demo with rotating snippets ---
-  var currentSnippetIndex = 0;
-  var DEMO_TEXT = DEMO_SNIPPETS[currentSnippetIndex];
-
+  // --- Live hero demo: auto-types snippets so code "writes itself" ---
   function initHeroDemo() {
-    var demoInput = document.getElementById('hero-demo-input');
     var demoTextEl = document.getElementById('hero-demo-text');
-    var demoBody = document.getElementById('hero-demo-body');
-    if (!demoInput || !demoTextEl || !demoBody) return;
+    if (!demoTextEl) return;
+
+    // Auto-cycle through snippets, ~10s total loop time
+    var SNIPPETS_TO_TYPE = DEMO_SNIPPETS.slice(0, 5);
+    var TOTAL_TARGET_MS = 10000;
+    var SWITCH_PAUSE_MS = 450;
+
+    var totalChars = 0;
+    for (var s = 0; s < SNIPPETS_TO_TYPE.length; s++) totalChars += SNIPPETS_TO_TYPE[s].length;
+    var perCharDelay = Math.max(1, (TOTAL_TARGET_MS - SWITCH_PAUSE_MS * SNIPPETS_TO_TYPE.length) / totalChars);
+
+    var currentIndex = 0;
+    var snippet = SNIPPETS_TO_TYPE[currentIndex];
+    var typedIndex = 0;
+    var typing = false;
 
     function renderDemo() {
       var html = '';
-      for (var i = 0; i < DEMO_TEXT.length; i++) {
-        html += '<span class="char-untyped">' + escapeHtml(DEMO_TEXT[i]) + '</span>';
+      for (var i = 0; i < snippet.length; i++) {
+        html += '<span class="char-untyped">' + escapeHtml(snippet[i]) + '</span>';
       }
       demoTextEl.innerHTML = html;
     }
 
-    function switchSnippet() {
-      currentSnippetIndex = (currentSnippetIndex + 1) % DEMO_SNIPPETS.length;
-      DEMO_TEXT = DEMO_SNIPPETS[currentSnippetIndex];
-      typedIndex = 0;
-      renderDemo();
-      demoInput.value = '';
+    function spans() { return demoTextEl.querySelectorAll('span'); }
+
+    function updateCaret() {
+      var list = spans();
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].className === 'char-current') list[i].className = 'char-untyped';
+      }
+      if (typedIndex < snippet.length) list[typedIndex].className = 'char-current';
+    }
+
+    function finishSnippet() {
+      var list = spans();
+      for (var i = 0; i < list.length; i++) list[i].className = 'char-correct';
+      updateCaret();
+      setTimeout(function () {
+        currentIndex = (currentIndex + 1) % SNIPPETS_TO_TYPE.length;
+        snippet = SNIPPETS_TO_TYPE[currentIndex];
+        typedIndex = 0;
+        renderDemo();
+        updateCaret();
+        typeNextChar();
+      }, SWITCH_PAUSE_MS);
+    }
+
+    function typeNextChar() {
+      if (typing) return;
+      typing = true;
+      if (typedIndex >= snippet.length) { finishSnippet(); typing = false; return; }
+      typedIndex++;
+      var list = spans();
+      var span = list[typedIndex - 1];
+      if (span) span.className = 'char-correct';
+      updateCaret();
+      var delay = perCharDelay * (Math.random() * 0.6 + 0.7);
+      setTimeout(function () { typing = false; typeNextChar(); }, delay);
     }
 
     renderDemo();
-    var typedIndex = 0;
-
-    demoInput.addEventListener('input', function (e) {
-      if (e.inputType === 'insertFromPaste') return;
-      var chars = e.data ? [e.data] : [];
-      var spanEls = demoTextEl.querySelectorAll('span');
-
-      for (var i = 0; i < chars.length && typedIndex < DEMO_TEXT.length; i++, typedIndex++) {
-        var ch = chars[i];
-        var targetCh = DEMO_TEXT[typedIndex];
-        var span = spanEls[typedIndex];
-        if (!span) break;
-        span.className = ch === targetCh ? 'char-correct' : 'char-incorrect';
-      }
-
-      if (typedIndex < DEMO_TEXT.length && spanEls[typedIndex]) {
-        spanEls[typedIndex].className = 'char-current';
-      }
-
-      // Auto-switch to next snippet when complete
-      if (typedIndex >= DEMO_TEXT.length) {
-        setTimeout(switchSnippet, 800);
-      }
-    });
-
-    demoBody.addEventListener('click', function () { demoInput.focus(); });
-    if (!isReducedMotion()) {
-      setTimeout(function () { demoInput.focus(); }, 500);
-    }
+    updateCaret();
+    typeNextChar();
   }
 
   // --- Stats bar ---

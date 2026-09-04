@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "GKrBv8FjW5A=",
+  "dgSpecHash": "G78Gx/Ugiic=",
   "success": true,
-  "projectFilePath": "/Users/robby/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "/home/robert/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
+  "expectedPackageFiles": [
+    "/home/robert/.nuget/packages/microsoft.netcore.app.ref/9.0.18/microsoft.netcore.app.ref.9.0.18.nupkg.sha512",
+    "/home/robert/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.18/microsoft.aspnetcore.app.ref.9.0.18.nupkg.sha512",
+    "/home/robert/.nuget/packages/microsoft.netcore.app.host.linux-x64/9.0.18/microsoft.netcore.app.host.linux-x64.9.0.18.nupkg.sha512"
+  ],
   "logs": []
 }

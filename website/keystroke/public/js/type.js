@@ -41,6 +41,8 @@
   var playbackPlayPause = document.getElementById("playbackPlayPause");
   var playbackProgress = document.getElementById("playbackProgress");
   var playbackTime = document.getElementById("playbackTime");
+  var playbackText = document.getElementById("playbackText");
+  var playbackLineNumbers = document.getElementById("playbackLineNumbers");
 
   // Live stat elements
   var liveWpm = document.getElementById("liveWpm");
@@ -63,6 +65,16 @@
   var timerInterval = null;
   var remainingSeconds = 0;
   var isTestRunning = false;
+
+  // --- Playback state (real-time replay) ---
+  var playbackEvents = null;
+  var playbackDuration = 0;
+  var playbackCurrentTime = 0;
+  var playbackPlaying = false;
+  var playbackRAF = null;
+  var playbackLastTick = 0;
+  var playbackControlsBound = false;
+  var resultsChartInstance = null;
 
   // --- Init ---
   function init() {
@@ -393,6 +405,7 @@
 
   function startTest() {
     // Reset state
+    pausePlayback();
     hideError();
     resultsSection.classList.add("hidden");
     typingSection.classList.remove("hidden");
@@ -787,6 +800,7 @@
 
     // Calculate metrics for partial completion
     var elapsedMs = Date.now() - engine.startTime;
+    engine.elapsedMs = elapsedMs;
     var metrics = typingEngine.calculateMetrics(
       engine.correctChars,
       engine.totalTyped,
@@ -866,12 +880,13 @@
     if (dataPoints.length < 2) return;
 
     if (window.stats && typeof window.stats.createLineChart === "function") {
-      window.stats.createLineChart(resultsChart, dataPoints, {
+      resultsChartInstance = window.stats.createLineChart(resultsChart, dataPoints, {
         lineColor: "var(--accent)",
         height: 220,
         dotRadius: "3",
         title: "WPM Over Time",
       });
+      if (resultsChartInstance && resultsChartInstance.hideScrubber) resultsChartInstance.hideScrubber();
     }
   }
 
@@ -921,6 +936,8 @@
 
   // --- Restart / Next test ---
   function handleRestart() {
+    pausePlayback();
+    if (resultsChartInstance && resultsChartInstance.hideScrubber) resultsChartInstance.hideScrubber();
     resultsSection.classList.add("hidden");
     typingSection.classList.remove("hidden");
     liveStats.classList.remove("hidden");
@@ -955,10 +972,212 @@
   }
 
   function handleNextTest() {
+    pausePlayback();
+    if (resultsChartInstance && resultsChartInstance.hideScrubber) resultsChartInstance.hideScrubber();
     resultsSection.classList.add("hidden");
     typingSection.classList.remove("hidden");
     // Start a new random test
     handleRandomTest();
+  }
+
+  // --- Playback (faithful real-time replay) ---
+  function initPlayback() {
+    pausePlayback();
+    playbackEvents = null;
+    playbackDuration = 0;
+    playbackCurrentTime = 0;
+
+    if (engine && engine.playbackEvents && engine.playbackEvents.length > 0) {
+      playbackEvents = engine.playbackEvents.slice();
+      playbackEvents.sort(function (a, b) { return a.t - b.t; });
+      var lastT = playbackEvents[playbackEvents.length - 1].t;
+      playbackDuration = Math.max(lastT, engine.elapsedMs || 0);
+    } else if (engine && engine.keystrokes && engine.keystrokes.length > 0) {
+      // Fallback: derive from surviving keystrokes
+      playbackEvents = [];
+      var base = engine.keystrokes[0].timestamp;
+      for (var i = 0; i < engine.keystrokes.length; i++) {
+        var ks = engine.keystrokes[i];
+        playbackEvents.push({ type: 'input', char: ks.char, correct: ks.correct, t: ks.timestamp - base, timestamp: ks.timestamp });
+      }
+      playbackDuration = engine.elapsedMs || (playbackEvents[playbackEvents.length - 1].t + 300);
+    } else {
+      playbackDuration = engine && engine.elapsedMs ? engine.elapsedMs : 0;
+      playbackEvents = [];
+    }
+    if (playbackDuration < 500 && playbackEvents.length > 0) playbackDuration = Math.max(playbackDuration, 800);
+    if (!playbackDuration) playbackDuration = 1000;
+
+    if (playbackProgress) {
+      playbackProgress.min = '0';
+      playbackProgress.max = String(playbackDuration);
+      playbackProgress.value = '0';
+    }
+    if (playbackPlayPause) {
+      playbackPlayPause.innerHTML = '&#9654; Play';
+      playbackPlayPause.disabled = false;
+    }
+    updatePlaybackTimeLabel();
+    renderPlaybackAt(0);
+    buildPlaybackLineNumbers();
+    bindPlaybackControls();
+    updateChartScrubber();
+  }
+
+  function bindPlaybackControls() {
+    if (playbackControlsBound) return;
+    playbackControlsBound = true;
+    if (playbackPlayPause) {
+      playbackPlayPause.addEventListener('click', function () {
+        if (playbackPlaying) pausePlayback();
+        else playPlayback();
+      });
+    }
+    if (playbackProgress) {
+      playbackProgress.addEventListener('input', function () {
+        var v = parseInt(this.value, 10) || 0;
+        playbackCurrentTime = Math.max(0, Math.min(playbackDuration, v));
+        renderPlaybackAt(playbackCurrentTime);
+        updatePlaybackTimeLabel();
+        updateChartScrubber();
+      });
+      playbackProgress.addEventListener('change', function () {
+        var v = parseInt(this.value, 10) || 0;
+        playbackCurrentTime = Math.max(0, Math.min(playbackDuration, v));
+        renderPlaybackAt(playbackCurrentTime);
+        updatePlaybackTimeLabel();
+        updateChartScrubber();
+      });
+    }
+    if (playbackText) {
+      playbackText.addEventListener('click', function () {
+        if (playbackPlaying) pausePlayback(); else playPlayback();
+      });
+    }
+  }
+
+  function playPlayback() {
+    if (!playbackEvents || playbackDuration <= 0) return;
+    if (playbackCurrentTime >= playbackDuration) {
+      playbackCurrentTime = 0;
+      renderPlaybackAt(0);
+      updatePlaybackProgress();
+      updatePlaybackTimeLabel();
+      updateChartScrubber();
+    }
+    if (playbackPlaying) return;
+    playbackPlaying = true;
+    if (playbackPlayPause) playbackPlayPause.innerHTML = '&#10074;&#10074; Pause';
+    playbackLastTick = performance.now();
+    function tick(now) {
+      if (!playbackPlaying) return;
+      var delta = now - playbackLastTick;
+      playbackLastTick = now;
+      playbackCurrentTime += delta;
+      if (playbackCurrentTime >= playbackDuration) {
+        playbackCurrentTime = playbackDuration;
+        playbackPlaying = false;
+        if (playbackPlayPause) playbackPlayPause.innerHTML = '&#9654; Replay';
+        renderPlaybackAt(playbackCurrentTime);
+        updatePlaybackProgress();
+        updatePlaybackTimeLabel();
+        updateChartScrubber();
+        return;
+      }
+      renderPlaybackAt(playbackCurrentTime);
+      updatePlaybackProgress();
+      updatePlaybackTimeLabel();
+      updateChartScrubber();
+      playbackRAF = requestAnimationFrame(tick);
+    }
+    playbackRAF = requestAnimationFrame(tick);
+  }
+
+  function pausePlayback() {
+    playbackPlaying = false;
+    if (playbackRAF) { cancelAnimationFrame(playbackRAF); playbackRAF = null; }
+    if (playbackPlayPause && playbackEvents) {
+      if (playbackCurrentTime >= playbackDuration) playbackPlayPause.innerHTML = '&#9654; Replay';
+      else playbackPlayPause.innerHTML = '&#9654; Play';
+    }
+  }
+
+  function updatePlaybackProgress() {
+    if (playbackProgress) playbackProgress.value = String(Math.round(playbackCurrentTime));
+  }
+
+  function updatePlaybackTimeLabel() {
+    if (!playbackTime) return;
+    playbackTime.textContent = formatPlaybackTime(playbackCurrentTime) + ' / ' + formatPlaybackTime(playbackDuration);
+  }
+
+  function formatPlaybackTime(ms) {
+    var totalSec = Math.floor(ms / 1000);
+    var m = Math.floor(totalSec / 60);
+    var s = totalSec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateChartScrubber() {
+    if (!resultsChartInstance || !resultsChartInstance.setScrubber) return;
+    var elapsedSec = playbackCurrentTime / 1000;
+    resultsChartInstance.setScrubber(elapsedSec);
+  }
+
+  function renderPlaybackAt(timeMs) {
+    if (!playbackText) return;
+    if (!testText) {
+      playbackText.innerHTML = '<span class="char char-untyped">Playback ready — press Play</span>';
+      return;
+    }
+    // Reconstruct intended-path state: playbackIndex and per-position correctness
+    var playbackIndex = 0;
+    var playbackCharStates = new Array(testText.length);
+    if (playbackEvents) {
+      for (var i = 0; i < playbackEvents.length; i++) {
+        var ev = playbackEvents[i];
+        if (ev.t > timeMs) break;
+        if (ev.type === 'backspace') {
+          if (playbackIndex > 0) {
+            playbackIndex--;
+            playbackCharStates[playbackIndex] = undefined;
+          }
+        } else if (ev.type === 'input') {
+          if (playbackIndex < testText.length) {
+            playbackCharStates[playbackIndex] = !!ev.correct;
+            playbackIndex++;
+          }
+        }
+      }
+    }
+    if (playbackIndex < 0) playbackIndex = 0;
+    if (playbackIndex > testText.length) playbackIndex = testText.length;
+    var html = '';
+    for (var j = 0; j < testText.length; j++) {
+      var ch = testText[j];
+      var cls;
+      if (j < playbackIndex) {
+        cls = playbackCharStates[j] === false ? 'char char-incorrect' : 'char char-correct';
+      } else if (j === playbackIndex) {
+        cls = 'char char-current';
+      } else {
+        cls = 'char char-untyped';
+      }
+      html += '<span class="' + cls + '" data-index="' + j + '">' + escapeHtml(ch) + '</span>';
+    }
+    // Edge: completed — show a trailing pale underscore after the last char
+    if (playbackIndex >= testText.length) {
+      html += '<span class="char char-current" aria-hidden="true">\u00a0</span>';
+    }
+    playbackText.innerHTML = html;
+  }
+
+  function buildPlaybackLineNumbers() {
+    if (!playbackLineNumbers || !testText) return;
+    var lines = testText.split('\n');
+    var h = '';
+    for (var i = 0; i < lines.length; i++) h += '<div class="line-number">' + (i + 1) + '</div>';
+    playbackLineNumbers.innerHTML = h;
   }
 
   // --- Error display ---

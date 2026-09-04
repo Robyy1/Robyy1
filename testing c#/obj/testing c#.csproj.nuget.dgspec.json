@@ -1,21 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "/Users/robby/Documents/Programing/Robyy1/testing c#/testing c#.csproj": {}
+    "/home/robert/Documents/Programing/Robyy1/testing c#/testing c#.csproj": {}
   },
   "projects": {
-    "/Users/robby/Documents/Programing/Robyy1/testing c#/testing c#.csproj": {
+    "/home/robert/Documents/Programing/Robyy1/testing c#/testing c#.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/robby/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
+        "projectUniqueName": "/home/robert/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
         "projectName": "testing c#",
-        "projectPath": "/Users/robby/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
-        "packagesPath": "/Users/robby/.nuget/packages/",
-        "outputPath": "/Users/robby/Documents/Programing/Robyy1/testing c#/obj/",
+        "projectPath": "/home/robert/Documents/Programing/Robyy1/testing c#/testing c#.csproj",
+        "packagesPath": "/home/robert/.nuget/packages/",
+        "outputPath": "/home/robert/Documents/Programing/Robyy1/testing c#/obj/",
         "projectStyle": "PackageReference",
-        "configFilePaths": ["/Users/robby/.nuget/NuGet/NuGet.Config"],
-        "originalTargetFrameworks": ["net9.0"],
+        "configFilePaths": [
+          "/home/robert/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
         "sources": {
+          "/usr/lib64/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -25,14 +30,16 @@
           }
         },
         "warningProperties": {
-          "warnAsError": ["NU1605"]
+          "warnAsError": [
+            "NU1605"
+          ]
         },
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net9.0": {
@@ -48,12 +55,26 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.18, 9.0.18]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[9.0.18, 9.0.18]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.18, 9.0.18]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.102/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.110/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
