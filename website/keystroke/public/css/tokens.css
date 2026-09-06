@@ -1,16 +1,16 @@
 /* Keystroke — Design Tokens */
 /* Light theme (default) */
 :root {
-  --bg: #EEF1F4;
-  --surface: #FFFFFF;
-  --surface-raised: #F7F9FA;
-  --text: #10161C;
-  --text-muted: #5B6672;
-  --border: #D8DEE4;
-  --accent: #B8860B;
-  --on-accent: #FFFFFF;
-  --success: #1FA97C;
-  --error: #D9463D;
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --surface-raised: #f7f9fa;
+  --text: #10161c;
+  --text-muted: #5b6672;
+  --border: #d8dee4;
+  --accent: #b8860b;
+  --on-accent: #ffffff;
+  --success: #1fa97c;
+  --error: #d9463d;
   --density-scale: 1;
 
   --bg-rgb: 238, 241, 244;
@@ -23,9 +23,9 @@
   --success-rgb: 31, 169, 124;
   --error-rgb: 217, 70, 61;
 
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   --font-size-xs: 12px;
   --font-size-sm: 14px;
@@ -63,7 +63,7 @@
   --transition-normal: 250ms ease;
 }
 
-html[data-density='compact'] {
+html[data-density="compact"] {
   --density-scale: 0.92;
   --space-3: 10px;
   --space-4: 14px;
@@ -74,17 +74,17 @@ html[data-density='compact'] {
 }
 
 /* Dark theme */
-[data-theme='dark'] {
-  --bg: #0B0F14;
-  --surface: #131A21;
-  --surface-raised: #1B242D;
-  --text: #E6EDF3;
-  --text-muted: #7D8B99;
-  --border: #202A33;
-  --accent: #F2C14E;
-  --on-accent: #1A1A1A;
-  --success: #4FD69C;
-  --error: #FF6B6B;
+[data-theme="dark"] {
+  --bg: #0b0f14;
+  --surface: #131a21;
+  --surface-raised: #1b242d;
+  --text: #e6edf3;
+  --text-muted: #7d8b99;
+  --border: #202a33;
+  --accent: #f2c14e;
+  --on-accent: #1a1a1a;
+  --success: #4fd69c;
+  --error: #ff6b6b;
 
   --bg-rgb: 11, 15, 20;
   --surface-rgb: 19, 26, 33;
@@ -109,66 +109,66 @@ html[data-density='compact'] {
 /* ------------------------------------------------------------------ */
 
 /* Amber */
-[data-accent='amber'][data-theme='dark'],
-[data-accent='amber']:not([data-theme]) {
-  --accent: #F2C14E;
+[data-accent="amber"][data-theme="dark"],
+[data-accent="amber"]:not([data-theme]) {
+  --accent: #f2c14e;
   --accent-rgb: 242, 193, 78;
-  --on-accent: #1A1A1A;
+  --on-accent: #1a1a1a;
 }
-[data-accent='amber'][data-theme='light'] {
-  --accent: #B8860B;
+[data-accent="amber"][data-theme="light"] {
+  --accent: #b8860b;
   --accent-rgb: 184, 134, 11;
-  --on-accent: #FFFFFF;
+  --on-accent: #ffffff;
 }
 
 /* Cyan */
-[data-accent='cyan'][data-theme='dark'],
-[data-accent='cyan']:not([data-theme]) {
-  --accent: #5EC8F2;
+[data-accent="cyan"][data-theme="dark"],
+[data-accent="cyan"]:not([data-theme]) {
+  --accent: #5ec8f2;
   --accent-rgb: 94, 200, 242;
-  --on-accent: #0B0F14;
+  --on-accent: #0b0f14;
 }
-[data-accent='cyan'][data-theme='light'] {
-  --accent: #1C7FB0;
+[data-accent="cyan"][data-theme="light"] {
+  --accent: #1c7fb0;
   --accent-rgb: 28, 127, 176;
-  --on-accent: #FFFFFF;
+  --on-accent: #ffffff;
 }
 
 /* Violet */
-[data-accent='violet'][data-theme='dark'],
-[data-accent='violet']:not([data-theme]) {
-  --accent: #B98EFF;
+[data-accent="violet"][data-theme="dark"],
+[data-accent="violet"]:not([data-theme]) {
+  --accent: #b98eff;
   --accent-rgb: 185, 142, 255;
-  --on-accent: #1A1A1A;
+  --on-accent: #1a1a1a;
 }
-[data-accent='violet'][data-theme='light'] {
-  --accent: #7C4FD6;
+[data-accent="violet"][data-theme="light"] {
+  --accent: #7c4fd6;
   --accent-rgb: 124, 79, 214;
-  --on-accent: #FFFFFF;
+  --on-accent: #ffffff;
 }
 
 /* Rose */
-[data-accent='rose'][data-theme='dark'],
-[data-accent='rose']:not([data-theme]) {
-  --accent: #F2789E;
+[data-accent="rose"][data-theme="dark"],
+[data-accent="rose"]:not([data-theme]) {
+  --accent: #f2789e;
   --accent-rgb: 242, 120, 158;
-  --on-accent: #1A1A1A;
+  --on-accent: #1a1a1a;
 }
-[data-accent='rose'][data-theme='light'] {
-  --accent: #C23F68;
+[data-accent="rose"][data-theme="light"] {
+  --accent: #c23f68;
   --accent-rgb: 194, 63, 104;
-  --on-accent: #FFFFFF;
+  --on-accent: #ffffff;
 }
 
 /* Mono */
-[data-accent='mono'][data-theme='dark'],
-[data-accent='mono']:not([data-theme]) {
-  --accent: #E6EDF3;
+[data-accent="mono"][data-theme="dark"],
+[data-accent="mono"]:not([data-theme]) {
+  --accent: #e6edf3;
   --accent-rgb: 230, 237, 243;
-  --on-accent: #0B0F14;
+  --on-accent: #0b0f14;
 }
-[data-accent='mono'][data-theme='light'] {
-  --accent: #10161C;
+[data-accent="mono"][data-theme="light"] {
+  --accent: #10161c;
   --accent-rgb: 16, 22, 28;
-  --on-accent: #FFFFFF;
+  --on-accent: #ffffff;
 }

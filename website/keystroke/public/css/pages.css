@@ -3077,7 +3077,7 @@ html[data-motion="on"] .hero-grid-pulse {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-2xl);
   transition: all var(--transition-fast);
 }
 

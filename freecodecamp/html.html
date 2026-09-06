@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Classic Snake Game</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #2c3e50;
+        color: white;
+        font-family: "Arial", sans-serif;
+      }
+
+      .game-container {
+        text-align: center;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      canvas {
+        border: 4px solid #ecf0f1;
+        display: block;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        cursor: crosshair;
+      }
+
+      .controls {
+        margin-top: 15px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #27ae60;
+        color: white;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background-color: #219150;
+      }
+
+      .score-board {
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>SNAKE GAME</h1>
+      <div class="score-board">Score: <span id="score">0</span></div>
+
+      <!-- The game board -->
+      <canvas id="game" width="400" height="400"></canvas>
+
+      <div class="controls">
+        <p>Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to move.</p>
+        <button onclick="startGame()">Restart Game</button>
+      </div>
+    </div>
+
+    <script>
+      // Game Constants
+      const GAME_SPEED = 100; // Speed of the game loop (ms)
+      const CANVAS_BORDER_COLOR = "white";
+      const CANVAS_BACKGROUND_COLOR = "black";
+      const SNAKE_COL = "#77ee77";
+      const SNAKE_BORDER_COL = "#335933";
+      const FOOD_COLOR = "#ff4d4d";
+
+      // Game State variables
+      let snake = [{ x: 10, y: 10 }]; // Initial position
+      let score = 0;
+      let changingDirection = false;
+      let gameLoopId;
+
+      // Velocity (movement direction)
+      let dx = 1;
+      let dy = 0;
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      // Grid size (size of one square on the grid)
+      const TILE_SIZE = 20;
+
+      // Update the score display
+      function changeScore(e) {
+        this.innerHTML = score + e;
+      }
+      document.getElementById("score").addEventListener("keyup", changeScore);
+
+      /**
+       * Draws a box around the canvas (Grid lines logic)
+       */
+      function drawGrid() {
+        for (let i = 0; i < canvas.width; i += TILE_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+        for (let i = 0; i < canvas.width; i += TILE_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(canvas.width, i);
+          ctx.stroke();
+        }
+      }
+
+      /**
+       * Draws the food and the snake on the canvas.
+       */
+      function drawGame() {
+        // Clear canvas
+        ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Snake
+        for (let i = 0; i < snake.length; i++) {
+          ctx.fillStyle = i === 0 ? "#77ee77" : "lightgreen";
+          // Draw square for snake parts
+          ctx.fillRect(snake[i].x, snake[i].y, TILE_SIZE, TILE_SIZE);
+
+          // Add border to snake part to see individual blocks
+          ctx.strokeStyle = SNAKE_BORDER_COL;
+          ctx.strokeRect(snake[i].x, snake[i].y, TILE_SIZE, TILE_SIZE);
+        }
+
+        // Draw Food
+        ctx.fillStyle = FOOD_COLOR;
+        ctx.fillRect(food.x, food.y, TILE_SIZE, TILE_SIZE);
+      }
+
+      /**
+       * Generates a random coordinate for the food.
+       */
+      function randomTen(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      /**
+       * Changes direction based on key press
+       */
+      function changeDirection(event) {
+        const LEFT_KEY = 37;
+        const RIGHT_KEY = 39;
+        const UP_KEY = 38;
+        const DOWN_KEY = 40;
+
+        // Use the code for keys
+        switch (event.keyCode) {
+          case LEFT_KEY:
+            if (dx === 1) return;
+            dx = -1;
+            dy = 0;
+            changingDirection = false;
+            break;
+          case RIGHT_KEY:
+            if (dx === -1) return;
+            dx = 1;
+            dy = 0;
+            changingDirection = false;
+            break;
+          case UP_KEY:
+            if (dy === 1) return;
+            dx = 0;
+            dy = -1;
+            changingDirection = false;
+            break;
+          case DOWN_KEY:
+            if (dy === -1) return;
+            dx = 0;
+            dy = 1;
+            changingDirection = false;
+            break;
+        }
+      }
+
+      /**
+       * The main movement logic.
+       */
+      function moveSnake() {
+        // Create new head based on current velocity
+        const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+        // If snake eats food
+        if (head.x === food.x && head.y === food.y) {
+          score += 10;
+          changingDirection = false;
+          createFood(); // Generate new fruit
+        } else {
+          // If not eating, remove the last part to move forward
+          snake.shift();
+        }
+
+        snake.unshift(head); // Add new head to beginning
+
+        if (gameOver) return;
+
+        drawGame();
+        checkGameOver();
+      }
+
+      /**
+       * Checks for collision and game over.
+       */
+      function checkGameOver() {
+        // Collision with Walls
+        let gameOver = false;
+
+        if (dx === 1 && snake[0].x > canvas.width - TILE_SIZE) gameOver = true;
+        else if (dx === -1 && snake[0].x < 0) gameOver = true;
+        else if (dy === 1 && snake[0].y > canvas.height - TILE_SIZE)
+          gameOver = true;
+        else if (dy === -1 && snake[0].y < 0) gameOver = true;
+
+        // Collision with Self
+        for (let i = 1; i < snake.length; i++) {
+          if (snake[i] == snake[0]) {
+            gameOver = true;
+          }
+        }
+
+        if (gameOver) {
+          alert("GAME OVER! Score: " + score);
+          dx = 0;
+          dy = 0;
+          changingDirection = false;
+          clearInterval(gameLoopId);
+          gameLoopId = setInterval(moveSnake, GAME_SPEED);
+          document.getElementById("score").innerHTML = score;
+        }
+      }
+
+      /**
+       * Generate Food randomly on the grid.
+       */
+      function createFood() {
+        // Keep food from spawning on top of snake
+        const snake_x_array = snake.map(function (square) {
+          return square.x;
+        });
+        const snake_y_array = snake.map(function (square) {
+          return square.y;
+        });
+
+        let valid_position = false;
+        while (!valid_position) {
+          food.x = randomTen(0, canvas.width / TILE_SIZE - 1) * TILE_SIZE;
+          food.y = randomTen(0, canvas.height / TILE_SIZE - 1) * TILE_SIZE;
+
+          // Check if food is overlapping snake body
+          for (let i = 0; i < snake.length; i++) {
+            // Make sure food doesn't overlap
+            if (food.x == snake[i].x && food.y == snake[i].y) {
+              valid_position = false;
+              break;
+            }
+          }
+        }
+      }
+
+      let food = { x: 0, y: 0 };
+
+      function drawFood() {
+        ctx.fillStyle = FOOD_COLOR;
+        // Draw square for snake parts
+        ctx.fillRect(food.x, food.y, TILE_SIZE, TILE_SIZE);
+      }
+
+      document.addEventListener("keydown", changeDirection);
+      window.onload = function () {
+        // Start Game loop
+        changingDirection = false;
+        createFood();
+        drawGame(); // Initial draw
+
+        gameLoopId = setInterval(moveSnake, GAME_SPEED);
+      };
+    </script>
+  </body>
+</html>
