@@ -135,7 +135,13 @@
       if (navUserArea) navUserArea.style.display = 'flex';
       if (navGuestArea) navGuestArea.style.display = 'none';
       var usernameEl = document.getElementById('nav-username');
-      if (usernameEl) usernameEl.textContent = user.username;
+      if (usernameEl) {
+        usernameEl.textContent = user.username;
+        usernameEl.style.cursor = 'pointer';
+        usernameEl.addEventListener('click', function() {
+          window.location.href = '/settings.html';
+        });
+      }
     } else {
       if (navUserArea) navUserArea.style.display = 'none';
       if (navGuestArea) navGuestArea.style.display = 'flex';
