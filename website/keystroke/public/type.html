@@ -232,6 +232,16 @@
           </div>
         </div>
 
+        <!-- Ghost Race HUD (shown only when racing your previous run) -->
+        <div class="ghost-hud hidden" id="ghostHud">
+          <span class="ghost-hud-label">Race Yourself</span>
+          <span class="ghost-target">
+            <span class="ghost-icon" aria-hidden="true">&#128075;</span>
+            Ghost: <span class="ghost-value" id="ghostTargetWpm">--</span> WPM
+          </span>
+          <span class="ghost-delta" id="ghostDelta"></span>
+        </div>
+
         <!-- Editor Container -->
         <div class="editor" id="editorPane">
           <!-- Editor Header -->
@@ -325,6 +335,12 @@
             </div>
           </div>
 
+          <!-- Ghost Race outcome (shown only when racing your previous run) -->
+          <div class="ghost-result hidden" id="ghostResultLine">
+            <span class="ghost-result-icon" aria-hidden="true"></span>
+            <span class="ghost-result-text" id="ghostResultText"></span>
+          </div>
+
           <!-- Detailed Stats Grid -->
           <div class="results-stats" id="resultsStats">
             <div class="results-stat">
@@ -407,6 +423,9 @@
 
           <!-- Action Buttons -->
           <div class="results-actions">
+            <button type="button" class="btn btn-ghost" id="raceBtn">
+              &#128075; Race Yourself
+            </button>
             <button type="button" class="btn btn-accent" id="restartBtn">
               Try Again
             </button>

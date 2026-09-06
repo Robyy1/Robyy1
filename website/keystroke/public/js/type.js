@@ -44,6 +44,14 @@
   var playbackText = document.getElementById("playbackText");
   var playbackLineNumbers = document.getElementById("playbackLineNumbers");
 
+  // Ghost race elements
+  var raceBtn = document.getElementById("raceBtn");
+  var ghostHud = document.getElementById("ghostHud");
+  var ghostTargetWpm = document.getElementById("ghostTargetWpm");
+  var ghostDelta = document.getElementById("ghostDelta");
+  var ghostResultLine = document.getElementById("ghostResultLine");
+  var ghostResultText = document.getElementById("ghostResultText");
+
   // Live stat elements
   var liveWpm = document.getElementById("liveWpm");
   var liveAccuracy = document.getElementById("liveAccuracy");
@@ -76,6 +84,15 @@
   var playbackControlsBound = false;
   var resultsChartInstance = null;
 
+  // --- Ghost race state (race against the previous run's own replay) ---
+  var ghostMode = false; // whether the current test is a "race yourself"
+  var ghostActive = false; // rAF loop running for live ghost advance
+  var ghostRAF = null; // animation-frame handle for the ghost loop
+  var ghostEvents = []; // sorted {t, type, char, correct} of previous run
+  var ghostDuration = 0; // previous run total duration (ms)
+  var ghostWpm = 0; // previous run WPM (the target to beat)
+  var ghostRawWpm = 0; // previous run raw WPM
+
   // --- Init ---
   function init() {
     renderNav();
@@ -84,6 +101,7 @@
     setupThemeToggleFloat();
     checkAuthState();
     updateIndicators();
+    updateRaceButtonState();
     window.addEventListener("load", updateIndicators);
     window.addEventListener("resize", debounce(updateIndicators, 150));
   }
@@ -189,6 +207,11 @@
     // Restart and next test buttons
     restartBtn.addEventListener("click", handleRestart);
     nextTestBtn.addEventListener("click", handleNextTest);
+
+    // Race Yourself button
+    if (raceBtn) {
+      raceBtn.addEventListener("click", handleRace);
+    }
 
     // Hidden input for keystroke capture
     hiddenInput.addEventListener("input", handleTextInput);
@@ -404,6 +427,10 @@
   }
 
   function startTest() {
+    // Normal (non-ghost) start — clear any previous race state
+    ghostMode = false;
+    stopGhost();
+    hideGhostHud();
     // Reset state
     pausePlayback();
     hideError();
@@ -507,6 +534,13 @@
         : currentConfig.mode === "dictionary"
           ? "Dictionary"
           : "General Text";
+
+    if (ghostMode && ghostEvents.length) {
+      showGhostHud();
+      startGhost();
+    } else {
+      hideGhostHud();
+    }
   }
 
   // No-limit mode: show elapsed time counting up from zero.
@@ -693,6 +727,8 @@
 
     // Update line numbers scroll
     updateLineNumbersScroll();
+
+    if (ghostMode && ghostActive) updateGhostHud();
   }
 
   function buildLineNumbers() {
@@ -755,6 +791,8 @@
         isTestRunning = false;
         if (timerInterval) clearInterval(timerInterval);
         hiddenInput.blur();
+        stopGhost();
+        hideGhostHud();
         break;
     }
   }
@@ -773,6 +811,8 @@
     } else {
       liveAccuracy.style.color = "var(--success)";
     }
+
+    if (ghostMode && ghostActive) updateGhostHud();
   }
 
   // --- Finish handler ---
@@ -780,8 +820,10 @@
     isTestRunning = false;
     if (timerInterval) clearInterval(timerInterval);
     hiddenInput.blur();
+    stopGhost();
+    if (ghostMode) hideGhostHud();
 
-    // Show results panel
+    // Show results panel (also decides race-button enable + ghost outcome)
     showResults(metrics);
 
     // Save result if logged in
@@ -796,6 +838,8 @@
       clearInterval(engine.timerInterval);
       engine.timerInterval = null;
     }
+    stopGhost();
+    if (ghostMode) hideGhostHud();
     engine.state = typingEngine.STATE.FINISHED;
 
     // Calculate metrics for partial completion
@@ -813,6 +857,18 @@
 
     showResults(metrics);
     saveResult(metrics);
+  }
+
+  function updateRaceButtonState() {
+    if (!raceBtn) return;
+    var hasRun = !!(engine && testText && engine.playbackEvents && engine.playbackEvents.length > 0);
+    // Also allow racing if we have stashed ghost data from previous run
+    if (!hasRun && ghostEvents.length > 0) hasRun = true;
+    raceBtn.disabled = !hasRun;
+    raceBtn.setAttribute("aria-disabled", String(!hasRun));
+    raceBtn.style.opacity = hasRun ? "" : "0.45";
+    raceBtn.style.pointerEvents = hasRun ? "" : "none";
+    raceBtn.title = hasRun ? "Race the same text against your last run" : "Complete a test first to race yourself";
   }
 
   function showResults(metrics) {
@@ -852,6 +908,10 @@
       playbackSection.classList.remove("hidden");
       initPlayback();
     }
+
+    // Ghost race outcome + enable/disable Race button
+    renderGhostResult(metrics);
+    updateRaceButtonState();
 
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -936,6 +996,12 @@
 
   // --- Restart / Next test ---
   function handleRestart() {
+    // leaving a ghost race — a plain restart should not keep the ghost
+    if (ghostMode) {
+      ghostMode = false;
+      stopGhost();
+      hideGhostHud();
+    }
     pausePlayback();
     if (resultsChartInstance && resultsChartInstance.hideScrubber) resultsChartInstance.hideScrubber();
     resultsSection.classList.add("hidden");
@@ -978,6 +1044,201 @@
     typingSection.classList.remove("hidden");
     // Start a new random test
     handleRandomTest();
+  }
+
+  // --- Ghost race (race yourself) ---
+  function handleRace() {
+    if (!engine || !testText) {
+      showError("Complete a test first to race yourself.");
+      return;
+    }
+    var sourceEvents = (engine.playbackEvents && engine.playbackEvents.length ? engine.playbackEvents : null);
+    if (!sourceEvents || !sourceEvents.length) {
+      if (ghostEvents && ghostEvents.length) sourceEvents = ghostEvents;
+    }
+    if (!sourceEvents || !sourceEvents.length) {
+      showError("No previous run to race — finish a test first.");
+      return;
+    }
+    ghostMode = true;
+    ghostEvents = sourceEvents.slice().sort(function (a, b) { return a.t - b.t; });
+    ghostDuration = engine.elapsedMs || (ghostEvents[ghostEvents.length - 1].t + 300);
+    ghostWpm = (engine.metrics && engine.metrics.wpm) || 0;
+    ghostRawWpm = (engine.metrics && engine.metrics.rawWpm) || ghostWpm;
+    // keep the exact same text — don't fetch a new one
+    pausePlayback();
+    hideError();
+    if (resultsChartInstance && resultsChartInstance.hideScrubber) resultsChartInstance.hideScrubber();
+    resultsSection.classList.add("hidden");
+    typingSection.classList.remove("hidden");
+    liveStats.classList.remove("hidden");
+    // reset live stats
+    liveWpm.textContent = "0";
+    liveAccuracy.textContent = "100.0";
+    liveErrors.textContent = "0";
+    liveTimer.style.color = "";
+    if (ghostHud) {
+      if (ghostTargetWpm) ghostTargetWpm.textContent = String(ghostWpm || "--");
+      ghostHud.classList.remove("hidden");
+    }
+    if (ghostResultLine) ghostResultLine.classList.add("hidden");
+    initEngine(testText);
+    renderAllCharacters();
+    hiddenInput.value = "";
+    var lengthVal = parseInt(currentConfig.length, 10);
+    if (!currentConfig.noLimit && isTimedLength(currentConfig.length) && !isNaN(lengthVal)) {
+      remainingSeconds = currentConfig.customSeconds || lengthVal;
+      updateTimerDisplay();
+    } else {
+      liveTimer.textContent = "0s";
+    }
+    startCountdown();
+  }
+
+  function showGhostHud() {
+    if (!ghostHud) return;
+    ghostHud.classList.remove("hidden");
+    if (ghostTargetWpm) ghostTargetWpm.textContent = String(ghostWpm || "--");
+    updateGhostHud();
+  }
+
+  function hideGhostHud() {
+    if (ghostHud) ghostHud.classList.add("hidden");
+    if (ghostDelta) { ghostDelta.textContent = ""; ghostDelta.className = "ghost-delta"; }
+    hideGhostCaret();
+  }
+
+  function getGhostIndexAt(elapsedMs) {
+    var idx = 0;
+    for (var i = 0; i < ghostEvents.length; i++) {
+      if (ghostEvents[i].t > elapsedMs) break;
+      if (ghostEvents[i].type === "backspace") {
+        if (idx > 0) idx--;
+      } else {
+        if (idx < testText.length) idx++;
+      }
+    }
+    return idx;
+  }
+
+  function ensureGhostCaret() {
+    var el = document.getElementById("ghostCaret");
+    if (el) return el;
+    el = document.createElement("span");
+    el.id = "ghostCaret";
+    el.className = "caret ghost-caret";
+    el.style.background = "var(--text-muted)";
+    el.style.opacity = "0.45";
+    el.style.width = "2px";
+    if (typingContainer) typingContainer.appendChild(el);
+    return el;
+  }
+
+  function hideGhostCaret() {
+    var el = document.getElementById("ghostCaret");
+    if (el) el.classList.add("hidden");
+    // also clear any ghost char classes left behind
+    if (typingText) {
+      var gs = typingText.querySelectorAll(".char-ghost, .char-ghost-current");
+      for (var i = 0; i < gs.length; i++) { gs[i].classList.remove("char-ghost", "char-ghost-current"); }
+    }
+  }
+
+  function updateGhostCaret(ghostIdx) {
+    if (!ghostMode || !engine || !typingText) return;
+    // clear previous ghost classes
+    var chars = typingText.querySelectorAll(".char");
+    for (var i = 0; i < chars.length; i++) {
+      chars[i].classList.remove("char-ghost", "char-ghost-current");
+    }
+    if (ghostIdx < chars.length) {
+      chars[ghostIdx].classList.add("char-ghost-current");
+    }
+    // position the ghost caret element
+    var gc = ensureGhostCaret();
+    gc.classList.remove("hidden");
+    var targetEl = ghostIdx < chars.length ? chars[ghostIdx] : chars[chars.length - 1];
+    if (targetEl) {
+      var rect = targetEl.getBoundingClientRect();
+      var containerRect = typingContainer.getBoundingClientRect();
+      if (ghostIdx >= chars.length) {
+        gc.style.left = (rect.right - containerRect.left) + "px";
+      } else {
+        gc.style.left = (rect.left - containerRect.left) + "px";
+      }
+      gc.style.top = (rect.top - containerRect.top) + "px";
+      gc.style.height = rect.height + "px";
+    }
+  }
+
+  function updateGhostHud() {
+    if (!ghostMode || !ghostDelta || !engine) return;
+    var elapsed = engine.startTime ? (Date.now() - engine.startTime) : 0;
+    if (elapsed < 0) elapsed = 0;
+    var ghostIdx = getGhostIndexAt(elapsed);
+    var playerIdx = engine.currentIndex || 0;
+    var delta = playerIdx - ghostIdx;
+    ghostDelta.classList.remove("ahead", "behind");
+    if (delta > 0) {
+      ghostDelta.textContent = "+" + delta + " ahead";
+      ghostDelta.classList.add("ahead");
+    } else if (delta < 0) {
+      ghostDelta.textContent = delta + " behind";
+      ghostDelta.classList.add("behind");
+    } else {
+      ghostDelta.textContent = "tied";
+    }
+    updateGhostCaret(ghostIdx);
+  }
+
+  function startGhost() {
+    stopGhost();
+    ghostActive = true;
+    function tick() {
+      if (!ghostActive || !ghostMode || !engine || engine.state !== typingEngine.STATE.RUNNING) return;
+      updateGhostHud();
+      ghostRAF = requestAnimationFrame(tick);
+    }
+    ghostRAF = requestAnimationFrame(tick);
+  }
+
+  function stopGhost() {
+    ghostActive = false;
+    if (ghostRAF) { cancelAnimationFrame(ghostRAF); ghostRAF = null; }
+    hideGhostCaret();
+    if (ghostDelta) { ghostDelta.textContent = ""; ghostDelta.classList.remove("ahead", "behind"); }
+  }
+
+  function renderGhostResult(metrics) {
+    if (!ghostResultLine || !ghostResultText) return;
+    if (!ghostMode) {
+      ghostResultLine.classList.add("hidden");
+      ghostResultText.textContent = "";
+      // keep ghostEvents for next race, but clear ghostMode flag
+      ghostMode = false;
+      return;
+    }
+    var playerWpm = metrics.wpm || 0;
+    var diff = playerWpm - (ghostWpm || 0);
+    var won = diff > 0;
+    var tied = diff === 0;
+    ghostResultLine.classList.remove("hidden");
+    ghostResultLine.style.display = "flex";
+    ghostResultLine.style.justifyContent = "center";
+    ghostResultLine.style.padding = "10px 0 4px";
+    ghostResultLine.style.fontWeight = "600";
+    if (tied) {
+      ghostResultLine.style.color = "var(--text-muted)";
+      ghostResultText.textContent = "Tied with your ghost (" + ghostWpm + " WPM) — nice consistency!";
+    } else if (won) {
+      ghostResultLine.style.color = "var(--success)";
+      ghostResultText.textContent = "You beat your ghost! " + playerWpm + " vs " + ghostWpm + " WPM (+" + diff + ")";
+    } else {
+      ghostResultLine.style.color = "var(--error)";
+      ghostResultText.textContent = "Ghost won this time — " + ghostWpm + " vs " + playerWpm + " WPM (" + diff + ")";
+    }
+    // reset ghostMode so the next normal restart is not a ghost race
+    ghostMode = false;
   }
 
   // --- Playback (faithful real-time replay) ---
