@@ -37,7 +37,14 @@
           <a href="/dashboard.html" class="nav-link">Dashboard</a>
           <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
         </div>
-        <div class="nav-actions" id="navActions"></div>
+        <div id="nav-guest-area" style="display: none" class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
+        </div>
+        <div id="nav-user-area" style="display: none" class="navbar-user">
+          <a id="nav-username" class="btn btn-primary navbar-username-btn" href="/settings.html" title="Open settings"></a>
+          <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+        </div>
       </div>
     </nav>
 
@@ -108,12 +115,14 @@
         <div class="editor-pane" id="editorPane">
           <div class="editor-header">
             <div class="editor-dots" aria-hidden="true">
-              <span class="dot dot-error"></span>
-              <span class="dot dot-warning"></span>
-              <span class="dot dot-success"></span>
+              <span class="editor-dot editor-dot-red"></span>
+              <span class="editor-dot editor-dot-yellow"></span>
+              <span class="editor-dot editor-dot-green"></span>
             </div>
             <span class="editor-title" id="editorTitle"></span>
-            <div class="editor-spacer"></div>
+            <div class="editor-actions">
+              <span class="editor-spacer" aria-hidden="true"></span>
+            </div>
           </div>
           <div class="editor-body" id="editorBody">
             <div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>

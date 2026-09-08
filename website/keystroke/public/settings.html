@@ -27,24 +27,28 @@
   </head>
   <body class="page-settings">
     <!-- Navigation -->
-    <header class="site-header">
-      <div class="container header-inner">
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <div class="navbar-inner">
         <a href="/" class="logo" aria-label="Keystroke home">
           <span class="logo-icon" aria-hidden="true">>_</span>
           <span class="logo-text">keystroke</span>
         </a>
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="/type.html">Type</a>
-          <a href="/learning.html">Learning</a>
-          <a href="/dashboard.html">Dashboard</a>
-          <a href="/leaderboard.html">Leaderboard</a>
-          <a href="/settings.html" class="active" aria-current="page"
-            >Settings</a
-          >
-          <div id="nav-auth-links"></div>
-        </nav>
+        <div class="nav-links">
+          <a href="/type.html" class="nav-link">Type</a>
+          <a href="/learning.html" class="nav-link">Learning</a>
+          <a href="/dashboard.html" class="nav-link">Dashboard</a>
+          <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
+        </div>
+        <div id="nav-guest-area" style="display: none" class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
+        </div>
+        <div id="nav-user-area" style="display: none" class="navbar-user">
+          <a id="nav-username" class="btn btn-primary navbar-username-btn" href="/settings.html" title="Open settings"></a>
+          <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+        </div>
       </div>
-    </header>
+    </nav>
 
     <!-- Main content -->
     <main class="settings-container container">

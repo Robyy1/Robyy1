@@ -126,26 +126,94 @@
 
   // --- UI: Update navbar based on auth state ---
 
+  function fitUsernameButton(el) {
+    if (!el) return;
+    var full = el.getAttribute('data-fullname') || el.textContent || '';
+    if (!full) return;
+    // Reset to base state
+    el.textContent = full;
+    el.style.fontSize = '13px';
+    // If it already fits, we're done
+    if (el.scrollWidth <= el.clientWidth) return;
+    // Try shrinking font slightly (not too much per spec)
+    var sizes = ['12.5px', '12px', '11.5px', '11px'];
+    for (var i = 0; i < sizes.length; i++) {
+      el.style.fontSize = sizes[i];
+      if (el.scrollWidth <= el.clientWidth) return;
+    }
+    // Still overflows: truncate with ellipsis (keep font at smallest)
+    el.style.fontSize = '11px';
+    var text = full;
+    while (text.length > 1 && el.scrollWidth > el.clientWidth) {
+      text = text.slice(0, -1);
+      el.textContent = text + '...';
+    }
+  }
+
   function updateNavbar(user) {
     var navUserArea = document.getElementById('nav-user-area');
     var navGuestArea = document.getElementById('nav-guest-area');
-    if (!navUserArea && !navGuestArea) return;
+    // Legacy fallbacks: some old pages used different ids
+    var legacyNavActions = document.getElementById('navActions');
+    var legacyAuthLinks = document.getElementById('nav-auth-links');
+    var hasModern = !!(navUserArea || navGuestArea);
+    var hasLegacy = !!(legacyNavActions || legacyAuthLinks);
+
+    if (!hasModern && !hasLegacy) return;
 
     if (user) {
       if (navUserArea) navUserArea.style.display = 'flex';
       if (navGuestArea) navGuestArea.style.display = 'none';
       var usernameEl = document.getElementById('nav-username');
       if (usernameEl) {
+        usernameEl.setAttribute('data-fullname', user.username);
+        usernameEl.setAttribute('title', user.username + ' — Open settings');
+        // Ensure it's an anchor to settings
+        if (usernameEl.tagName.toLowerCase() !== 'a') {
+          usernameEl.setAttribute('href', '/settings.html');
+        } else {
+          usernameEl.href = '/settings.html';
+        }
         usernameEl.textContent = user.username;
-        usernameEl.style.cursor = 'pointer';
-        usernameEl.addEventListener('click', function() {
-          window.location.href = '/settings.html';
+        // Fit after render
+        requestAnimationFrame(function () {
+          fitUsernameButton(usernameEl);
         });
+        window.addEventListener('resize', function onResize() {
+          fitUsernameButton(usernameEl);
+        });
+      }
+      // Legacy: render into old containers if modern not present
+      if (!hasModern && legacyNavActions) {
+        legacyNavActions.innerHTML =
+          '<a href="/settings.html" class="btn btn-primary navbar-username-btn" data-fullname="' + escapeHtml(user.username) + '" title="' + escapeHtml(user.username) + '">' + escapeHtml(user.username) + '</a>' +
+          '<button type="button" class="btn btn-ghost logout-btn">Logout</button>';
+        var fitted = legacyNavActions.querySelector('[data-fullname]');
+        if (fitted) requestAnimationFrame(function () { fitUsernameButton(fitted); });
+        var lb = legacyNavActions.querySelector('.logout-btn');
+        if (lb) lb.addEventListener('click', function () { if (confirm('Are you sure you want to log out?')) logout(); });
+      }
+      if (!hasModern && legacyAuthLinks) {
+        legacyAuthLinks.innerHTML = '<a href="/settings.html" class="btn btn-primary navbar-username-btn">' + escapeHtml(user.username) + '</a>';
       }
     } else {
       if (navUserArea) navUserArea.style.display = 'none';
       if (navGuestArea) navGuestArea.style.display = 'flex';
+      if (!hasModern && legacyNavActions) {
+        legacyNavActions.innerHTML =
+          '<a href="/login.html" class="btn btn-ghost">Log in</a>' +
+          '<a href="/signup.html" class="btn btn-primary">Sign up</a>';
+      }
+      if (!hasModern && legacyAuthLinks) {
+        legacyAuthLinks.innerHTML = '<a href="/login.html" class="btn btn-ghost">Log in</a> <a href="/signup.html" class="btn btn-primary">Sign up</a>';
+      }
     }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
   }
 
   // --- Page-specific init ---

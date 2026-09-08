@@ -24,19 +24,25 @@
   <body class="page-404">
     <!-- Navigation -->
     <nav class="navbar" role="navigation" aria-label="Main navigation">
-      <a href="/" class="navbar-brand" aria-label="Keystroke home">
-        <span class="logo-icon" aria-hidden="true">>_</span>
-        <span class="logo-text">keystroke</span>
-      </a>
-      <ul class="navbar-links">
-        <li><a href="/type.html" class="navbar-link">Type</a></li>
-        <li><a href="/learning.html" class="navbar-link">Learning</a></li>
-        <li><a href="/dashboard.html" class="navbar-link">Dashboard</a></li>
-        <li><a href="/leaderboard.html" class="navbar-link">Leaderboard</a></li>
-      </ul>
-      <div class="navbar-user">
-        <a href="/login.html" class="btn btn-ghost">Log in</a>
-        <a href="/signup.html" class="btn btn-primary">Sign up</a>
+      <div class="navbar-inner">
+        <a href="/" class="logo" aria-label="Keystroke home">
+          <span class="logo-icon" aria-hidden="true">>_</span>
+          <span class="logo-text">keystroke</span>
+        </a>
+        <div class="nav-links">
+          <a href="/type.html" class="nav-link">Type</a>
+          <a href="/learning.html" class="nav-link">Learning</a>
+          <a href="/dashboard.html" class="nav-link">Dashboard</a>
+          <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
+        </div>
+        <div id="nav-guest-area" style="display: none" class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
+        </div>
+        <div id="nav-user-area" style="display: none" class="navbar-user">
+          <a id="nav-username" class="btn btn-primary navbar-username-btn" href="/settings.html" title="Open settings"></a>
+          <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+        </div>
       </div>
     </nav>
 

@@ -535,6 +535,94 @@
   width: min(1240px, 100%);
   margin: 0 auto;
   padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-8));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Stable centered editor — prevents layout shift when content length varies */
+.type-page .typing-section .live-stats,
+.type-page .typing-section .ghost-hud,
+.lesson-page .typing-section .live-stats,
+.lesson-page .typing-section .ghost-hud {
+  width: 100%;
+  max-width: 900px;
+}
+
+.type-page .editor,
+.type-page .editor-pane,
+.lesson-page .editor-pane {
+  width: 100%;
+  max-width: 900px;
+  min-height: 380px;
+  max-height: 520px;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(var(--surface-rgb), 0.98);
+  border: 1px solid rgba(var(--border-rgb), 0.7);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.type-page .editor .editor-body,
+.type-page .editor-pane .editor-body,
+.lesson-page .editor-pane .editor-body {
+  flex: 1;
+  min-height: 280px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.type-page .editor .typing-area,
+.type-page .editor-pane .typing-container,
+.lesson-page .editor-pane .typing-container {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Ensure results / error messages don't shift editor — reserve space */
+.type-page .results-section,
+.lesson-page .results-section {
+  width: min(1240px, 92vw);
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* Make typing results take advantage of extra screen space */
+.type-page .results-card,
+.lesson-page .results-card {
+  width: 100%;
+  max-width: none;
+}
+
+.type-page .results-stats,
+.lesson-page .results-stats,
+.lesson-page .results-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+@media (min-width: 1280px) {
+  .type-page .results-stats,
+  .lesson-page .results-stats,
+  .lesson-page .results-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .type-page .results-section,
+  .lesson-page .results-section {
+    width: min(1400px, 92vw);
+  }
 }
 
 @media (max-width: 980px) {
@@ -1704,10 +1792,20 @@ a.lesson-row-link:hover .lesson-row {
 /* Lesson page                                                          */
 /* ------------------------------------------------------------------ */
 .lesson-page {
-  width: min(1100px, 100%);
+  width: min(1240px, 100%);
+  max-width: 100%;
   margin: 0 auto;
   padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-8))
     var(--space-10);
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.type-page,
+.lesson-page {
+  overflow-x: clip;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 .lesson-header {
   display: flex;
@@ -1747,14 +1845,59 @@ a.lesson-row-link:hover .lesson-row {
 .lesson-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: var(--space-3);
   margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: rgba(var(--surface-rgb), 0.6);
+  border: 1px solid rgba(var(--border-rgb), 0.5);
+  border-radius: var(--radius-lg);
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.lesson-actions .btn-3d {
+  min-width: 180px;
+}
+.lesson-page .typing-section {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.lesson-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+.lesson-type .live-stats,
+.lesson-type .editor-pane {
+  width: 100%;
 }
 .lesson-explanation-card {
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+.lesson-read {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
 }
 .lesson-explanation {
   color: var(--text);
@@ -3090,6 +3233,11 @@ html[data-motion="on"] .hero-grid-pulse {
   display: flex;
   position: relative;
   min-height: clamp(180px, 30vw, 280px);
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .line-numbers {
@@ -3116,9 +3264,13 @@ html[data-motion="on"] .hero-grid-pulse {
   flex: 1;
   position: relative;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  max-width: 100%;
   padding: var(--space-4) var(--space-5);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+  box-sizing: border-box;
 }
 
 .typing-area::-webkit-scrollbar {
@@ -3139,9 +3291,12 @@ html[data-motion="on"] .hero-grid-pulse {
   font-size: clamp(1rem, 1.5vw, 1.35rem);
   line-height: 1.8;
   white-space: pre-wrap;
-  word-break: normal;
-  overflow-wrap: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   color: var(--text);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Character States */
@@ -3273,12 +3428,18 @@ html[data-motion="on"] .hero-grid-pulse {
 
 /* Results Section — centered, full-width, uses screen space */
 .results-section {
-  width: min(1600px, 92vw);
+  width: min(1240px, 92vw);
   max-width: 100%;
   margin: var(--space-6) auto 0;
   padding: 0 clamp(1rem, 4vw, 2rem);
   box-sizing: border-box;
   align-self: center;
+}
+
+@media (min-width: 1280px) {
+  .results-section {
+    width: min(1400px, 92vw);
+  }
 }
 
 .results-section.hidden {

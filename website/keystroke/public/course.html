@@ -34,7 +34,14 @@
           <a href="/dashboard.html" class="nav-link">Dashboard</a>
           <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
         </div>
-        <div class="nav-actions" id="navActions"></div>
+        <div id="nav-guest-area" style="display: none" class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
+        </div>
+        <div id="nav-user-area" style="display: none" class="navbar-user">
+          <a id="nav-username" class="btn btn-primary navbar-username-btn" href="/settings.html" title="Open settings"></a>
+          <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
+        </div>
       </div>
     </nav>
 
