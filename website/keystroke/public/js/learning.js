@@ -109,7 +109,7 @@
 
   function init() {
     window.auth.getMe().then(function (user) {
-      renderNav(user);
+      window.auth.updateNavbar(user);
       var guest = document.getElementById('guestBanner');
       if (guest) guest.classList.toggle('hidden', !!user);
 

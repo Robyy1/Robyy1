@@ -47,8 +47,13 @@
           <a href="/leaderboard.html" class="nav-link">Leaderboard</a>
         </div>
 
-        <div class="nav-actions" id="navActions">
-          <!-- Dynamically populated by auth-client.js -->
+        <div id="nav-guest-area" style="display: none" class="navbar-user">
+          <a href="/login.html" class="btn btn-ghost">Log in</a>
+          <a href="/signup.html" class="btn btn-primary">Sign up</a>
+        </div>
+        <div id="nav-user-area" style="display: none" class="navbar-user">
+          <span id="nav-username" class="navbar-avatar" style="cursor:pointer;" title="Open settings"></span>
+          <button class="btn btn-ghost logout-btn" aria-label="Log out">Logout</button>
         </div>
       </div>
     </nav>
